@@ -82,7 +82,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadSponsors } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadSponsors } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -92,6 +92,32 @@ import type {
   SponsorPortalData,
   SponsorPublication,
 } from "@/types/sponsors";
+import type {
+  FinanceBudget,
+  FinanceDashboardStats,
+  FinanceDocument,
+  FinanceExpense,
+  FinanceFeePayment,
+  FinanceFeePlan,
+  FinanceGrant,
+  FinanceIncome,
+  FinancePlayerFee,
+  FinanceReport,
+  ParentFinancePortalData,
+} from "@/types/finance";
+import {
+  mapFinanceBudget,
+  mapFinanceDocument,
+  mapFinanceExpense,
+  mapFinanceFeePayment,
+  mapFinanceFeePlan,
+  mapFinanceGrant,
+  mapFinanceIncome,
+  mapFinancePlayerFee,
+  mapFinanceReport,
+  sumAmounts,
+} from "@/lib/finance/mappers";
+import { computeBudgetExecution } from "@/lib/finance/insights";
 import {
   mapSponsor,
   mapSponsorContract,
@@ -1848,5 +1874,264 @@ export const getSponsorReport = cache(
       report: mapSponsorReport(data),
       sponsorName: (data.sponsors as { company_name?: string } | null)?.company_name ?? "Sponsor",
     };
+  },
+);
+
+export function requireFinanceReadAccess(access: UserAccessContext) {
+  if (!canReadFinance(access.roles)) redirect("/dashboard");
+}
+
+export function requireFinancePortalAccess(access: UserAccessContext) {
+  if (!access.roles.includes("parent")) redirect("/dashboard");
+}
+
+export const getFinanceIncome = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<FinanceIncome[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_income")
+      .select("*, author:created_by(full_name)")
+      .eq("club_id", clubId)
+      .order("transaction_date", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapFinanceIncome);
+  },
+);
+
+export const getFinanceExpenses = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<FinanceExpense[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_expenses")
+      .select("*, author:created_by(full_name)")
+      .eq("club_id", clubId)
+      .order("transaction_date", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapFinanceExpense);
+  },
+);
+
+export const getFinanceFeePlans = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceFeePlan[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_fee_plans")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("name");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapFinanceFeePlan);
+  },
+);
+
+export const getFinancePlayerFees = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 200): Promise<FinancePlayerFee[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_player_fees")
+      .select("*, player:player_id(first_name, last_name)")
+      .eq("club_id", clubId)
+      .order("due_date", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapFinancePlayerFee);
+  },
+);
+
+export const getFinanceGrants = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceGrant[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_grants")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("period_start", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapFinanceGrant);
+  },
+);
+
+export const getFinanceBudgets = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceBudget[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_budgets")
+      .select("*, team:team_id(name)")
+      .eq("club_id", clubId)
+      .order("period_start", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+
+    const rows = (data ?? []) as Array<Record<string, unknown> & { period_start: string; period_end: string }>;
+    return Promise.all(
+      rows.map(async (row) => {
+        const executed = await computeBudgetExecution(
+          clubId,
+          String(row.period_start),
+          String(row.period_end),
+        );
+        return mapFinanceBudget(row, executed);
+      }),
+    );
+  },
+);
+
+export const getFinanceDocuments = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceDocument[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_documents")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("issue_date", { ascending: false, nullsFirst: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapFinanceDocument);
+  },
+);
+
+export const getFinanceReports = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceReport[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("finance_reports")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("period_end", { ascending: false })
+      .limit(30);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapFinanceReport);
+  },
+);
+
+export const getFinanceReport = cache(
+  async (reportId: string, clubId: string = DEFAULT_CLUB_ID): Promise<FinanceReport | null> => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("finance_reports")
+      .select("*")
+      .eq("id", reportId)
+      .eq("club_id", clubId)
+      .maybeSingle();
+    return data ? mapFinanceReport(data) : null;
+  },
+);
+
+export const getFinanceDashboardStats = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceDashboardStats> => {
+    const supabase = await createClient();
+    const [income, expenses, fees, recentIncome, recentExpenses] = await Promise.all([
+      supabase.from("finance_income").select("amount, category").eq("club_id", clubId).limit(5000),
+      supabase.from("finance_expenses").select("amount").eq("club_id", clubId).limit(5000),
+      supabase
+        .from("finance_player_fees")
+        .select("*, player:player_id(first_name, last_name)")
+        .eq("club_id", clubId)
+        .in("status", ["partial", "overdue"])
+        .order("due_date", { ascending: true })
+        .limit(20),
+      supabase
+        .from("finance_income")
+        .select("*, author:created_by(full_name)")
+        .eq("club_id", clubId)
+        .order("transaction_date", { ascending: false })
+        .limit(5),
+      supabase
+        .from("finance_expenses")
+        .select("*, author:created_by(full_name)")
+        .eq("club_id", clubId)
+        .order("transaction_date", { ascending: false })
+        .limit(5),
+    ]);
+
+    const incomeRows = income.data ?? [];
+    const expenseRows = expenses.data ?? [];
+    const totalIncome = sumAmounts(incomeRows.map((r) => ({ amount: Number(r.amount) })));
+    const totalExpenses = sumAmounts(expenseRows.map((r) => ({ amount: Number(r.amount) })));
+    const feeRows = (fees.data ?? []).map(mapFinancePlayerFee);
+    const sponsorIncome = incomeRows
+      .filter((r) => r.category === "sponsors")
+      .reduce((sum, r) => sum + Number(r.amount), 0);
+
+    const allFeesRes = await supabase
+      .from("finance_player_fees")
+      .select("amount_due, amount_paid")
+      .eq("club_id", clubId)
+      .limit(5000);
+
+    const allFeeRows = allFeesRes.data ?? [];
+    const totalFeesDue = allFeeRows.reduce((s, r) => s + Number(r.amount_due), 0);
+    const totalFeesPaid = allFeeRows.reduce((s, r) => s + Number(r.amount_paid), 0);
+
+    return {
+      balance: totalIncome - totalExpenses,
+      totalIncome,
+      totalExpenses,
+      totalFeesDue,
+      totalFeesPaid,
+      overdueFeesCount: feeRows.length,
+      sponsorIncomeTotal: sponsorIncome,
+      recentIncome: (recentIncome.data ?? []).map(mapFinanceIncome),
+      recentExpenses: (recentExpenses.data ?? []).map(mapFinanceExpense),
+      overdueFees: feeRows,
+    };
+  },
+);
+
+export const getParentFinancePortalData = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<ParentFinancePortalData | null> => {
+    const user = await getUser();
+    if (!user) return null;
+
+    const supabase = await createClient();
+    const { data: guardian } = await supabase
+      .from("player_guardians")
+      .select("player_id, player:player_id(first_name, last_name)")
+      .eq("club_id", clubId)
+      .eq("profile_id", user.id)
+      .limit(1)
+      .maybeSingle();
+
+    if (!guardian) return null;
+
+    const guardianRow = guardian as {
+      player_id: string;
+      player: { first_name?: string; last_name?: string } | null;
+    };
+    const playerId = guardianRow.player_id;
+    const player = guardianRow.player;
+    const playerName = player
+      ? `${player.first_name ?? ""} ${player.last_name ?? ""}`.trim()
+      : "Zawodnik";
+
+    const [feesRes, paymentsRes] = await Promise.all([
+      supabase
+        .from("finance_player_fees")
+        .select("*")
+        .eq("club_id", clubId)
+        .eq("player_id", playerId)
+        .order("due_date", { ascending: false })
+        .limit(50),
+      supabase
+        .from("finance_player_fee_payments")
+        .select("*, recorder:recorded_by(full_name), fee:player_fee_id(player_id)")
+        .eq("club_id", clubId)
+        .order("payment_date", { ascending: false })
+        .limit(50),
+    ]);
+
+    const fees = (feesRes.data ?? []).map(mapFinancePlayerFee);
+    const payments = (paymentsRes.data ?? [])
+      .filter((p) => {
+        const row = p as { fee: { player_id?: string } | null };
+        return row.fee?.player_id === playerId;
+      })
+      .map((p) => mapFinanceFeePayment(p as Record<string, unknown>));
+
+    const balance = fees.reduce((sum, f) => sum + f.amountRemaining, 0);
+
+    return { playerId, playerName, balance, fees, payments };
   },
 );

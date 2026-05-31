@@ -5,7 +5,8 @@ export type AiReportCategory =
   | "trainings"
   | "players"
   | "management"
-  | "sponsors";
+  | "sponsors"
+  | "finance";
 
 export type AiReportType =
   | "match_summary"
@@ -114,6 +115,29 @@ export type AiClubContext = {
     activeContractValue: number;
     expiringWithin60Days: Array<{ companyName: string; contractName: string; endDate: string }>;
     noContact30Days: Array<{ companyName: string; lastContact: string | null }>;
+  };
+  finance: {
+    summary: {
+      totalIncome: number;
+      totalExpenses: number;
+      balance: number;
+      overdueFeesCount: number;
+    };
+    overduePlayerFees: Array<{
+      name: string;
+      player: string | null;
+      amountDue: number;
+      amountPaid: number;
+      status: string;
+      dueDate: string;
+    }>;
+    unpaidSponsorEntries: Array<{
+      amount: number;
+      status: string;
+      dueDate: string | null;
+      sponsor: string | null;
+    }>;
+    recentExpenses: Array<{ category: string; amount: number; date: string }>;
   };
 };
 

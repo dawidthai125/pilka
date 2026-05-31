@@ -11,6 +11,7 @@ import {
   User,
   UserRound,
   Users,
+  Wallet,
 } from "lucide-react";
 
 export const dashboardNav = [
@@ -75,6 +76,18 @@ export const dashboardNav = [
     href: "/sponsors/portal",
     icon: Handshake,
     audience: "sponsor" as const,
+  },
+  {
+    title: "Finanse",
+    href: "/finance",
+    icon: Wallet,
+    audience: "finance_staff" as const,
+  },
+  {
+    title: "Moje składki",
+    href: "/finance/portal",
+    icon: Wallet,
+    audience: "parent" as const,
   },
   {
     title: "Role i uprawnienia",

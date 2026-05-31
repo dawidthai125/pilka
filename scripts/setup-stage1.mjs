@@ -38,6 +38,7 @@ const TEST_USERS = [
   { email: "trener@piorun.test", role: "coach", fullName: "Tomasz Trener", teamId: TEAM_ID },
   { email: "zawodnik@piorun.test", role: "player", fullName: "Kamil Zawodnik", teamId: TEAM_ID },
   { email: "rodzic@piorun.test", role: "parent", fullName: "Anna Rodzic" },
+  { email: "skarbnik@piorun.test", role: "treasurer", fullName: "Jan Skarbnik" },
   { email: "sponsor@piorun.test", role: "sponsor", fullName: "Firma Sponsor" },
 ];
 

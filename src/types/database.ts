@@ -1231,6 +1231,332 @@ export type Database = {
         };
         Relationships: [];
       };
+      player_guardians: {
+        Row: {
+          id: string;
+          club_id: string;
+          player_id: string;
+          profile_id: string;
+          relationship: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          player_id: string;
+          profile_id: string;
+          relationship?: string | null;
+        };
+        Update: {
+          relationship?: string | null;
+        };
+        Relationships: [];
+      };
+      finance_income: {
+        Row: {
+          id: string;
+          club_id: string;
+          transaction_date: string;
+          amount: number;
+          currency: string;
+          description: string;
+          category: Database["public"]["Enums"]["finance_income_category"];
+          sponsor_id: string | null;
+          grant_id: string | null;
+          player_fee_id: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          transaction_date?: string;
+          amount: number;
+          currency?: string;
+          description: string;
+          category: Database["public"]["Enums"]["finance_income_category"];
+          sponsor_id?: string | null;
+          grant_id?: string | null;
+          player_fee_id?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          transaction_date?: string;
+          amount?: number;
+          description?: string;
+          category?: Database["public"]["Enums"]["finance_income_category"];
+        };
+        Relationships: [];
+      };
+      finance_expenses: {
+        Row: {
+          id: string;
+          club_id: string;
+          transaction_date: string;
+          amount: number;
+          currency: string;
+          description: string;
+          category: Database["public"]["Enums"]["finance_expense_category"];
+          attachment_url: string | null;
+          attachment_name: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          transaction_date?: string;
+          amount: number;
+          currency?: string;
+          description: string;
+          category: Database["public"]["Enums"]["finance_expense_category"];
+          attachment_url?: string | null;
+          attachment_name?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          transaction_date?: string;
+          amount?: number;
+          description?: string;
+          category?: Database["public"]["Enums"]["finance_expense_category"];
+          attachment_url?: string | null;
+          attachment_name?: string | null;
+        };
+        Relationships: [];
+      };
+      finance_fee_plans: {
+        Row: {
+          id: string;
+          club_id: string;
+          name: string;
+          fee_type: Database["public"]["Enums"]["finance_fee_plan_type"];
+          amount: number;
+          currency: string;
+          team_id: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          name: string;
+          fee_type: Database["public"]["Enums"]["finance_fee_plan_type"];
+          amount: number;
+          currency?: string;
+          team_id?: string | null;
+          is_active?: boolean;
+        };
+        Update: {
+          name?: string;
+          amount?: number;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
+      finance_player_fees: {
+        Row: {
+          id: string;
+          club_id: string;
+          player_id: string;
+          fee_plan_id: string | null;
+          name: string;
+          due_date: string;
+          amount_due: number;
+          amount_paid: number;
+          currency: string;
+          status: Database["public"]["Enums"]["finance_player_fee_status"];
+          period_month: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          player_id: string;
+          fee_plan_id?: string | null;
+          name: string;
+          due_date: string;
+          amount_due: number;
+          amount_paid?: number;
+          currency?: string;
+          period_month?: string | null;
+        };
+        Update: {
+          amount_due?: number;
+          amount_paid?: number;
+          due_date?: string;
+          status?: Database["public"]["Enums"]["finance_player_fee_status"];
+        };
+        Relationships: [];
+      };
+      finance_player_fee_payments: {
+        Row: {
+          id: string;
+          club_id: string;
+          player_fee_id: string;
+          payment_date: string;
+          amount: number;
+          note: string | null;
+          recorded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          player_fee_id: string;
+          payment_date?: string;
+          amount: number;
+          note?: string | null;
+          recorded_by?: string | null;
+        };
+        Update: {
+          amount?: number;
+          note?: string | null;
+        };
+        Relationships: [];
+      };
+      finance_grants: {
+        Row: {
+          id: string;
+          club_id: string;
+          source: string;
+          amount: number;
+          currency: string;
+          period_start: string;
+          period_end: string;
+          status: Database["public"]["Enums"]["finance_grant_status"];
+          description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          source: string;
+          amount: number;
+          currency?: string;
+          period_start: string;
+          period_end: string;
+          status?: Database["public"]["Enums"]["finance_grant_status"];
+          description?: string | null;
+        };
+        Update: {
+          source?: string;
+          amount?: number;
+          status?: Database["public"]["Enums"]["finance_grant_status"];
+          description?: string | null;
+        };
+        Relationships: [];
+      };
+      finance_budgets: {
+        Row: {
+          id: string;
+          club_id: string;
+          name: string;
+          budget_type: Database["public"]["Enums"]["finance_budget_type"];
+          team_id: string | null;
+          season: string | null;
+          period_start: string;
+          period_end: string;
+          planned_amount: number;
+          currency: string;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          name: string;
+          budget_type: Database["public"]["Enums"]["finance_budget_type"];
+          team_id?: string | null;
+          season?: string | null;
+          period_start: string;
+          period_end: string;
+          planned_amount: number;
+          currency?: string;
+          notes?: string | null;
+        };
+        Update: {
+          name?: string;
+          planned_amount?: number;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      finance_documents: {
+        Row: {
+          id: string;
+          club_id: string;
+          document_type: Database["public"]["Enums"]["finance_document_type"];
+          title: string;
+          storage_path: string;
+          file_name: string;
+          file_size: number | null;
+          mime_type: string | null;
+          issue_date: string | null;
+          amount: number | null;
+          income_id: string | null;
+          expense_id: string | null;
+          sponsor_id: string | null;
+          grant_id: string | null;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          document_type: Database["public"]["Enums"]["finance_document_type"];
+          title: string;
+          storage_path: string;
+          file_name: string;
+          file_size?: number | null;
+          mime_type?: string | null;
+          issue_date?: string | null;
+          amount?: number | null;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          title?: string;
+          amount?: number | null;
+        };
+        Relationships: [];
+      };
+      finance_reports: {
+        Row: {
+          id: string;
+          club_id: string;
+          title: string;
+          period_type: Database["public"]["Enums"]["finance_report_period"];
+          period_start: string;
+          period_end: string;
+          content: Json;
+          status: Database["public"]["Enums"]["finance_report_status"];
+          generated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          title: string;
+          period_type: Database["public"]["Enums"]["finance_report_period"];
+          period_start: string;
+          period_end: string;
+          content?: Json;
+          status?: Database["public"]["Enums"]["finance_report_status"];
+          generated_by?: string | null;
+        };
+        Update: {
+          title?: string;
+          content?: Json;
+          status?: Database["public"]["Enums"]["finance_report_status"];
+        };
+        Relationships: [];
+      };
       ai_suggestions: {
         Row: {
           id: string;
@@ -1290,6 +1616,7 @@ export type Database = {
         | "owner"
         | "president"
         | "sports_director"
+        | "treasurer"
         | "coach"
         | "player"
         | "parent"
@@ -1322,7 +1649,7 @@ export type Database = {
       match_squad_role: "squad" | "starter" | "substitute";
       match_event_type: "goal" | "assist" | "yellow_card" | "red_card" | "substitution" | "injury";
       ai_message_role: "user" | "assistant" | "system";
-      ai_report_category: "matches" | "trainings" | "players" | "management" | "sponsors";
+      ai_report_category: "matches" | "trainings" | "players" | "management" | "sponsors" | "finance";
       ai_report_type:
         | "match_summary"
         | "training_weekly"
@@ -1353,6 +1680,30 @@ export type Database = {
       sponsor_financial_entry_type: "payment" | "installment" | "invoice";
       sponsor_financial_status: "planned" | "pending" | "paid" | "overdue" | "cancelled";
       sponsor_report_status: "draft" | "published";
+      finance_income_category:
+        | "sponsors"
+        | "player_fees"
+        | "grants"
+        | "donations"
+        | "club_sales"
+        | "other";
+      finance_expense_category:
+        | "equipment"
+        | "kits"
+        | "referees"
+        | "transport"
+        | "pitch"
+        | "training"
+        | "marketing"
+        | "administration"
+        | "other";
+      finance_fee_plan_type: "monthly" | "one_time";
+      finance_player_fee_status: "paid" | "partial" | "overdue";
+      finance_grant_status: "planned" | "active" | "completed";
+      finance_budget_type: "season" | "team" | "event";
+      finance_document_type: "invoice" | "receipt" | "contract";
+      finance_report_period: "monthly" | "quarterly" | "yearly";
+      finance_report_status: "draft" | "published";
     };
     CompositeTypes: Record<string, never>;
   };

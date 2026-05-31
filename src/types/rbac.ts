@@ -2,6 +2,7 @@ export const CLUB_ROLES = [
   "owner",
   "president",
   "sports_director",
+  "treasurer",
   "coach",
   "player",
   "parent",
@@ -61,6 +62,9 @@ export const PERMISSIONS = [
   "sponsor:read",
   "sponsor:manage",
   "sponsor:portal",
+  "finance:read",
+  "finance:manage",
+  "finance:portal",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
