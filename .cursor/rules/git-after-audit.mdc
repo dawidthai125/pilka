@@ -1,0 +1,16 @@
+---
+description: Po audycie lub większej naprawie zawsze commit i push na origin
+alwaysApply: true
+---
+
+# Git po audycie i większych naprawach
+
+Po zakończeniu **audytu**, **etapu implementacji** lub **większej naprawy** (bezpieczeństwo, RLS, migracje, refaktor modułu):
+
+1. Uruchom weryfikację (`npm run typecheck`, `npm run build` — jeśli dotyczy zmian).
+2. **Zawsze** utwórz commit ze wszystkimi powiązanymi plikami (kod, migracje, dokumentacja audytu).
+3. **Zawsze** wykonaj `git push -u origin HEAD` (lub push bieżącego brancha), chyba że użytkownik wyraźnie zabroni pusha.
+
+Nie czekaj na prośbę „zrób commit” — po audycie commit + push są **domyślnym** krokiem domknięcia pracy.
+
+Wyjątki: brak zmian do commitowania; commit/push zablokowany przez użytkownika w tej sesji.

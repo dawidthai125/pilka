@@ -9,6 +9,14 @@ import { createClient, getUser } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 import type { Club, ClubRole, Profile, Team, UserAccessContext } from "@/types/rbac";
 import type { DocumentAlert, Player, PlayerCoachNote, PlayerDocument, PlayerClubHistory, PlayerInjury, PlayerStats } from "@/types/players";
+import type {
+  AttendanceScope,
+  CalendarView,
+  ClubNotification,
+  CoachDashboardData,
+  PlayerAttendanceStats,
+  Training,
+} from "@/types/trainings";
 import { getDocumentAlertLevel, sortDocumentAlerts } from "@/lib/players/documents";
 import {
   mapCoachNote,
@@ -19,6 +27,23 @@ import {
   mapPlayerStats,
   playerFullName,
 } from "@/lib/players/mappers";
+import {
+  computePlayerStats,
+  getScopeDateFrom,
+  mapAttendance,
+  mapAvailability,
+  mapClubNotification,
+  mapSessionNote,
+  mapTraining,
+} from "@/lib/training/mappers";
+import {
+  buildReminderCopy,
+  isNotificationDue,
+  reminderScheduledAt,
+} from "@/lib/training/notifications";
+import { getCalendarRange, parseLocalDate } from "@/lib/training/calendar";
+import { TRAINING_REMINDER_TYPES } from "@/types/trainings";
+import { canManageTrainings } from "@/config/permissions";
 
 export const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -217,6 +242,10 @@ export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID
     redirect("/login?error=no_membership");
   }
 
+  await syncTrainingReminders(clubId);
+
+  const unreadNotifications = await getUnreadNotificationCount(clubId);
+
   return {
     user,
     profile,
@@ -224,6 +253,7 @@ export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID
     club,
     teams,
     siteName: siteConfig.name,
+    unreadNotifications,
   };
 });
 
@@ -242,6 +272,15 @@ export function requirePlayerReadAccess(access: UserAccessContext) {
     redirect("/dashboard");
   }
 }
+
+export function requireTrainingReadAccess(access: UserAccessContext) {
+  if (!hasPermission(access, "training:read")) {
+    redirect("/dashboard");
+  }
+}
+
+const TRAINING_SELECT =
+  "id, club_id, team_id, name, training_date, start_time, end_time, location, description, coach_user_id, status, teams(name), profiles:coach_user_id(full_name)";
 
 const PLAYER_SELECT =
   "id, club_id, team_id, first_name, last_name, photo_url, date_of_birth, phone, email, address, city, postal_code, jersey_number, primary_position, secondary_position, dominant_foot, height_cm, weight_kg, status, joined_at, left_at";
@@ -468,3 +507,411 @@ export const getPlayerDetail = cache(
 );
 
 export { playerFullName };
+
+export type TrainingFilters = {
+  teamId?: string;
+  coachUserId?: string;
+};
+
+export const getTrainings = cache(
+  async (
+    clubId: string = DEFAULT_CLUB_ID,
+    view: CalendarView = "month",
+    anchorIso: string = new Date().toISOString().slice(0, 10),
+    filters: TrainingFilters = {},
+  ): Promise<Training[]> => {
+    const supabase = await createClient();
+    const anchor = parseLocalDate(anchorIso);
+    const { from, to } = getCalendarRange(view, anchor);
+
+    let query = supabase
+      .from("trainings")
+      .select(TRAINING_SELECT)
+      .eq("club_id", clubId)
+      .gte("training_date", from)
+      .lte("training_date", to)
+      .order("training_date")
+      .order("start_time");
+
+    if (filters.teamId) {
+      query = query.eq("team_id", filters.teamId);
+    }
+    if (filters.coachUserId) {
+      query = query.eq("coach_user_id", filters.coachUserId);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapTraining(row));
+  },
+);
+
+export type TrainingDetailData = {
+  training: Training;
+  availability: ReturnType<typeof mapAvailability>[];
+  attendance: ReturnType<typeof mapAttendance>[];
+  notes: ReturnType<typeof mapSessionNote>[];
+  teamPlayers: Player[];
+  myPlayerId: string | null;
+};
+
+export const getTrainingDetail = cache(
+  async (trainingId: string, clubId: string = DEFAULT_CLUB_ID): Promise<TrainingDetailData | null> => {
+    const supabase = await createClient();
+    const user = await getUser();
+
+    const trainingRes = await supabase
+      .from("trainings")
+      .select(TRAINING_SELECT)
+      .eq("club_id", clubId)
+      .eq("id", trainingId)
+      .maybeSingle();
+
+    if (trainingRes.error || !trainingRes.data) return null;
+
+    const training = mapTraining(trainingRes.data);
+
+    const [teamMap, availabilityRes, attendanceRes, notesRes, rosterRes] = await Promise.all([
+      loadTeamNameMapCached(clubId),
+      supabase
+        .from("training_availability")
+        .select("id, training_id, player_id, status, absence_reason, notes")
+        .eq("club_id", clubId)
+        .eq("training_id", trainingId),
+      supabase
+        .from("training_attendance")
+        .select("id, training_id, player_id, status, notes")
+        .eq("club_id", clubId)
+        .eq("training_id", trainingId),
+      supabase
+        .from("training_session_notes")
+        .select("id, training_id, author_id, player_id, content, created_at")
+        .eq("club_id", clubId)
+        .eq("training_id", trainingId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("players")
+        .select(PLAYER_SELECT)
+        .eq("club_id", clubId)
+        .eq("team_id", training.teamId)
+        .order("last_name")
+        .order("first_name"),
+    ]);
+
+    const roster = (rosterRes.data ?? []).map((row) =>
+      attachTeamName(mapPlayer(row), teamMap),
+    );
+    const playerNameMap = new Map(
+      roster.map((player) => [player.id, `${player.firstName} ${player.lastName}`]),
+    );
+
+    const authorIds = [...new Set((notesRes.data ?? []).map((note) => note.author_id))];
+    const { data: authorProfiles } = authorIds.length
+      ? await supabase.from("profiles").select("id, full_name").in("id", authorIds)
+      : { data: [] as { id: string; full_name: string | null }[] };
+    const authorMap = new Map(authorProfiles?.map((profile) => [profile.id, profile.full_name]) ?? []);
+
+    let myPlayerId: string | null = null;
+    if (user) {
+      const profile = await getProfile(user.id);
+      if (profile?.email) {
+        const match = roster.find(
+          (player) => player.email?.toLowerCase() === profile.email.toLowerCase(),
+        );
+        myPlayerId = match?.id ?? null;
+      }
+    }
+
+    return {
+      training,
+      availability: (availabilityRes.data ?? []).map((row) =>
+        mapAvailability({
+          ...row,
+          playerName: playerNameMap.get(row.player_id),
+        }),
+      ),
+      attendance: (attendanceRes.data ?? []).map((row) =>
+        mapAttendance({
+          ...row,
+          playerName: playerNameMap.get(row.player_id),
+        }),
+      ),
+      notes: (notesRes.data ?? []).map((note) =>
+        mapSessionNote({
+          ...note,
+          playerName: note.player_id ? playerNameMap.get(note.player_id) ?? null : null,
+          profiles: { full_name: authorMap.get(note.author_id) ?? null },
+        }),
+      ),
+      teamPlayers: roster,
+      myPlayerId,
+    };
+  },
+);
+
+export const getAttendanceStats = cache(
+  async (
+    scope: AttendanceScope = "season",
+    clubId: string = DEFAULT_CLUB_ID,
+    teamId?: string,
+  ): Promise<PlayerAttendanceStats[]> => {
+    const supabase = await createClient();
+    const fromDate = getScopeDateFrom(scope);
+
+    let trainingQuery = supabase
+      .from("trainings")
+      .select("id")
+      .eq("club_id", clubId)
+      .eq("status", "completed");
+
+    if (fromDate) {
+      trainingQuery = trainingQuery.gte("training_date", fromDate);
+    }
+    if (teamId) {
+      trainingQuery = trainingQuery.eq("team_id", teamId);
+    }
+
+    const { data: trainings, error: trainingError } = await trainingQuery;
+    if (trainingError) throw new Error(trainingError.message);
+    if (!trainings?.length) return [];
+
+    const trainingIds = trainings.map((row) => row.id);
+    const { data: attendance, error } = await supabase
+      .from("training_attendance")
+      .select("player_id, status")
+      .eq("club_id", clubId)
+      .in("training_id", trainingIds);
+
+    if (error) throw new Error(error.message);
+    if (!attendance?.length) return [];
+
+    const playerIds = [...new Set(attendance.map((row) => row.player_id))];
+    const { data: players, error: playersError } = await supabase
+      .from("players")
+      .select("id, first_name, last_name")
+      .eq("club_id", clubId)
+      .in("id", playerIds);
+
+    if (playersError) throw new Error(playersError.message);
+
+    const playerNameMap = new Map(
+      (players ?? []).map((player) => [player.id, `${player.first_name} ${player.last_name}`]),
+    );
+
+    const rows = attendance.flatMap((row) => {
+      const playerName = playerNameMap.get(row.player_id);
+      if (!playerName) return [];
+      return [
+        {
+          playerId: row.player_id,
+          playerName,
+          status: row.status,
+        },
+      ];
+    });
+
+    return computePlayerStats(rows);
+  },
+);
+
+export const getCoachDashboard = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<CoachDashboardData> => {
+    const supabase = await createClient();
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [upcomingRes, injuredRes, stats] = await Promise.all([
+      supabase
+        .from("trainings")
+        .select(TRAINING_SELECT)
+        .eq("club_id", clubId)
+        .eq("status", "planned")
+        .gte("training_date", today)
+        .order("training_date")
+        .order("start_time")
+        .limit(5),
+      supabase
+        .from("players")
+        .select("id, first_name, last_name")
+        .eq("club_id", clubId)
+        .eq("status", "injured"),
+      getAttendanceStats("season", clubId),
+    ]);
+
+    if (upcomingRes.error) throw new Error(upcomingRes.error.message);
+    if (injuredRes.error) throw new Error(injuredRes.error.message);
+
+    const upcomingTrainings = (upcomingRes.data ?? []).map(mapTraining);
+    const nextTraining = upcomingTrainings[0];
+
+    let confirmedCount = 0;
+    let unconfirmedCount = 0;
+
+    if (nextTraining) {
+      const [{ data: availability }, { count: rosterCount, error: rosterError }] =
+        await Promise.all([
+          supabase
+            .from("training_availability")
+            .select("status")
+            .eq("club_id", clubId)
+            .eq("training_id", nextTraining.id),
+          supabase
+            .from("players")
+            .select("*", { count: "exact", head: true })
+            .eq("club_id", clubId)
+            .eq("team_id", nextTraining.teamId),
+        ]);
+
+      if (rosterError) throw new Error(rosterError.message);
+
+      let present = 0;
+      let absent = 0;
+
+      for (const row of availability ?? []) {
+        if (row.status === "present") present += 1;
+        if (row.status === "absent") absent += 1;
+      }
+
+      confirmedCount = present;
+      unconfirmedCount = Math.max(0, (rosterCount ?? 0) - present - absent);
+    }
+
+    return {
+      upcomingTrainings,
+      confirmedCount,
+      unconfirmedCount,
+      injuredPlayers: (injuredRes.data ?? []).map((player) => ({
+        id: player.id,
+        name: `${player.first_name} ${player.last_name}`,
+      })),
+      topEngaged: stats.slice(0, 10),
+      leastEngaged: [...stats].reverse().slice(0, 10),
+    };
+  },
+);
+
+export const syncTrainingReminders = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+  const user = await getUser();
+  if (!user) return;
+
+  const access = await getAccessContext(user.id, clubId);
+  if (!access || !canManageTrainings(access.roles)) return;
+
+  const supabase = await createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const horizon = new Date();
+  horizon.setDate(horizon.getDate() + 14);
+  const horizonDate = horizon.toISOString().slice(0, 10);
+
+  const { data: trainings } = await supabase
+    .from("trainings")
+    .select("id, name, training_date, start_time")
+    .eq("club_id", clubId)
+    .eq("status", "planned")
+    .gte("training_date", today)
+    .lte("training_date", horizonDate);
+
+  if (!trainings?.length) return;
+
+  const { data: members } = await supabase
+    .from("club_memberships")
+    .select("user_id")
+    .eq("club_id", clubId)
+    .eq("status", "active")
+    .in("role", ["owner", "president", "sports_director", "coach", "player", "parent"]);
+
+  const rows = [];
+
+  for (const training of trainings) {
+    const time = training.start_time.slice(0, 5);
+    for (const member of members ?? []) {
+      for (const reminderType of TRAINING_REMINDER_TYPES) {
+        const scheduledAt = reminderScheduledAt(
+          training.training_date,
+          time,
+          reminderType,
+        );
+        if (!isNotificationDue(scheduledAt.toISOString())) continue;
+
+        const copy = buildReminderCopy(
+          training.name,
+          training.training_date,
+          time,
+          reminderType,
+        );
+
+        rows.push({
+          club_id: clubId,
+          user_id: member.user_id,
+          training_id: training.id,
+          reminder_type: reminderType,
+          title: copy.title,
+          body: copy.body,
+          href: `/training/${training.id}`,
+          scheduled_at: scheduledAt.toISOString(),
+          delivery_channels: ["in_app"],
+        });
+      }
+    }
+  }
+
+  if (rows.length) {
+    await supabase.from("club_notifications").upsert(rows, {
+      onConflict: "user_id,training_id,reminder_type",
+      ignoreDuplicates: true,
+    });
+  }
+});
+
+export const getNotifications = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<ClubNotification[]> => {
+    const user = await getUser();
+    if (!user) return [];
+
+    const supabase = await createClient();
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("club_notifications")
+      .select(
+        "id, club_id, training_id, reminder_type, title, body, href, scheduled_at, read_at",
+      )
+      .eq("club_id", clubId)
+      .eq("user_id", user.id)
+      .lte("scheduled_at", now)
+      .order("scheduled_at", { ascending: false })
+      .limit(50);
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapClubNotification);
+  },
+);
+
+export const getUnreadNotificationCount = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<number> => {
+    const user = await getUser();
+    if (!user) return 0;
+
+    const supabase = await createClient();
+    const now = new Date().toISOString();
+    const { count, error } = await supabase
+      .from("club_notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("club_id", clubId)
+      .eq("user_id", user.id)
+      .is("read_at", null)
+      .lte("scheduled_at", now);
+
+    if (error) return 0;
+    return count ?? 0;
+  },
+);
+
+export const getCoaches = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+  const members = await getClubMembers(clubId);
+  return members.filter(
+    (member) =>
+      member.role === "coach" ||
+      member.role === "owner" ||
+      member.role === "president" ||
+      member.role === "sports_director",
+  );
+});

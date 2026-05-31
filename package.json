@@ -12,6 +12,8 @@
     "build": "npm run validate:env && npm run typecheck && next build",
     "setup:stage1": "node scripts/setup-stage1.mjs",
     "setup:stage2": "node scripts/setup-stage2.mjs",
+    "setup:stage3": "node scripts/setup-stage3.mjs",
+    "db:migrate:trainings-audit": "node scripts/run-sql.mjs supabase/migrations/20260531172000_trainings_audit_hardening.sql",
     "db:migrate:players-audit": "node scripts/run-sql.mjs supabase/migrations/20260531163000_players_audit_hardening.sql",
     "db:migrate:security": "node scripts/run-sql.mjs supabase/migrations/20260531140000_security_hardening.sql"
   },

@@ -379,6 +379,167 @@ export type Database = {
         };
         Relationships: [];
       };
+      trainings: {
+        Row: {
+          id: string;
+          club_id: string;
+          team_id: string;
+          name: string;
+          training_date: string;
+          start_time: string;
+          end_time: string;
+          location: string | null;
+          description: string | null;
+          coach_user_id: string | null;
+          status: Database["public"]["Enums"]["training_status"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          team_id: string;
+          name: string;
+          training_date: string;
+          start_time: string;
+          end_time: string;
+          location?: string | null;
+          description?: string | null;
+          coach_user_id?: string | null;
+          status?: Database["public"]["Enums"]["training_status"];
+        };
+        Update: {
+          team_id?: string;
+          name?: string;
+          training_date?: string;
+          start_time?: string;
+          end_time?: string;
+          location?: string | null;
+          description?: string | null;
+          coach_user_id?: string | null;
+          status?: Database["public"]["Enums"]["training_status"];
+        };
+        Relationships: [];
+      };
+      training_availability: {
+        Row: {
+          id: string;
+          club_id: string;
+          training_id: string;
+          player_id: string;
+          status: Database["public"]["Enums"]["availability_status"];
+          absence_reason: Database["public"]["Enums"]["absence_reason"] | null;
+          notes: string | null;
+          responded_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          training_id: string;
+          player_id: string;
+          status?: Database["public"]["Enums"]["availability_status"];
+          absence_reason?: Database["public"]["Enums"]["absence_reason"] | null;
+          notes?: string | null;
+          responded_by?: string | null;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["availability_status"];
+          absence_reason?: Database["public"]["Enums"]["absence_reason"] | null;
+          notes?: string | null;
+          responded_by?: string | null;
+        };
+        Relationships: [];
+      };
+      training_attendance: {
+        Row: {
+          id: string;
+          club_id: string;
+          training_id: string;
+          player_id: string;
+          status: Database["public"]["Enums"]["attendance_status"];
+          notes: string | null;
+          marked_by: string | null;
+          marked_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          training_id: string;
+          player_id: string;
+          status: Database["public"]["Enums"]["attendance_status"];
+          notes?: string | null;
+          marked_by?: string | null;
+          marked_at?: string;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["attendance_status"];
+          notes?: string | null;
+          marked_by?: string | null;
+        };
+        Relationships: [];
+      };
+      training_session_notes: {
+        Row: {
+          id: string;
+          club_id: string;
+          training_id: string;
+          author_id: string;
+          player_id: string | null;
+          content: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          training_id: string;
+          author_id: string;
+          player_id?: string | null;
+          content: string;
+        };
+        Update: {
+          player_id?: string | null;
+          content?: string;
+        };
+        Relationships: [];
+      };
+      club_notifications: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          training_id: string | null;
+          reminder_type: Database["public"]["Enums"]["training_reminder_type"] | null;
+          title: string;
+          body: string;
+          href: string | null;
+          scheduled_at: string;
+          read_at: string | null;
+          delivery_channels: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          training_id?: string | null;
+          reminder_type?: Database["public"]["Enums"]["training_reminder_type"] | null;
+          title: string;
+          body: string;
+          href?: string | null;
+          scheduled_at: string;
+          read_at?: string | null;
+          delivery_channels?: Json;
+        };
+        Update: {
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -422,6 +583,11 @@ export type Database = {
         | "position_change"
         | "jersey_number_change";
       coach_note_type: "observation" | "progress" | "health" | "training_goal";
+      training_status: "planned" | "completed" | "cancelled";
+      availability_status: "present" | "absent" | "unknown";
+      absence_reason: "work" | "school" | "injury" | "travel" | "illness" | "other";
+      attendance_status: "present" | "absent" | "late" | "excused";
+      training_reminder_type: "hours_48" | "hours_24" | "hours_3";
     };
     CompositeTypes: Record<string, never>;
   };

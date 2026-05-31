@@ -9,7 +9,7 @@ export default async function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { profile, access, club } = await getDashboardContext();
+  const { profile, access, club, unreadNotifications } = await getDashboardContext();
 
   return (
     <div className="flex min-h-screen">
@@ -34,6 +34,7 @@ export default async function DashboardLayout({
           roles={access.roles}
           clubName={getClubBrandingName(club)}
           appName={siteConfig.shortName}
+          unreadNotifications={unreadNotifications}
         />
         <main className="flex-1 px-4 py-6 md:px-6 md:py-8">{children}</main>
       </div>

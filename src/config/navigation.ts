@@ -1,5 +1,7 @@
 import {
   Building2,
+  CalendarDays,
+  ClipboardList,
   LayoutDashboard,
   Shield,
   User,
@@ -32,6 +34,16 @@ export const dashboardNav = [
     title: "Zawodnicy",
     href: "/players",
     icon: UserRound,
+  },
+  {
+    title: "Treningi",
+    href: "/training",
+    icon: CalendarDays,
+  },
+  {
+    title: "Panel trenera",
+    href: "/training/coach",
+    icon: ClipboardList,
   },
   {
     title: "Role i uprawnienia",

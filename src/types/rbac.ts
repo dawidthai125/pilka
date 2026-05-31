@@ -44,6 +44,10 @@ export const PERMISSIONS = [
   "player:read",
   "player:manage",
   "player:notes",
+  "training:read",
+  "training:manage",
+  "training:attendance",
+  "training:availability",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
