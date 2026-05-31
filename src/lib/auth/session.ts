@@ -82,7 +82,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadSponsors, canAccessFinancePortal } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canAccessFinancePortal, canAccessInventoryPortal } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -104,6 +104,20 @@ import type {
   FinanceReport,
   ParentFinancePortalData,
 } from "@/types/finance";
+import type {
+  InventoryCategory,
+  InventoryDamage,
+  InventoryDashboardStats,
+  InventoryItem,
+  InventoryPlayerKit,
+  InventoryPurchaseOrder,
+  InventoryReport,
+  InventoryReturn,
+  InventoryStocktake,
+  InventorySupplier,
+  InventoryTransaction,
+  PlayerInventoryPortalData,
+} from "@/types/inventory";
 import {
   mapFinanceBudget,
   mapFinanceDocument,
@@ -116,6 +130,20 @@ import {
   mapFinanceReport,
 } from "@/lib/finance/mappers";
 import { computeBudgetExecutionsBatch } from "@/lib/finance/insights";
+import {
+  mapInventoryCategory,
+  mapInventoryDamage,
+  mapInventoryItem,
+  mapInventoryKitAssignment,
+  mapInventoryPlayerKit,
+  mapInventoryPurchaseOrder,
+  mapInventoryReport,
+  mapInventoryReturn,
+  mapInventoryStocktake,
+  mapInventorySupplier,
+  mapInventoryTransaction,
+} from "@/lib/inventory/mappers";
+import { buildInventoryAlerts } from "@/lib/inventory/insights";
 import {
   mapSponsor,
   mapSponsorContract,
@@ -2129,5 +2157,280 @@ export const getParentFinancePortalData = cache(
     const balance = fees.reduce((sum, f) => sum + f.amountRemaining, 0);
 
     return { playerId, playerName, balance, fees, payments };
+  },
+);
+
+export function requireInventoryReadAccess(access: UserAccessContext) {
+  if (!canReadInventory(access.roles)) redirect("/dashboard");
+}
+
+export function requireInventoryPortalAccess(access: UserAccessContext) {
+  if (!canAccessInventoryPortal(access.roles)) redirect("/dashboard");
+}
+
+export const getInventoryCategories = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryCategory[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_categories")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("sort_order");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryCategory);
+  },
+);
+
+export const getInventoryItems = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 200): Promise<InventoryItem[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_items")
+      .select("*, category:category_id(slug, name), supplier:supplier_id(name)")
+      .eq("club_id", clubId)
+      .order("name")
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryItem);
+  },
+);
+
+export const getInventorySuppliers = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventorySupplier[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_suppliers")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("name");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventorySupplier);
+  },
+);
+
+export const getInventoryTransactions = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<InventoryTransaction[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_transactions")
+      .select("*, item:item_id(name), player:player_id(first_name, last_name), profile:profile_id(full_name), issuer:issued_by(full_name)")
+      .eq("club_id", clubId)
+      .order("issue_date", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryTransaction);
+  },
+);
+
+export const getInventoryReturns = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<InventoryReturn[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_returns")
+      .select("*, item:item_id(name), recorder:recorded_by(full_name)")
+      .eq("club_id", clubId)
+      .order("return_date", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryReturn);
+  },
+);
+
+export const getInventoryDamages = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<InventoryDamage[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_damages")
+      .select("*, item:item_id(name), reporter:reported_by(full_name)")
+      .eq("club_id", clubId)
+      .order("damage_date", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryDamage);
+  },
+);
+
+export const getInventoryPlayerKits = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryPlayerKit[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_player_kits")
+      .select("*, player:player_id(first_name, last_name)")
+      .eq("club_id", clubId)
+      .order("jersey_number");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryPlayerKit);
+  },
+);
+
+export const getInventoryStocktakes = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryStocktake[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_stocktakes")
+      .select("*, conductor:conducted_by(full_name), lines:inventory_stocktake_lines(difference)")
+      .eq("club_id", clubId)
+      .order("started_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryStocktake);
+  },
+);
+
+export const getInventoryPurchaseOrders = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryPurchaseOrder[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_purchase_orders")
+      .select("*, supplier:supplier_id(name), lines:inventory_purchase_order_lines(id)")
+      .eq("club_id", clubId)
+      .order("order_date", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryPurchaseOrder);
+  },
+);
+
+export const getInventoryReports = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryReport[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("inventory_reports")
+      .select("*, generator:generated_by(full_name)")
+      .eq("club_id", clubId)
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapInventoryReport);
+  },
+);
+
+export const getInventoryReport = cache(
+  async (reportId: string, clubId: string = DEFAULT_CLUB_ID): Promise<InventoryReport | null> => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("inventory_reports")
+      .select("*, generator:generated_by(full_name)")
+      .eq("id", reportId)
+      .eq("club_id", clubId)
+      .maybeSingle();
+    return data ? mapInventoryReport(data) : null;
+  },
+);
+
+export const getInventoryDashboardStats = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryDashboardStats> => {
+    const supabase = await createClient();
+    const [statsRes, issuesRes, damagesRes] = await Promise.all([
+      supabase.rpc("get_inventory_dashboard_stats", { p_club_id: clubId }),
+      supabase
+        .from("inventory_transactions")
+        .select("*, item:item_id(name), player:player_id(first_name, last_name), profile:profile_id(full_name), issuer:issued_by(full_name)")
+        .eq("club_id", clubId)
+        .order("issue_date", { ascending: false })
+        .limit(8),
+      supabase
+        .from("inventory_damages")
+        .select("*, item:item_id(name), reporter:reported_by(full_name)")
+        .eq("club_id", clubId)
+        .in("status", ["reported", "in_repair", "replacement_needed"])
+        .order("damage_date", { ascending: false })
+        .limit(8),
+    ]);
+
+    const stats = statsRes.data as Record<string, number> | null;
+    const base = {
+      totalItems: Number(stats?.total_items ?? 0),
+      totalQuantity: Number(stats?.total_quantity ?? 0),
+      availableQuantity: Number(stats?.available_quantity ?? 0),
+      issuedQuantity: Number(stats?.issued_quantity ?? 0),
+      damagedQuantity: Number(stats?.damaged_quantity ?? 0),
+      lowStockCount: Number(stats?.low_stock_count ?? 0),
+      outOfStockCount: Number(stats?.out_of_stock_count ?? 0),
+      ballsAvailable: Number(stats?.balls_available ?? 0),
+      openDamagesCount: Number(stats?.open_damages_count ?? 0),
+      openOrdersCount: Number(stats?.open_orders_count ?? 0),
+    };
+
+    return {
+      ...base,
+      alerts: buildInventoryAlerts(base),
+      recentIssues: (issuesRes.data ?? []).map(mapInventoryTransaction),
+      recentDamages: (damagesRes.data ?? []).map(mapInventoryDamage),
+    };
+  },
+);
+
+export const getPlayerInventoryPortalData = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<PlayerInventoryPortalData | null> => {
+    const user = await getUser();
+    if (!user) return null;
+
+    const supabase = await createClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!profile?.email) return null;
+
+    const { data: playerRow } = await supabase
+      .from("players")
+      .select("id, first_name, last_name")
+      .eq("club_id", clubId)
+      .ilike("email", profile.email)
+      .maybeSingle();
+
+    if (!playerRow) return null;
+
+    const playerId = String(playerRow.id);
+    const playerName = `${playerRow.first_name ?? ""} ${playerRow.last_name ?? ""}`.trim();
+
+    const [kitRes, assignmentsRes, issuesRes, returnsRes] = await Promise.all([
+      supabase
+        .from("inventory_player_kits")
+        .select("*, player:player_id(first_name, last_name)")
+        .eq("club_id", clubId)
+        .eq("player_id", playerId)
+        .maybeSingle(),
+      supabase
+        .from("inventory_kit_assignments")
+        .select("*, player:player_id(first_name, last_name)")
+        .eq("club_id", clubId)
+        .eq("player_id", playerId)
+        .order("assigned_date", { ascending: false })
+        .limit(20),
+      supabase
+        .from("inventory_transactions")
+        .select("*, item:item_id(name), player:player_id(first_name, last_name), issuer:issued_by(full_name)")
+        .eq("club_id", clubId)
+        .eq("player_id", playerId)
+        .order("issue_date", { ascending: false })
+        .limit(30),
+      supabase
+        .from("inventory_returns")
+        .select("*, item:item_id(name), recorder:recorded_by(full_name)")
+        .eq("club_id", clubId)
+        .order("return_date", { ascending: false })
+        .limit(30),
+    ]);
+
+    const issueIds = new Set((issuesRes.data ?? []).map((i) => String((i as { id: string }).id)));
+    const returns = (returnsRes.data ?? [])
+      .filter((r) => {
+        const row = r as { transaction_id?: string | null };
+        return !row.transaction_id || issueIds.has(String(row.transaction_id));
+      })
+      .map((r) => mapInventoryReturn(r as Record<string, unknown>));
+
+    return {
+      playerId,
+      playerName,
+      kit: kitRes.data ? mapInventoryPlayerKit(kitRes.data) : null,
+      assignments: (assignmentsRes.data ?? []).map(mapInventoryKitAssignment),
+      issues: (issuesRes.data ?? []).map(mapInventoryTransaction),
+      returns,
+    };
   },
 );

@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 
 import {
   canAccessFinancePortal,
+  canAccessInventoryPortal,
   canAccessSponsorPortal,
   canReadAi,
   canReadFinance,
+  canReadInventory,
   canReadSponsors,
 } from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
@@ -15,7 +17,24 @@ import { cn } from "@/lib/utils";
 import type { ClubRole } from "@/types/rbac";
 
 const SPONSOR_ONLY_HREFS = ["/dashboard", "/profile", "/club", "/sponsors/portal"];
-const PARENT_ONLY_HREFS = ["/dashboard", "/profile", "/club", "/finance/portal", "/training", "/matches", "/players"];
+const PARENT_ONLY_HREFS = [
+  "/dashboard",
+  "/profile",
+  "/club",
+  "/finance/portal",
+  "/training",
+  "/matches",
+  "/players",
+];
+const PLAYER_ONLY_HREFS = [
+  "/dashboard",
+  "/profile",
+  "/club",
+  "/inventory/portal",
+  "/training",
+  "/matches",
+  "/players",
+];
 
 export function DashboardNav({
   roles,
@@ -30,7 +49,9 @@ export function DashboardNav({
       ? dashboardNav.filter((item) => SPONSOR_ONLY_HREFS.includes(item.href))
       : canAccessFinancePortal(roles) && !canReadFinance(roles)
         ? dashboardNav.filter((item) => PARENT_ONLY_HREFS.includes(item.href))
-        : dashboardNav.filter((item) => {
+        : canAccessInventoryPortal(roles) && !canReadInventory(roles)
+          ? dashboardNav.filter((item) => PLAYER_ONLY_HREFS.includes(item.href))
+          : dashboardNav.filter((item) => {
           if (item.href === "/ai") return canReadAi(roles);
           if ("audience" in item && item.audience === "staff") return canReadSponsors(roles);
           if ("audience" in item && item.audience === "sponsor") {
@@ -41,6 +62,12 @@ export function DashboardNav({
           }
           if ("audience" in item && item.audience === "parent") {
             return canAccessFinancePortal(roles);
+          }
+          if ("audience" in item && item.audience === "inventory_staff") {
+            return canReadInventory(roles);
+          }
+          if ("audience" in item && item.audience === "player") {
+            return canAccessInventoryPortal(roles);
           }
           return true;
         })
@@ -55,7 +82,9 @@ export function DashboardNav({
             ? pathname.startsWith("/sponsors") && !pathname.startsWith("/sponsors/portal")
             : item.href === "/finance"
               ? pathname.startsWith("/finance") && !pathname.startsWith("/finance/portal")
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              : item.href === "/inventory"
+                ? pathname.startsWith("/inventory") && !pathname.startsWith("/inventory/portal")
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link

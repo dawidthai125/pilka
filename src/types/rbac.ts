@@ -65,6 +65,9 @@ export const PERMISSIONS = [
   "finance:read",
   "finance:manage",
   "finance:portal",
+  "inventory:read",
+  "inventory:manage",
+  "inventory:portal",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

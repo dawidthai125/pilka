@@ -6,7 +6,8 @@ export type AiReportCategory =
   | "players"
   | "management"
   | "sponsors"
-  | "finance";
+  | "finance"
+  | "inventory";
 
 export type AiReportType =
   | "match_summary"
@@ -138,6 +139,17 @@ export type AiClubContext = {
       sponsor: string | null;
     }>;
     recentExpenses: Array<{ category: string; amount: number; date: string }>;
+  };
+  inventory: {
+    summary: {
+      totalItems: number;
+      lowStockCount: number;
+      damagedCount: number;
+      ballsAvailable: number;
+    };
+    lowStockItems: Array<{ name: string; available: number; minLevel: number }>;
+    openDamages: Array<{ item: string | null; description: string; status: string }>;
+    playersWithoutKit: Array<{ name: string }>;
   };
 };
 

@@ -47,6 +47,8 @@ const leadership: Permission[] = [
   "sponsor:manage",
   "finance:read",
   "finance:manage",
+  "inventory:read",
+  "inventory:manage",
 ];
 
 const parentPortal: Permission[] = [
@@ -83,6 +85,7 @@ const coachingStaff: Permission[] = [
   "ai:chat",
   "ai:reports_sports",
   "ai:publish",
+  "inventory:read",
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
@@ -105,7 +108,7 @@ export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
     "ai:reports",
   ],
   coach: coachingStaff,
-  player: parentPortal.filter((p) => p !== "finance:portal"),
+  player: [...parentPortal.filter((p) => p !== "finance:portal"), "inventory:portal"],
   parent: parentPortal,
   sponsor: ["club:read", "team:read", "match:read", "profile:read", "sponsor:portal"],
 };
@@ -145,6 +148,9 @@ export const ALL_PERMISSIONS = [
   "finance:read",
   "finance:manage",
   "finance:portal",
+  "inventory:read",
+  "inventory:manage",
+  "inventory:portal",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -263,6 +269,7 @@ export function canAccessAiReportCategory(
 ): boolean {
   if (canManageAiReports(roles)) return true;
   if (category === "sponsors" || category === "finance") return canManageAiReports(roles) || roles.includes("treasurer");
+  if (category === "inventory") return canManageInventory(roles) || roles.includes("sports_director");
   if (canManageSportsAiReports(roles)) {
     return (["matches", "trainings", "players"] as AiReportCategory[]).includes(category);
   }
@@ -297,4 +304,24 @@ export function canManageFinance(roles: ClubRole[]): boolean {
 
 export function canAccessFinancePortal(roles: ClubRole[]): boolean {
   return roles.includes("parent");
+}
+
+export function canReadInventory(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canManageInventory(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canIssueInventory(roles: ClubRole[]): boolean {
+  return canReadInventory(roles);
+}
+
+export function canAccessInventoryPortal(roles: ClubRole[]): boolean {
+  return roles.includes("player");
 }

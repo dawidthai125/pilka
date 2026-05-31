@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Handshake,
   LayoutDashboard,
+  Package,
   Shield,
   ListOrdered,
   Trophy,
@@ -88,6 +89,18 @@ export const dashboardNav = [
     href: "/finance/portal",
     icon: Wallet,
     audience: "parent" as const,
+  },
+  {
+    title: "Magazyn",
+    href: "/inventory",
+    icon: Package,
+    audience: "inventory_staff" as const,
+  },
+  {
+    title: "Mój sprzęt",
+    href: "/inventory/portal",
+    icon: Package,
+    audience: "player" as const,
   },
   {
     title: "Role i uprawnienia",

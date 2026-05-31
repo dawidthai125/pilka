@@ -1557,6 +1557,415 @@ export type Database = {
         };
         Relationships: [];
       };
+      inventory_categories: {
+        Row: {
+          id: string;
+          club_id: string;
+          slug: Database["public"]["Enums"]["inventory_item_category"];
+          name: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          slug: Database["public"]["Enums"]["inventory_item_category"];
+          name: string;
+          sort_order?: number;
+        };
+        Update: {
+          name?: string;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      inventory_suppliers: {
+        Row: {
+          id: string;
+          club_id: string;
+          name: string;
+          contact_name: string | null;
+          phone: string | null;
+          email: string | null;
+          address: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          name: string;
+          contact_name?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          address?: string | null;
+          notes?: string | null;
+        };
+        Update: {
+          name?: string;
+          contact_name?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          address?: string | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_items: {
+        Row: {
+          id: string;
+          club_id: string;
+          category_id: string;
+          name: string;
+          inventory_number: string;
+          internal_code: string | null;
+          photo_path: string | null;
+          description: string | null;
+          purchase_date: string | null;
+          purchase_price: number | null;
+          supplier_id: string | null;
+          status: Database["public"]["Enums"]["inventory_item_status"];
+          quantity_total: number;
+          quantity_available: number;
+          quantity_issued: number;
+          quantity_damaged: number;
+          min_stock_level: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          category_id: string;
+          name: string;
+          inventory_number: string;
+          internal_code?: string | null;
+          photo_path?: string | null;
+          description?: string | null;
+          purchase_date?: string | null;
+          purchase_price?: number | null;
+          supplier_id?: string | null;
+          status?: Database["public"]["Enums"]["inventory_item_status"];
+          quantity_total?: number;
+          quantity_available?: number;
+          quantity_issued?: number;
+          quantity_damaged?: number;
+          min_stock_level?: number;
+        };
+        Update: {
+          name?: string;
+          status?: Database["public"]["Enums"]["inventory_item_status"];
+          quantity_total?: number;
+          quantity_available?: number;
+          quantity_issued?: number;
+          quantity_damaged?: number;
+          min_stock_level?: number;
+        };
+        Relationships: [];
+      };
+      inventory_transactions: {
+        Row: {
+          id: string;
+          club_id: string;
+          item_id: string;
+          recipient_type: Database["public"]["Enums"]["inventory_recipient_type"];
+          player_id: string | null;
+          profile_id: string | null;
+          quantity: number;
+          issue_date: string;
+          expected_return_date: string | null;
+          notes: string | null;
+          issued_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          item_id: string;
+          recipient_type: Database["public"]["Enums"]["inventory_recipient_type"];
+          player_id?: string | null;
+          profile_id?: string | null;
+          quantity: number;
+          issue_date?: string;
+          expected_return_date?: string | null;
+          notes?: string | null;
+          issued_by?: string | null;
+        };
+        Update: {
+          notes?: string | null;
+          expected_return_date?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_returns: {
+        Row: {
+          id: string;
+          club_id: string;
+          transaction_id: string | null;
+          item_id: string;
+          return_date: string;
+          quantity: number;
+          condition: Database["public"]["Enums"]["inventory_return_condition"];
+          notes: string | null;
+          recorded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          transaction_id?: string | null;
+          item_id: string;
+          return_date?: string;
+          quantity: number;
+          condition?: Database["public"]["Enums"]["inventory_return_condition"];
+          notes?: string | null;
+          recorded_by?: string | null;
+        };
+        Update: {
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_damages: {
+        Row: {
+          id: string;
+          club_id: string;
+          item_id: string;
+          description: string;
+          photo_path: string | null;
+          damage_date: string;
+          status: Database["public"]["Enums"]["inventory_damage_status"];
+          reported_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          item_id: string;
+          description: string;
+          photo_path?: string | null;
+          damage_date?: string;
+          status?: Database["public"]["Enums"]["inventory_damage_status"];
+          reported_by?: string | null;
+        };
+        Update: {
+          description?: string;
+          status?: Database["public"]["Enums"]["inventory_damage_status"];
+        };
+        Relationships: [];
+      };
+      inventory_player_kits: {
+        Row: {
+          id: string;
+          club_id: string;
+          player_id: string;
+          jersey_number: number | null;
+          jersey_size: string | null;
+          shorts_size: string | null;
+          tracksuit_size: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          player_id: string;
+          jersey_number?: number | null;
+          jersey_size?: string | null;
+          shorts_size?: string | null;
+          tracksuit_size?: string | null;
+          notes?: string | null;
+        };
+        Update: {
+          jersey_number?: number | null;
+          jersey_size?: string | null;
+          shorts_size?: string | null;
+          tracksuit_size?: string | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_kit_assignments: {
+        Row: {
+          id: string;
+          club_id: string;
+          player_id: string;
+          item_id: string | null;
+          transaction_id: string | null;
+          kit_name: string;
+          assigned_date: string;
+          returned_date: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          player_id: string;
+          item_id?: string | null;
+          transaction_id?: string | null;
+          kit_name: string;
+          assigned_date?: string;
+          returned_date?: string | null;
+          notes?: string | null;
+        };
+        Update: {
+          returned_date?: string | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_stocktakes: {
+        Row: {
+          id: string;
+          club_id: string;
+          name: string;
+          stocktake_type: Database["public"]["Enums"]["inventory_stocktake_type"];
+          status: Database["public"]["Enums"]["inventory_stocktake_status"];
+          started_at: string;
+          completed_at: string | null;
+          conducted_by: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          name: string;
+          stocktake_type: Database["public"]["Enums"]["inventory_stocktake_type"];
+          status?: Database["public"]["Enums"]["inventory_stocktake_status"];
+          conducted_by?: string | null;
+          notes?: string | null;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["inventory_stocktake_status"];
+          completed_at?: string | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_stocktake_lines: {
+        Row: {
+          id: string;
+          club_id: string;
+          stocktake_id: string;
+          item_id: string;
+          system_quantity: number;
+          actual_quantity: number;
+          difference: number;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          stocktake_id: string;
+          item_id: string;
+          system_quantity?: number;
+          actual_quantity?: number;
+          notes?: string | null;
+        };
+        Update: {
+          actual_quantity?: number;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_purchase_orders: {
+        Row: {
+          id: string;
+          club_id: string;
+          supplier_id: string | null;
+          order_number: string;
+          status: Database["public"]["Enums"]["inventory_order_status"];
+          order_date: string;
+          expected_delivery: string | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          supplier_id?: string | null;
+          order_number: string;
+          status?: Database["public"]["Enums"]["inventory_order_status"];
+          order_date?: string;
+          expected_delivery?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["inventory_order_status"];
+          expected_delivery?: string | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      inventory_purchase_order_lines: {
+        Row: {
+          id: string;
+          club_id: string;
+          order_id: string;
+          item_id: string | null;
+          description: string;
+          quantity: number;
+          unit_price: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          order_id: string;
+          item_id?: string | null;
+          description: string;
+          quantity: number;
+          unit_price?: number | null;
+        };
+        Update: {
+          description?: string;
+          quantity?: number;
+          unit_price?: number | null;
+        };
+        Relationships: [];
+      };
+      inventory_reports: {
+        Row: {
+          id: string;
+          club_id: string;
+          title: string;
+          report_type: Database["public"]["Enums"]["inventory_report_type"];
+          period_start: string | null;
+          period_end: string | null;
+          content: Json;
+          status: Database["public"]["Enums"]["inventory_report_status"];
+          generated_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          title: string;
+          report_type: Database["public"]["Enums"]["inventory_report_type"];
+          period_start?: string | null;
+          period_end?: string | null;
+          content?: Json;
+          status?: Database["public"]["Enums"]["inventory_report_status"];
+          generated_by?: string | null;
+        };
+        Update: {
+          title?: string;
+          content?: Json;
+          status?: Database["public"]["Enums"]["inventory_report_status"];
+        };
+        Relationships: [];
+      };
       ai_suggestions: {
         Row: {
           id: string;
@@ -1616,6 +2025,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_inventory_dashboard_stats: {
+        Args: {
+          p_club_id: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       club_role:
@@ -1655,7 +2070,14 @@ export type Database = {
       match_squad_role: "squad" | "starter" | "substitute";
       match_event_type: "goal" | "assist" | "yellow_card" | "red_card" | "substitution" | "injury";
       ai_message_role: "user" | "assistant" | "system";
-      ai_report_category: "matches" | "trainings" | "players" | "management" | "sponsors" | "finance";
+      ai_report_category:
+        | "matches"
+        | "trainings"
+        | "players"
+        | "management"
+        | "sponsors"
+        | "finance"
+        | "inventory";
       ai_report_type:
         | "match_summary"
         | "training_weekly"
@@ -1710,6 +2132,32 @@ export type Database = {
       finance_document_type: "invoice" | "receipt" | "contract";
       finance_report_period: "monthly" | "quarterly" | "yearly";
       finance_report_status: "draft" | "published";
+      inventory_item_category:
+        | "match_kit"
+        | "training_kit"
+        | "tracksuit"
+        | "balls"
+        | "markers"
+        | "cones"
+        | "training_goals"
+        | "medical"
+        | "strength"
+        | "pitch"
+        | "electronics"
+        | "other";
+      inventory_item_status: "available" | "issued" | "damaged" | "retired";
+      inventory_recipient_type: "player" | "coach" | "team_manager";
+      inventory_return_condition: "functional" | "damaged" | "lost";
+      inventory_damage_status: "reported" | "in_repair" | "repaired" | "replacement_needed";
+      inventory_order_status: "draft" | "ordered" | "in_progress" | "delivered" | "cancelled";
+      inventory_stocktake_type: "partial" | "full";
+      inventory_stocktake_status: "in_progress" | "completed";
+      inventory_report_type:
+        | "stock_status"
+        | "issued_equipment"
+        | "damaged_equipment"
+        | "issue_history";
+      inventory_report_status: "draft" | "published";
     };
     CompositeTypes: Record<string, never>;
   };
