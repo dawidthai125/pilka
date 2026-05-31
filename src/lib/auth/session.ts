@@ -55,7 +55,6 @@ import {
 import { getCalendarRange, parseLocalDate } from "@/lib/training/calendar";
 import { getMatchCalendarRange } from "@/lib/matches/calendar";
 import {
-  aggregatePlayerMatchStats,
   aggregateTeamStats,
   computeTeamForm,
   mapLeagueEntry,
