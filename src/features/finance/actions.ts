@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { canManageFinance } from "@/config/permissions";
+import { canManageFinance, canReadFinance } from "@/config/permissions";
 import { getClub, requireAccessContext } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { buildFinanceDocumentPath, validateFinanceAttachment } from "@/lib/finance/uploads";
@@ -168,6 +168,14 @@ export async function createFinancePlayerFee(
   if (!playerId || !name || !amount || !dueDate) return { error: "Uzupełnij wymagane pola." };
 
   const supabase = await createClient();
+  const { data: player } = await supabase
+    .from("players")
+    .select("id")
+    .eq("id", playerId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+  if (!player) return { error: "Wybrany zawodnik nie należy do tego klubu." };
+
   const { error } = await supabase.from("finance_player_fees").insert({
     club_id: access.clubId,
     player_id: playerId,
@@ -194,8 +202,20 @@ export async function recordFinanceFeePayment(
   const amount = readAmount(formData, "amount");
   const paymentDate = readString(formData, "paymentDate") || new Date().toISOString().slice(0, 10);
   if (!playerFeeId || !amount) return { error: "Podaj składkę i kwotę wpłaty." };
+  if (amount <= 0) return { error: "Kwota wpłaty musi być większa od zera." };
 
   const supabase = await createClient();
+  const { data: fee } = await supabase
+    .from("finance_player_fees")
+    .select("amount_due, amount_paid")
+    .eq("id", playerFeeId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+  if (!fee) return { error: "Nie znaleziono składki." };
+
+  const remaining = Number(fee.amount_due) - Number(fee.amount_paid);
+  if (amount > remaining) return { error: "Kwota przekracza pozostałą należność." };
+
   const { error } = await supabase.from("finance_player_fee_payments").insert({
     club_id: access.clubId,
     player_fee_id: playerFeeId,
@@ -335,6 +355,7 @@ export async function generateFinanceReport(
   const periodEnd = readString(formData, "periodEnd");
   const title = readString(formData, "title");
   if (!periodType || !periodStart || !periodEnd || !title) return { error: "Uzupełnij okres raportu." };
+  if (periodEnd < periodStart) return { error: "Data końca okresu nie może być wcześniejsza niż początek." };
 
   const club = await getClub(access.clubId);
   const clubName = club ? getClubBrandingName(club) : "Klub";
@@ -379,7 +400,7 @@ export async function publishFinanceReport(reportId: string): Promise<FinanceAct
 
 export async function getFinanceDocumentSignedUrl(storagePath: string): Promise<string | null> {
   const access = await requireAccessContext();
-  if (!canManageFinance(access.roles) && !access.roles.includes("parent")) return null;
+  if (!canReadFinance(access.roles)) return null;
   if (!storagePath.startsWith(`${access.clubId}/finance/`)) return null;
 
   const supabase = await createClient();

@@ -1,13 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_CLUB_ID } from "@/lib/auth/session";
-import {
-  mapFinanceBudget,
-  mapFinanceExpense,
-  mapFinanceIncome,
-  mapFinancePlayerFee,
-  mapFinanceReport,
-  sumAmounts,
-} from "@/lib/finance/mappers";
+import { sumAmounts } from "@/lib/finance/mappers";
 import type { FinanceReportContent } from "@/types/finance";
 import { generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
 
@@ -32,6 +25,7 @@ export async function buildFinanceAiContext(clubId: string = DEFAULT_CLUB_ID) {
       .select("id, name, amount_due, amount_paid, status, due_date, player:player_id(first_name, last_name)")
       .eq("club_id", clubId)
       .in("status", ["partial", "overdue"])
+      .lt("due_date", new Date().toISOString().slice(0, 10))
       .order("due_date", { ascending: true })
       .limit(50),
     supabase
@@ -108,7 +102,8 @@ export async function buildFinanceReportContent(
       .select("id, status")
       .eq("club_id", clubId)
       .in("status", ["partial", "overdue"])
-      .lte("due_date", periodEnd),
+      .lt("due_date", periodEnd)
+      .lt("due_date", new Date().toISOString().slice(0, 10)),
   ]);
 
   const incomeRows = incomeRes.data ?? [];
@@ -154,6 +149,47 @@ export async function buildFinanceReportContent(
   return content;
 }
 
+export async function computeBudgetExecutionsBatch(
+  clubId: string,
+  budgets: Array<{ period_start: string; period_end: string }>,
+): Promise<Map<string, number>> {
+  if (!budgets.length) return new Map();
+
+  const minStart = budgets.reduce(
+    (min, b) => (b.period_start < min ? b.period_start : min),
+    budgets[0]!.period_start,
+  );
+  const maxEnd = budgets.reduce(
+    (max, b) => (b.period_end > max ? b.period_end : max),
+    budgets[0]!.period_end,
+  );
+
+  const supabase = await createClient();
+  const { data: expenses } = await supabase
+    .from("finance_expenses")
+    .select("amount, transaction_date")
+    .eq("club_id", clubId)
+    .gte("transaction_date", minStart)
+    .lte("transaction_date", maxEnd)
+    .limit(5000);
+
+  const rows = expenses ?? [];
+  const result = new Map<string, number>();
+
+  for (const budget of budgets) {
+    const key = `${budget.period_start}:${budget.period_end}`;
+    const total = rows
+      .filter(
+        (r) =>
+          r.transaction_date >= budget.period_start && r.transaction_date <= budget.period_end,
+      )
+      .reduce((sum, r) => sum + Number(r.amount), 0);
+    result.set(key, total);
+  }
+
+  return result;
+}
+
 export async function computeBudgetExecution(
   clubId: string,
   periodStart: string,
@@ -169,30 +205,4 @@ export async function computeBudgetExecution(
     .limit(5000);
 
   return sumAmounts((expenses ?? []).map((r) => ({ amount: Number(r.amount) })));
-}
-
-export function mapStoredFinanceReport(row: Record<string, unknown>) {
-  return mapFinanceReport(row);
-}
-
-export async function buildBudgetsWithExecution(clubId: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("finance_budgets")
-    .select("*, team:team_id(name)")
-    .eq("club_id", clubId)
-    .order("period_start", { ascending: false })
-    .limit(50);
-
-  const budgets = (data ?? []) as Array<Record<string, unknown> & { period_start: string; period_end: string }>;
-  return Promise.all(
-    budgets.map(async (row) => {
-      const executed = await computeBudgetExecution(
-        clubId,
-        String(row.period_start),
-        String(row.period_end),
-      );
-      return mapFinanceBudget(row, executed);
-    }),
-  );
 }

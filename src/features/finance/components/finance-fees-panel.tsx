@@ -11,7 +11,8 @@ import {
 } from "@/features/finance/actions";
 import {
   FINANCE_FEE_PLAN_TYPE_LABELS,
-  FINANCE_PLAYER_FEE_STATUS_LABELS,
+  feeStatusLabel,
+  feeStatusVariant,
   formatMoney,
 } from "@/lib/finance/constants";
 import type { FinanceFeePlan, FinancePlayerFee } from "@/types/finance";
@@ -95,8 +96,8 @@ export function FinanceFeesPanel({
                   {formatMoney(fee.amountPaid)} / {formatMoney(fee.amountDue)}
                 </td>
                 <td className="px-4 py-3">
-                  <Badge variant={fee.status === "paid" ? "default" : fee.status === "partial" ? "secondary" : "destructive"}>
-                    {FINANCE_PLAYER_FEE_STATUS_LABELS[fee.status]}
+                  <Badge variant={feeStatusVariant(fee.status, fee.dueDate)}>
+                    {feeStatusLabel(fee.status, fee.dueDate, fee.amountPaid, fee.amountDue)}
                   </Badge>
                 </td>
                 {canManage ? (
@@ -104,8 +105,8 @@ export function FinanceFeesPanel({
                     {fee.status !== "paid" ? (
                       <form action={payAction} className="flex flex-wrap gap-2">
                         <input type="hidden" name="playerFeeId" value={fee.id} />
-                        <input name="amount" type="number" step="0.01" placeholder="Kwota" required className="border-input h-9 w-24 rounded-md border px-2" />
-                        <Button type="submit" size="sm" disabled={payPending}>Zapisz</Button>
+                        <input name="amount" type="number" step="0.01" placeholder="Kwota" required className="border-input min-h-[44px] w-28 rounded-md border px-2" />
+                        <Button type="submit" size="sm" disabled={payPending} className="min-h-[44px]">Zapisz</Button>
                       </form>
                     ) : "—"}
                   </td>

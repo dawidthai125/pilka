@@ -1610,6 +1610,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_finance_dashboard_totals: {
+        Args: {
+          p_club_id: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       club_role:

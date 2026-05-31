@@ -80,7 +80,20 @@ export function feeStatusVariant(
   dueDate: string,
 ): "default" | "secondary" | "destructive" {
   if (status === "paid") return "default";
+  if (status === "partial" && dueDate >= new Date().toISOString().slice(0, 10)) return "secondary";
   if (status === "partial") return "secondary";
   if (dueDate >= new Date().toISOString().slice(0, 10)) return "secondary";
   return "destructive";
+}
+
+export function feeStatusLabel(
+  status: FinancePlayerFeeStatus,
+  dueDate: string,
+  amountPaid: number,
+  amountDue: number,
+): string {
+  if (amountPaid >= amountDue) return FINANCE_PLAYER_FEE_STATUS_LABELS.paid;
+  if (amountPaid > 0) return FINANCE_PLAYER_FEE_STATUS_LABELS.partial;
+  if (dueDate >= new Date().toISOString().slice(0, 10)) return "Do zapłaty";
+  return FINANCE_PLAYER_FEE_STATUS_LABELS.overdue;
 }

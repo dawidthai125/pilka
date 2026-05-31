@@ -17,6 +17,7 @@
     "setup:stage5": "node scripts/setup-stage5.mjs",
     "setup:stage6": "node scripts/setup-stage6.mjs",
     "setup:stage7": "node scripts/setup-stage7.mjs",
+    "db:migrate:finance-audit": "node scripts/run-sql.mjs supabase/migrations/20260601102000_finance_audit_hardening.sql",
     "db:migrate:sponsors-audit": "node scripts/run-sql.mjs supabase/migrations/20260531202000_sponsors_audit_hardening.sql",
     "db:migrate:matches-audit": "node scripts/run-sql.mjs supabase/migrations/20260531183000_matches_audit_hardening.sql",
     "db:migrate:ai-audit": "node scripts/run-sql.mjs supabase/migrations/20260531192000_ai_audit_hardening.sql",

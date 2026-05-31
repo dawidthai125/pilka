@@ -82,7 +82,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadSponsors } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadSponsors, canAccessFinancePortal } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -97,7 +97,6 @@ import type {
   FinanceDashboardStats,
   FinanceDocument,
   FinanceExpense,
-  FinanceFeePayment,
   FinanceFeePlan,
   FinanceGrant,
   FinanceIncome,
@@ -115,9 +114,8 @@ import {
   mapFinanceIncome,
   mapFinancePlayerFee,
   mapFinanceReport,
-  sumAmounts,
 } from "@/lib/finance/mappers";
-import { computeBudgetExecution } from "@/lib/finance/insights";
+import { computeBudgetExecutionsBatch } from "@/lib/finance/insights";
 import {
   mapSponsor,
   mapSponsorContract,
@@ -1882,7 +1880,7 @@ export function requireFinanceReadAccess(access: UserAccessContext) {
 }
 
 export function requireFinancePortalAccess(access: UserAccessContext) {
-  if (!access.roles.includes("parent")) redirect("/dashboard");
+  if (!canAccessFinancePortal(access.roles)) redirect("/dashboard");
 }
 
 export const getFinanceIncome = cache(
@@ -1965,16 +1963,18 @@ export const getFinanceBudgets = cache(
     if (error) throw new Error(error.message);
 
     const rows = (data ?? []) as Array<Record<string, unknown> & { period_start: string; period_end: string }>;
-    return Promise.all(
-      rows.map(async (row) => {
-        const executed = await computeBudgetExecution(
-          clubId,
-          String(row.period_start),
-          String(row.period_end),
-        );
-        return mapFinanceBudget(row, executed);
-      }),
+    const executions = await computeBudgetExecutionsBatch(
+      clubId,
+      rows.map((row) => ({
+        period_start: String(row.period_start),
+        period_end: String(row.period_end),
+      })),
     );
+
+    return rows.map((row) => {
+      const key = `${row.period_start}:${row.period_end}`;
+      return mapFinanceBudget(row, executions.get(key) ?? 0);
+    });
   },
 );
 
@@ -2022,14 +2022,16 @@ export const getFinanceReport = cache(
 export const getFinanceDashboardStats = cache(
   async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceDashboardStats> => {
     const supabase = await createClient();
-    const [income, expenses, fees, recentIncome, recentExpenses] = await Promise.all([
-      supabase.from("finance_income").select("amount, category").eq("club_id", clubId).limit(5000),
-      supabase.from("finance_expenses").select("amount").eq("club_id", clubId).limit(5000),
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [totalsRes, fees, recentIncome, recentExpenses] = await Promise.all([
+      supabase.rpc("get_finance_dashboard_totals", { p_club_id: clubId }),
       supabase
         .from("finance_player_fees")
         .select("*, player:player_id(first_name, last_name)")
         .eq("club_id", clubId)
         .in("status", ["partial", "overdue"])
+        .lt("due_date", today)
         .order("due_date", { ascending: true })
         .limit(20),
       supabase
@@ -2046,33 +2048,27 @@ export const getFinanceDashboardStats = cache(
         .limit(5),
     ]);
 
-    const incomeRows = income.data ?? [];
-    const expenseRows = expenses.data ?? [];
-    const totalIncome = sumAmounts(incomeRows.map((r) => ({ amount: Number(r.amount) })));
-    const totalExpenses = sumAmounts(expenseRows.map((r) => ({ amount: Number(r.amount) })));
+    const totals = totalsRes.data as {
+      total_income?: number;
+      total_expenses?: number;
+      sponsor_income?: number;
+      total_fees_due?: number;
+      total_fees_paid?: number;
+      overdue_fees_count?: number;
+    } | null;
+
+    const totalIncome = Number(totals?.total_income ?? 0);
+    const totalExpenses = Number(totals?.total_expenses ?? 0);
     const feeRows = (fees.data ?? []).map(mapFinancePlayerFee);
-    const sponsorIncome = incomeRows
-      .filter((r) => r.category === "sponsors")
-      .reduce((sum, r) => sum + Number(r.amount), 0);
-
-    const allFeesRes = await supabase
-      .from("finance_player_fees")
-      .select("amount_due, amount_paid")
-      .eq("club_id", clubId)
-      .limit(5000);
-
-    const allFeeRows = allFeesRes.data ?? [];
-    const totalFeesDue = allFeeRows.reduce((s, r) => s + Number(r.amount_due), 0);
-    const totalFeesPaid = allFeeRows.reduce((s, r) => s + Number(r.amount_paid), 0);
 
     return {
       balance: totalIncome - totalExpenses,
       totalIncome,
       totalExpenses,
-      totalFeesDue,
-      totalFeesPaid,
-      overdueFeesCount: feeRows.length,
-      sponsorIncomeTotal: sponsorIncome,
+      totalFeesDue: Number(totals?.total_fees_due ?? 0),
+      totalFeesPaid: Number(totals?.total_fees_paid ?? 0),
+      overdueFeesCount: Number(totals?.overdue_fees_count ?? feeRows.length),
+      sponsorIncomeTotal: Number(totals?.sponsor_income ?? 0),
       recentIncome: (recentIncome.data ?? []).map(mapFinanceIncome),
       recentExpenses: (recentExpenses.data ?? []).map(mapFinanceExpense),
       overdueFees: feeRows,

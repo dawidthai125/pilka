@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import {
-  FINANCE_PLAYER_FEE_STATUS_LABELS,
+  feeStatusLabel,
+  feeStatusVariant,
   formatMoney,
 } from "@/lib/finance/constants";
 import type { ParentFinancePortalData } from "@/types/finance";
@@ -26,8 +27,8 @@ export function ParentFinancePortal({ data }: { data: ParentFinancePortalData })
               </div>
               <div className="flex items-center gap-3">
                 <span>{formatMoney(fee.amountRemaining)} pozostało</span>
-                <Badge variant={fee.status === "paid" ? "default" : fee.status === "partial" ? "secondary" : "destructive"}>
-                  {FINANCE_PLAYER_FEE_STATUS_LABELS[fee.status]}
+                <Badge variant={feeStatusVariant(fee.status, fee.dueDate)}>
+                  {feeStatusLabel(fee.status, fee.dueDate, fee.amountPaid, fee.amountDue)}
                 </Badge>
               </div>
             </li>

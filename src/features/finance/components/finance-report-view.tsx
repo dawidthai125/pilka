@@ -17,15 +17,15 @@ export function FinanceReportView({ report }: { report: FinanceReport }) {
         <Button type="button" onClick={() => window.print()}>Drukuj / PDF</Button>
       </div>
 
-      <article className="mx-auto max-w-3xl space-y-6 rounded-xl border bg-card p-6 print:max-w-none print:rounded-none print:border-0 print:bg-white print:p-0">
+      <article className="mx-auto max-w-3xl space-y-6 rounded-xl border bg-card p-6 print:max-w-none print:rounded-none print:border-0 print:bg-white print:p-0 print:text-black">
         <header className="border-b pb-4 text-center print:pb-3">
-          <h1 className="text-2xl font-semibold">{report.title}</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold">{report.title}</h1>
+          <p className="text-sm text-muted-foreground print:text-gray-600">
             Okres: {report.periodStart} — {report.periodEnd}
           </p>
         </header>
 
-        <section className="grid gap-3 sm:grid-cols-3 break-inside-avoid">
+        <section className="grid gap-3 sm:grid-cols-3 break-inside-avoid print:gap-2">
           <div className="rounded-lg border p-4 text-center">
             <p className="text-xs text-muted-foreground">Przychody</p>
             <p className="text-xl font-semibold">{formatMoney(content.totalIncome)}</p>
@@ -42,7 +42,7 @@ export function FinanceReportView({ report }: { report: FinanceReport }) {
 
         <section className="break-inside-avoid">
           <h2 className="mb-2 font-semibold">Zaległe składki</h2>
-          <p>{content.overdueFeesCount} pozycji zaległych / częściowo opłaconych</p>
+          <p>{content.overdueFeesCount} pozycji zaległych (po terminie płatności)</p>
         </section>
 
         {content.incomeByCategory ? (
@@ -79,6 +79,10 @@ export function FinanceReportView({ report }: { report: FinanceReport }) {
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{content.narrative}</p>
           </section>
         ) : null}
+
+        <p className="text-center text-xs text-muted-foreground print:text-gray-600 print:hidden">
+          Raport finansowy klubu — do pobrania w PDF użyj przycisku Drukuj.
+        </p>
       </article>
     </div>
   );

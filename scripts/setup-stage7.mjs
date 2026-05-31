@@ -22,6 +22,7 @@ const PROJECT_REF =
 const STAGE7_MIGRATIONS = [
   "20260601100000_finance_module.sql",
   "20260601101000_seed_finance.sql",
+  "20260601102000_finance_audit_hardening.sql",
 ];
 
 function requireEnv(name) {
