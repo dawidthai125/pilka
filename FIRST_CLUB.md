@@ -33,11 +33,11 @@ Documentation for setting up the first test club instance in Football Club OS.
 
 ## Implementation Status
 
-- [ ] Environment setup
-- [ ] Database initialization
-- [ ] Auth configuration
+- [x] Environment setup
+- [x] Database initialization (migracje + skrypt setup)
+- [x] Auth configuration
 - [ ] Storage setup
-- [ ] Club instance creation
-- [ ] First team setup (Seniorzy)
-- [ ] Role-based access implementation
-- [ ] Documentation completion
+- [x] Club instance creation
+- [x] First team setup (Seniorzy)
+- [x] Role-based access implementation
+- [x] Documentation completion

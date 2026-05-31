@@ -1,0 +1,30 @@
+# Moduły — Football Club OS
+
+Dokumentacja poszczególnych modułów biznesowych będzie tworzona etapami zgodnie z [planem realizacji](../plans/implementation-plan.md).
+
+## Status modułów
+
+| Moduł | Katalog | Status |
+|-------|---------|--------|
+| Fundament | — | ✅ Ukończony |
+| ETAP 1 — Auth i klub | [stage-1-auth-and-club.md](./stage-1-auth-and-club.md) | ✅ Ukończony |
+| Autoryzacja (rozszerzenia) | `features/auth/` | Planowany (Faza 2) |
+| Członkostwo | `features/members/` | Planowany (Faza 2) |
+| Drużyny | `features/teams/` | Planowany (Faza 3) |
+| Zawodnicy | `features/players/` | Planowany (Faza 4) |
+| Treningi | `features/training/` | Planowany (Faza 5) |
+| Mecze | `features/matches/` | Planowany (Faza 6) |
+| Komunikacja | `features/communication/` | Planowany (Faza 7) |
+| Sponsorzy | `features/sponsors/` | Planowany (Faza 8) |
+| AI | `features/ai/` | Planowany (Faza 9) |
+
+## Szablon dokumentacji modułu
+
+Każdy ukończony moduł otrzymuje plik `docs/modules/<module>/README.md` zawierający:
+
+1. Cel modułu
+2. Role i uprawnienia
+3. Schemat bazy danych
+4. Server Actions / API
+5. Komponenty UI
+6. Instrukcja testowania

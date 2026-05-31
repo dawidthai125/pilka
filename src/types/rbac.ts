@@ -1,0 +1,92 @@
+export const CLUB_ROLES = [
+  "owner",
+  "president",
+  "sports_director",
+  "coach",
+  "player",
+  "parent",
+  "sponsor",
+] as const;
+
+export type ClubRole = (typeof CLUB_ROLES)[number];
+
+export const MEMBERSHIP_STATUSES = [
+  "active",
+  "invited",
+  "suspended",
+  "archived",
+] as const;
+
+export type MembershipStatus = (typeof MEMBERSHIP_STATUSES)[number];
+
+export const TEAM_CATEGORIES = [
+  "seniors",
+  "u18",
+  "u12",
+  "u10",
+  "other",
+] as const;
+
+export type TeamCategory = (typeof TEAM_CATEGORIES)[number];
+
+export const PERMISSIONS = [
+  "club:read",
+  "club:manage",
+  "team:read",
+  "team:manage",
+  "member:read",
+  "member:manage",
+  "member:invite",
+  "profile:read",
+  "profile:manage",
+  "settings:read",
+  "settings:manage",
+] as const;
+
+export type Permission = (typeof PERMISSIONS)[number];
+
+export type ClubMembership = {
+  id: string;
+  clubId: string;
+  userId: string;
+  role: ClubRole;
+  status: MembershipStatus;
+  teamId: string | null;
+};
+
+export type UserAccessContext = {
+  userId: string;
+  clubId: string;
+  roles: ClubRole[];
+  permissions: Permission[];
+};
+
+export type Profile = {
+  id: string;
+  email: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  phone: string | null;
+  locale: string;
+};
+
+export type Club = {
+  id: string;
+  slug: string;
+  publicName: string;
+  officialName: string | null;
+  association: string | null;
+  competitionLevel: string | null;
+  country: string;
+  voivodeship: string | null;
+  status: string;
+};
+
+export type Team = {
+  id: string;
+  clubId: string;
+  name: string;
+  category: TeamCategory;
+  season: string | null;
+  isActive: boolean;
+};
