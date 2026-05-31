@@ -42,6 +42,8 @@ const leadership: Permission[] = [
   "ai:reports",
   "ai:manage",
   "ai:publish",
+  "sponsor:read",
+  "sponsor:manage",
 ];
 
 const playerReadOnly: Permission[] = [
@@ -80,13 +82,13 @@ const coachingStaff: Permission[] = [
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
-  owner: leadership,
-  president: leadership,
-  sports_director: leadership,
+  owner: [...leadership, "sponsor:read", "sponsor:manage"],
+  president: [...leadership, "sponsor:read", "sponsor:manage"],
+  sports_director: [...leadership, "sponsor:read"],
   coach: coachingStaff,
   player: playerReadOnly,
   parent: playerReadOnly,
-  sponsor: ["club:read", "team:read", "profile:read"],
+  sponsor: ["club:read", "team:read", "match:read", "profile:read", "sponsor:portal"],
 };
 
 export const ALL_PERMISSIONS = [
@@ -118,6 +120,9 @@ export const ALL_PERMISSIONS = [
   "ai:reports_sports",
   "ai:manage",
   "ai:publish",
+  "sponsor:read",
+  "sponsor:manage",
+  "sponsor:portal",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -233,8 +238,23 @@ export function canAccessAiReportCategory(
   category: AiReportCategory,
 ): boolean {
   if (canManageAiReports(roles)) return true;
+  if (category === "sponsors") return canManageAiReports(roles);
   if (canManageSportsAiReports(roles)) {
     return (["matches", "trainings", "players"] as AiReportCategory[]).includes(category);
   }
   return false;
+}
+
+export function canReadSponsors(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canManageSponsors(roles: ClubRole[]): boolean {
+  return roles.some((role) => (["owner", "president"] as ClubRole[]).includes(role));
+}
+
+export function canAccessSponsorPortal(roles: ClubRole[]): boolean {
+  return roles.includes("sponsor");
 }

@@ -58,6 +58,9 @@ export const PERMISSIONS = [
   "ai:reports_sports",
   "ai:manage",
   "ai:publish",
+  "sponsor:read",
+  "sponsor:manage",
+  "sponsor:portal",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

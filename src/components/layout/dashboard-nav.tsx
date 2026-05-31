@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { canReadAi } from "@/config/permissions";
+import {
+  canAccessSponsorPortal,
+  canReadAi,
+  canReadSponsors,
+} from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import type { ClubRole } from "@/types/rbac";
@@ -17,14 +21,22 @@ export function DashboardNav({
 }) {
   const pathname = usePathname();
   const items = roles
-    ? dashboardNav.filter((item) => item.href !== "/ai" || canReadAi(roles))
+    ? dashboardNav.filter((item) => {
+        if (item.href === "/ai") return canReadAi(roles);
+        if ("audience" in item && item.audience === "staff") return canReadSponsors(roles);
+        if ("audience" in item && item.audience === "sponsor") return canAccessSponsorPortal(roles);
+        return true;
+      })
     : dashboardNav;
 
   return (
     <nav className="space-y-1">
       {items.map((item) => {
         const Icon = item.icon;
-        const active = pathname === item.href;
+        const active =
+          item.href === "/sponsors"
+            ? pathname.startsWith("/sponsors") && !pathname.startsWith("/sponsors/portal")
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link

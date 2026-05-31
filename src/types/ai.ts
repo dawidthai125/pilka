@@ -108,6 +108,13 @@ export type AiClubContext = {
       date: string;
     } | null;
   };
+  sponsors: {
+    totalSponsors: number;
+    activeContracts: number;
+    activeContractValue: number;
+    expiringWithin60Days: Array<{ companyName: string; contractName: string; endDate: string }>;
+    noContact30Days: Array<{ companyName: string; lastContact: string | null }>;
+  };
 };
 
 export type AiConversationDetail = {

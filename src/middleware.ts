@@ -14,6 +14,7 @@ const protectedPrefixes = [
   "/training",
   "/matches",
   "/ai",
+  "/sponsors",
   "/integrations",
   "/notifications",
   "/members",

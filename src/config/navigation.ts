@@ -3,6 +3,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
+  Handshake,
   LayoutDashboard,
   Shield,
   ListOrdered,
@@ -62,6 +63,18 @@ export const dashboardNav = [
     title: "Club AI Assistant",
     href: "/ai",
     icon: Bot,
+  },
+  {
+    title: "Sponsorzy",
+    href: "/sponsors",
+    icon: Handshake,
+    audience: "staff" as const,
+  },
+  {
+    title: "Panel sponsora",
+    href: "/sponsors/portal",
+    icon: Handshake,
+    audience: "sponsor" as const,
   },
   {
     title: "Role i uprawnienia",

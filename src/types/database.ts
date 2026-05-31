@@ -521,6 +521,8 @@ export type Database = {
           read_at: string | null;
           delivery_channels: Json;
           created_at: string;
+          sponsor_contract_id: string | null;
+          sponsor_reminder_days: number | null;
         };
         Insert: {
           id?: string;
@@ -534,6 +536,8 @@ export type Database = {
           scheduled_at: string;
           read_at?: string | null;
           delivery_channels?: Json;
+          sponsor_contract_id?: string | null;
+          sponsor_reminder_days?: number | null;
         };
         Update: {
           read_at?: string | null;
@@ -886,6 +890,347 @@ export type Database = {
         };
         Relationships: [];
       };
+      sponsors: {
+        Row: {
+          id: string;
+          club_id: string;
+          profile_id: string | null;
+          company_name: string;
+          logo_url: string | null;
+          nip: string | null;
+          address: string | null;
+          city: string | null;
+          postal_code: string | null;
+          website: string | null;
+          phone: string | null;
+          email: string | null;
+          contact_first_name: string | null;
+          contact_last_name: string | null;
+          contact_position: string | null;
+          contact_phone: string | null;
+          contact_email: string | null;
+          cooperation_status: Database["public"]["Enums"]["sponsor_cooperation_status"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          profile_id?: string | null;
+          company_name: string;
+          logo_url?: string | null;
+          nip?: string | null;
+          address?: string | null;
+          city?: string | null;
+          postal_code?: string | null;
+          website?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          contact_first_name?: string | null;
+          contact_last_name?: string | null;
+          contact_position?: string | null;
+          contact_phone?: string | null;
+          contact_email?: string | null;
+          cooperation_status?: Database["public"]["Enums"]["sponsor_cooperation_status"];
+        };
+        Update: {
+          profile_id?: string | null;
+          company_name?: string;
+          logo_url?: string | null;
+          nip?: string | null;
+          address?: string | null;
+          city?: string | null;
+          postal_code?: string | null;
+          website?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          contact_first_name?: string | null;
+          contact_last_name?: string | null;
+          contact_position?: string | null;
+          contact_phone?: string | null;
+          contact_email?: string | null;
+          cooperation_status?: Database["public"]["Enums"]["sponsor_cooperation_status"];
+        };
+        Relationships: [];
+      };
+      sponsor_contracts: {
+        Row: {
+          id: string;
+          club_id: string;
+          sponsor_id: string;
+          name: string;
+          start_date: string;
+          end_date: string;
+          value: number;
+          currency: string;
+          benefits_description: string | null;
+          status: Database["public"]["Enums"]["sponsor_contract_status"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          sponsor_id: string;
+          name: string;
+          start_date: string;
+          end_date: string;
+          value?: number;
+          currency?: string;
+          benefits_description?: string | null;
+          status?: Database["public"]["Enums"]["sponsor_contract_status"];
+        };
+        Update: {
+          name?: string;
+          start_date?: string;
+          end_date?: string;
+          value?: number;
+          currency?: string;
+          benefits_description?: string | null;
+        };
+        Relationships: [];
+      };
+      sponsor_contract_attachments: {
+        Row: {
+          id: string;
+          club_id: string;
+          contract_id: string;
+          file_name: string;
+          file_url: string;
+          file_size: number | null;
+          uploaded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          contract_id: string;
+          file_name: string;
+          file_url: string;
+          file_size?: number | null;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          file_name?: string;
+          file_url?: string;
+        };
+        Relationships: [];
+      };
+      sponsor_leads: {
+        Row: {
+          id: string;
+          club_id: string;
+          company_name: string;
+          contact_name: string | null;
+          contact_email: string | null;
+          contact_phone: string | null;
+          status: Database["public"]["Enums"]["sponsor_lead_status"];
+          notes: string | null;
+          assigned_to: string | null;
+          converted_sponsor_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          company_name: string;
+          contact_name?: string | null;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          status?: Database["public"]["Enums"]["sponsor_lead_status"];
+          notes?: string | null;
+          assigned_to?: string | null;
+        };
+        Update: {
+          company_name?: string;
+          contact_name?: string | null;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          status?: Database["public"]["Enums"]["sponsor_lead_status"];
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      sponsor_notes: {
+        Row: {
+          id: string;
+          club_id: string;
+          sponsor_id: string;
+          note_type: Database["public"]["Enums"]["sponsor_note_type"];
+          content: string;
+          contact_date: string;
+          author_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          sponsor_id: string;
+          note_type?: Database["public"]["Enums"]["sponsor_note_type"];
+          content: string;
+          contact_date?: string;
+          author_id: string;
+        };
+        Update: {
+          note_type?: Database["public"]["Enums"]["sponsor_note_type"];
+          content?: string;
+          contact_date?: string;
+        };
+        Relationships: [];
+      };
+      sponsor_publications: {
+        Row: {
+          id: string;
+          club_id: string;
+          title: string;
+          published_at: string;
+          description: string | null;
+          image_url: string | null;
+          source: Database["public"]["Enums"]["sponsor_publication_source"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          title: string;
+          published_at: string;
+          description?: string | null;
+          image_url?: string | null;
+          source?: Database["public"]["Enums"]["sponsor_publication_source"];
+        };
+        Update: {
+          title?: string;
+          published_at?: string;
+          description?: string | null;
+          image_url?: string | null;
+          source?: Database["public"]["Enums"]["sponsor_publication_source"];
+        };
+        Relationships: [];
+      };
+      sponsor_publication_links: {
+        Row: {
+          id: string;
+          club_id: string;
+          publication_id: string;
+          sponsor_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          publication_id: string;
+          sponsor_id: string;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      sponsor_exposure: {
+        Row: {
+          id: string;
+          club_id: string;
+          sponsor_id: string;
+          exposure_type: Database["public"]["Enums"]["sponsor_exposure_type"];
+          title: string;
+          description: string | null;
+          exposure_date: string;
+          publication_id: string | null;
+          match_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          sponsor_id: string;
+          exposure_type: Database["public"]["Enums"]["sponsor_exposure_type"];
+          title: string;
+          description?: string | null;
+          exposure_date: string;
+          publication_id?: string | null;
+          match_id?: string | null;
+        };
+        Update: {
+          title?: string;
+          description?: string | null;
+          exposure_date?: string;
+        };
+        Relationships: [];
+      };
+      sponsor_reports: {
+        Row: {
+          id: string;
+          club_id: string;
+          sponsor_id: string;
+          period_start: string;
+          period_end: string;
+          title: string;
+          content: Json;
+          status: Database["public"]["Enums"]["sponsor_report_status"];
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          sponsor_id: string;
+          period_start: string;
+          period_end: string;
+          title: string;
+          content?: Json;
+          status?: Database["public"]["Enums"]["sponsor_report_status"];
+          created_by?: string | null;
+        };
+        Update: {
+          title?: string;
+          content?: Json;
+          status?: Database["public"]["Enums"]["sponsor_report_status"];
+        };
+        Relationships: [];
+      };
+      sponsor_financial_entries: {
+        Row: {
+          id: string;
+          club_id: string;
+          sponsor_id: string;
+          contract_id: string | null;
+          entry_type: Database["public"]["Enums"]["sponsor_financial_entry_type"];
+          amount: number;
+          currency: string;
+          due_date: string | null;
+          paid_at: string | null;
+          status: Database["public"]["Enums"]["sponsor_financial_status"];
+          reference_number: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          sponsor_id: string;
+          contract_id?: string | null;
+          entry_type: Database["public"]["Enums"]["sponsor_financial_entry_type"];
+          amount: number;
+          currency?: string;
+          due_date?: string | null;
+          paid_at?: string | null;
+          status?: Database["public"]["Enums"]["sponsor_financial_status"];
+          reference_number?: string | null;
+          notes?: string | null;
+        };
+        Update: {
+          amount?: number;
+          due_date?: string | null;
+          paid_at?: string | null;
+          status?: Database["public"]["Enums"]["sponsor_financial_status"];
+          reference_number?: string | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
       ai_suggestions: {
         Row: {
           id: string;
@@ -986,6 +1331,21 @@ export type Database = {
         | "expiring_documents"
         | "high_injuries";
       ai_suggestion_status: "open" | "dismissed" | "resolved";
+      sponsor_cooperation_status: "active" | "expiring" | "ended" | "potential";
+      sponsor_contract_status: "active" | "expiring" | "expired";
+      sponsor_lead_status:
+        | "new"
+        | "in_discussion"
+        | "offer_sent"
+        | "negotiation"
+        | "won"
+        | "rejected";
+      sponsor_note_type: "phone" | "meeting" | "email" | "note";
+      sponsor_publication_source: "facebook" | "instagram" | "website" | "other";
+      sponsor_exposure_type: "publication" | "sponsored_match" | "sponsored_event";
+      sponsor_financial_entry_type: "payment" | "installment" | "invoice";
+      sponsor_financial_status: "planned" | "pending" | "paid" | "overdue" | "cancelled";
+      sponsor_report_status: "draft" | "published";
     };
     CompositeTypes: Record<string, never>;
   };

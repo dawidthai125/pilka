@@ -8,6 +8,7 @@ import { parseClubRole } from "@/lib/validators";
 import { createClient, getUser } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 import type { Club, ClubRole, Profile, Team, UserAccessContext } from "@/types/rbac";
+import type { Database } from "@/types/database";
 import type { DocumentAlert, Player, PlayerCoachNote, PlayerDocument, PlayerClubHistory, PlayerInjury, PlayerStats } from "@/types/players";
 import type {
   AttendanceScope,
@@ -81,8 +82,32 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageTrainings, canReadAi } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadSponsors } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
+import type {
+  Sponsor,
+  SponsorDashboardStats,
+  SponsorDetailData,
+  SponsorLead,
+  SponsorPortalData,
+  SponsorPublication,
+} from "@/types/sponsors";
+import {
+  mapSponsor,
+  mapSponsorContract,
+  mapSponsorContractAttachment,
+  mapSponsorExposure,
+  mapSponsorFinancialEntry,
+  mapSponsorLead,
+  mapSponsorNote,
+  mapSponsorPublication,
+  mapSponsorReport,
+} from "@/lib/sponsors/mappers";
+import {
+  SPONSOR_CONTRACT_REMINDER_DAYS,
+  buildContractReminderCopy,
+  isContractReminderDue,
+} from "@/lib/sponsors/notifications";
 
 export const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -282,6 +307,7 @@ export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID
   }
 
   await syncTrainingReminders(clubId);
+  await syncSponsorContractReminders(clubId);
 
   const unreadNotifications = await getUnreadNotificationCount(clubId);
 
@@ -326,6 +352,18 @@ export function requireMatchReadAccess(access: UserAccessContext) {
 
 export function requireAiReadAccess(access: UserAccessContext) {
   if (!canReadAi(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireSponsorReadAccess(access: UserAccessContext) {
+  if (!canReadSponsors(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireSponsorPortalAccess(access: UserAccessContext) {
+  if (!access.roles.includes("sponsor")) {
     redirect("/dashboard");
   }
 }
@@ -1404,5 +1442,387 @@ export const getAiSuggestions = cache(
 
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapAiSuggestion);
+  },
+);
+
+export const syncSponsorContractReminders = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+  const user = await getUser();
+  if (!user) return;
+
+  const access = await getAccessContext(user.id, clubId);
+  if (!access || !canManageSponsors(access.roles)) return;
+
+  const supabase = await createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const horizon = new Date();
+  horizon.setDate(horizon.getDate() + 90);
+  const horizonDate = horizon.toISOString().slice(0, 10);
+
+  const { data: contracts } = await supabase
+    .from("sponsor_contracts")
+    .select("id, name, end_date, sponsor_id, sponsors(company_name)")
+    .eq("club_id", clubId)
+    .gte("end_date", today)
+    .lte("end_date", horizonDate)
+    .in("status", ["active", "expiring"]);
+
+  if (!contracts?.length) return;
+
+  const { data: members } = await supabase
+    .from("club_memberships")
+    .select("user_id")
+    .eq("club_id", clubId)
+    .eq("status", "active")
+    .in("role", ["owner", "president"]);
+
+  const rows: Database["public"]["Tables"]["club_notifications"]["Insert"][] = [];
+
+  for (const contract of contracts) {
+    const sponsorName =
+      (contract.sponsors as { company_name?: string } | null)?.company_name ?? "Sponsor";
+    for (const days of SPONSOR_CONTRACT_REMINDER_DAYS) {
+      if (!isContractReminderDue(contract.end_date, days)) continue;
+
+      const copy = buildContractReminderCopy(
+        contract.name,
+        sponsorName,
+        contract.end_date,
+        days,
+      );
+      const scheduledAt = new Date(`${contract.end_date}T00:00:00.000Z`);
+      scheduledAt.setDate(scheduledAt.getDate() - days);
+
+      for (const member of members ?? []) {
+        rows.push({
+          club_id: clubId,
+          user_id: member.user_id,
+          sponsor_contract_id: contract.id,
+          sponsor_reminder_days: days,
+          title: copy.title,
+          body: copy.body,
+          href: `/sponsors/${contract.sponsor_id}`,
+          scheduled_at: scheduledAt.toISOString(),
+          delivery_channels: ["in_app"],
+        });
+      }
+    }
+  }
+
+  if (rows.length) {
+    await supabase.from("club_notifications").upsert(rows, {
+      onConflict: "user_id,sponsor_contract_id,sponsor_reminder_days",
+      ignoreDuplicates: true,
+    });
+  }
+});
+
+export const getSponsors = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, search?: string): Promise<Sponsor[]> => {
+    const supabase = await createClient();
+    let query = supabase
+      .from("sponsors")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("company_name");
+
+    if (search?.trim()) {
+      const term = sanitizeIlikeTerm(search);
+      if (term) query = query.ilike("company_name", `%${term}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapSponsor);
+  },
+);
+
+export const getSponsor = cache(
+  async (sponsorId: string, clubId: string = DEFAULT_CLUB_ID): Promise<Sponsor | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("sponsors")
+      .select("*")
+      .eq("id", sponsorId)
+      .eq("club_id", clubId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return mapSponsor(data);
+  },
+);
+
+export const getSponsorDetail = cache(
+  async (sponsorId: string, clubId: string = DEFAULT_CLUB_ID): Promise<SponsorDetailData | null> => {
+    const sponsor = await getSponsor(sponsorId, clubId);
+    if (!sponsor) return null;
+
+    const supabase = await createClient();
+    const [contracts, notes, exposure, reports, financial] = await Promise.all([
+      supabase
+        .from("sponsor_contracts")
+        .select("*")
+        .eq("sponsor_id", sponsorId)
+        .eq("club_id", clubId)
+        .order("end_date", { ascending: false }),
+      supabase
+        .from("sponsor_notes")
+        .select("*, author:author_id(full_name)")
+        .eq("sponsor_id", sponsorId)
+        .eq("club_id", clubId)
+        .order("contact_date", { ascending: false })
+        .limit(50),
+      supabase
+        .from("sponsor_exposure")
+        .select("*")
+        .eq("sponsor_id", sponsorId)
+        .eq("club_id", clubId)
+        .order("exposure_date", { ascending: false })
+        .limit(30),
+      supabase
+        .from("sponsor_reports")
+        .select("*")
+        .eq("sponsor_id", sponsorId)
+        .eq("club_id", clubId)
+        .order("period_end", { ascending: false }),
+      supabase
+        .from("sponsor_financial_entries")
+        .select("*")
+        .eq("sponsor_id", sponsorId)
+        .eq("club_id", clubId)
+        .order("due_date", { ascending: false }),
+    ]);
+
+    const contractRows = contracts.data ?? [];
+    const contractIds = contractRows.map((c) => c.id);
+    let attachments: ReturnType<typeof mapSponsorContractAttachment>[] = [];
+    if (contractIds.length) {
+      const { data: attachmentRows } = await supabase
+        .from("sponsor_contract_attachments")
+        .select("*")
+        .in("contract_id", contractIds)
+        .eq("club_id", clubId);
+      attachments = (attachmentRows ?? []).map(mapSponsorContractAttachment);
+    }
+
+    return {
+      sponsor,
+      contracts: contractRows.map(mapSponsorContract),
+      contractAttachments: attachments,
+      notes: (notes.data ?? []).map(mapSponsorNote),
+      exposure: (exposure.data ?? []).map(mapSponsorExposure),
+      reports: (reports.data ?? []).map(mapSponsorReport),
+      financialEntries: (financial.data ?? []).map(mapSponsorFinancialEntry),
+    };
+  },
+);
+
+export const getSponsorLeads = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorLead[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("sponsor_leads")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("updated_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapSponsorLead);
+  },
+);
+
+export const getSponsorPublications = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorPublication[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("sponsor_publications")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("published_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    const publications = (data ?? []).map(mapSponsorPublication);
+    if (!publications.length) return publications;
+
+    const ids = publications.map((p) => p.id);
+    const { data: links } = await supabase
+      .from("sponsor_publication_links")
+      .select("publication_id, sponsor_id, sponsors(company_name)")
+      .in("publication_id", ids)
+      .eq("club_id", clubId);
+
+    const linkMap = new Map<string, { ids: string[]; names: string[] }>();
+    for (const link of links ?? []) {
+      const current = linkMap.get(link.publication_id) ?? { ids: [], names: [] };
+      current.ids.push(link.sponsor_id);
+      const name = (link.sponsors as { company_name?: string } | null)?.company_name;
+      if (name) current.names.push(name);
+      linkMap.set(link.publication_id, current);
+    }
+
+    return publications.map((p) => {
+      const linked = linkMap.get(p.id);
+      return {
+        ...p,
+        sponsorIds: linked?.ids ?? [],
+        sponsorNames: linked?.names ?? [],
+      };
+    });
+  },
+);
+
+export const getSponsorDashboardStats = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorDashboardStats> => {
+    const supabase = await createClient();
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    const monthStartStr = monthStart.toISOString().slice(0, 10);
+
+    const [sponsors, contracts, leads, publications] = await Promise.all([
+      supabase.from("sponsors").select("id", { count: "exact", head: true }).eq("club_id", clubId),
+      supabase
+        .from("sponsor_contracts")
+        .select("value, status")
+        .eq("club_id", clubId)
+        .in("status", ["active", "expiring"]),
+      supabase
+        .from("sponsor_leads")
+        .select("id", { count: "exact", head: true })
+        .eq("club_id", clubId)
+        .not("status", "in", '("won","rejected")'),
+      supabase
+        .from("sponsor_publications")
+        .select("id", { count: "exact", head: true })
+        .eq("club_id", clubId)
+        .gte("published_at", monthStartStr),
+    ]);
+
+    const contractRows = contracts.data ?? [];
+    return {
+      totalSponsors: sponsors.count ?? 0,
+      activeContracts: contractRows.filter((c) => c.status === "active").length,
+      expiringContracts: contractRows.filter((c) => c.status === "expiring").length,
+      activeContractValue: contractRows.reduce((sum, c) => sum + Number(c.value), 0),
+      openLeads: leads.count ?? 0,
+      publicationsThisMonth: publications.count ?? 0,
+    };
+  },
+);
+
+export const getSponsorForCurrentUser = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<Sponsor | null> => {
+    const user = await getUser();
+    if (!user) return null;
+
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("sponsors")
+      .select("*")
+      .eq("club_id", clubId)
+      .eq("profile_id", user.id)
+      .maybeSingle();
+
+    return data ? mapSponsor(data) : null;
+  },
+);
+
+export const getSponsorPortalData = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorPortalData | null> => {
+    const sponsor = await getSponsorForCurrentUser(clubId);
+    if (!sponsor) return null;
+
+    const supabase = await createClient();
+    const teamId = "b2c3d4e5-f6a7-8901-bcde-f12345678901";
+
+    const [contracts, reports, linkRows, upcoming, results] = await Promise.all([
+      supabase
+        .from("sponsor_contracts")
+        .select("*")
+        .eq("sponsor_id", sponsor.id)
+        .eq("club_id", clubId)
+        .order("end_date", { ascending: false }),
+      supabase
+        .from("sponsor_reports")
+        .select("*")
+        .eq("sponsor_id", sponsor.id)
+        .eq("club_id", clubId)
+        .eq("status", "published")
+        .order("period_end", { ascending: false }),
+      supabase
+        .from("sponsor_publication_links")
+        .select("publication_id")
+        .eq("sponsor_id", sponsor.id)
+        .eq("club_id", clubId)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("matches")
+        .select("id, home_team_name, away_team_name, match_date, match_time, status")
+        .eq("club_id", clubId)
+        .eq("team_id", teamId)
+        .eq("status", "planned")
+        .gte("match_date", new Date().toISOString().slice(0, 10))
+        .order("match_date")
+        .limit(5),
+      supabase
+        .from("matches")
+        .select("id, home_team_name, away_team_name, home_score, away_score, match_date")
+        .eq("club_id", clubId)
+        .eq("team_id", teamId)
+        .eq("status", "completed")
+        .order("match_date", { ascending: false })
+        .limit(5),
+    ]);
+
+    const publicationIds = (linkRows.data ?? []).map((r) => r.publication_id);
+    let pubRows: ReturnType<typeof mapSponsorPublication>[] = [];
+    if (publicationIds.length) {
+      const { data: pubs } = await supabase
+        .from("sponsor_publications")
+        .select("*")
+        .in("id", publicationIds)
+        .eq("club_id", clubId);
+      pubRows = (pubs ?? []).map(mapSponsorPublication);
+    }
+
+    return {
+      sponsor,
+      contracts: (contracts.data ?? []).map(mapSponsorContract),
+      reports: (reports.data ?? []).map(mapSponsorReport),
+      publications: pubRows,
+      upcomingMatches: (upcoming.data ?? []).map((m) => ({
+        id: m.id,
+        homeTeamName: m.home_team_name,
+        awayTeamName: m.away_team_name,
+        matchDate: m.match_date,
+        matchTime: m.match_time.slice(0, 5),
+        status: m.status,
+      })),
+      recentResults: (results.data ?? []).map((m) => ({
+        id: m.id,
+        homeTeamName: m.home_team_name,
+        awayTeamName: m.away_team_name,
+        homeScore: m.home_score,
+        awayScore: m.away_score,
+        matchDate: m.match_date,
+      })),
+    };
+  },
+);
+
+export const getSponsorReport = cache(
+  async (reportId: string, clubId: string = DEFAULT_CLUB_ID) => {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("sponsor_reports")
+      .select("*, sponsors(company_name)")
+      .eq("id", reportId)
+      .eq("club_id", clubId)
+      .maybeSingle();
+
+    if (!data) return null;
+    return {
+      report: mapSponsorReport(data),
+      sponsorName: (data.sponsors as { company_name?: string } | null)?.company_name ?? "Sponsor",
+    };
   },
 );
