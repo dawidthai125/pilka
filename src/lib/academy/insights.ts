@@ -39,7 +39,8 @@ export async function buildAcademyAiContext(clubId: string = DEFAULT_CLUB_ID) {
         .from("player_development_history")
         .select("player_id, overall_rating, recorded_at")
         .eq("club_id", clubId)
-        .order("recorded_at", { ascending: true }),
+        .order("recorded_at", { ascending: false })
+        .limit(100),
     ]);
 
   const historyByPlayer = new Map<string, number[]>();
@@ -48,6 +49,9 @@ export async function buildAcademyAiContext(clubId: string = DEFAULT_CLUB_ID) {
     const list = historyByPlayer.get(id) ?? [];
     list.push(Number(h.overall_rating));
     historyByPlayer.set(id, list);
+  }
+  for (const [id, list] of historyByPlayer) {
+    historyByPlayer.set(id, list.reverse());
   }
 
   const topTalents = (developments.data ?? []).slice(0, 10).map((d) => {

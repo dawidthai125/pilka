@@ -9,6 +9,8 @@
 | [environment/](./environment/setup.md) | Konfiguracja środowiska lokalnego i Vercel |
 | [plans/](./plans/implementation-plan.md) | Szczegółowy plan realizacji modułów |
 | [audit/](./audit/audit-report.md) | Raport audytu jakości i bezpieczeństwa |
+| [audit/stage-11.5-architecture-audit.md](./audit/stage-11.5-architecture-audit.md) | Audyt architektury ETAP 11.5 |
+| [stage-11.5-fixes-report.md](./stage-11.5-fixes-report.md) | Raport poprawek ETAP 11.5 |
 | [modules/](./modules/README.md) | Dokumentacja modułów (tworzona etapami) |
 
 ## Pierwszy klub testowy

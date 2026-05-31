@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { DEFAULT_CLUB_ID, getClub, getPlayers, getTeams } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { computeTeamForm, aggregateTeamStats } from "@/lib/matches/mappers";
@@ -19,6 +21,16 @@ const MAX_MATCHES_FOR_CONTEXT = 15;
 const MAX_ATTENDANCE_ROWS = 2000;
 
 export async function buildAiClubContext(
+  clubId: string = DEFAULT_CLUB_ID,
+): Promise<AiClubContext> {
+  return unstable_cache(
+    () => buildAiClubContextUncached(clubId),
+    ["ai-club-context", clubId],
+    { revalidate: 300, tags: [`ai-context-${clubId}`] },
+  )();
+}
+
+async function buildAiClubContextUncached(
   clubId: string = DEFAULT_CLUB_ID,
 ): Promise<AiClubContext> {
   const [club, players, teams] = await Promise.all([

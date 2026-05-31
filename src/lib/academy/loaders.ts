@@ -54,20 +54,21 @@ export function requireScoutingManageAccess(access: UserAccessContext) {
 export const getAcademyGroups = cache(
   async (clubId: string = DEFAULT_CLUB_ID): Promise<AcademyGroup[]> => {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("academy_groups")
-      .select("*, team:team_id(name)")
-      .eq("club_id", clubId)
-      .order("age_group");
+    const [{ data, error }, { data: players }] = await Promise.all([
+      supabase
+        .from("academy_groups")
+        .select("*, team:team_id(name)")
+        .eq("club_id", clubId)
+        .order("age_group"),
+      supabase
+        .from("players")
+        .select("team_id")
+        .eq("club_id", clubId)
+        .eq("status", "active"),
+    ]);
     if (error) throw new Error(error.message);
 
     const groups = (data ?? []).map((row) => mapAcademyGroup(row as Record<string, unknown>));
-
-    const { data: players } = await supabase
-      .from("players")
-      .select("team_id")
-      .eq("club_id", clubId)
-      .eq("status", "active");
 
     const countByTeam = new Map<string, number>();
     for (const p of players ?? []) {
@@ -151,27 +152,31 @@ export const getPlayerDevelopmentDetail = cache(
 export const getTalentRanking = cache(
   async (clubId: string = DEFAULT_CLUB_ID): Promise<TalentRankingEntry[]> => {
     const supabase = await createClient();
-    const { data: players } = await supabase
-      .from("players")
-      .select("id, first_name, last_name, team_id, teams(name)")
-      .eq("club_id", clubId)
-      .eq("status", "active");
+    const [playersRes, developmentsRes, assessmentsRes, historyRes] = await Promise.all([
+      supabase
+        .from("players")
+        .select("id, first_name, last_name, team_id, teams(name)")
+        .eq("club_id", clubId)
+        .eq("status", "active"),
+      supabase
+        .from("player_development")
+        .select("player_id, potential, overall_rating, development_level")
+        .eq("club_id", clubId),
+      supabase
+        .from("player_assessments")
+        .select("player_id, average_score")
+        .eq("club_id", clubId),
+      supabase
+        .from("player_development_history")
+        .select("player_id, overall_rating, recorded_at")
+        .eq("club_id", clubId)
+        .order("recorded_at", { ascending: true }),
+    ]);
 
-    const { data: developments } = await supabase
-      .from("player_development")
-      .select("player_id, potential, overall_rating, development_level")
-      .eq("club_id", clubId);
-
-    const { data: assessments } = await supabase
-      .from("player_assessments")
-      .select("player_id, average_score")
-      .eq("club_id", clubId);
-
-    const { data: history } = await supabase
-      .from("player_development_history")
-      .select("player_id, overall_rating, recorded_at")
-      .eq("club_id", clubId)
-      .order("recorded_at", { ascending: true });
+    const players = playersRes.data;
+    const developments = developmentsRes.data;
+    const assessments = assessmentsRes.data;
+    const history = historyRes.data;
 
     const devMap = new Map((developments ?? []).map((d) => [String(d.player_id), d]));
     const assessMap = new Map<string, number[]>();
@@ -266,43 +271,7 @@ export const getOpponentAnalyses = cache(
   },
 );
 
-export async function resolveOwnPlayerIds(access: UserAccessContext): Promise<string[]> {
-  if (!canReadOwnDevelopment(access.roles)) return [];
-  const supabase = await createClient();
-  const ids: string[] = [];
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", access.userId)
-    .maybeSingle();
-
-  if (profile?.email) {
-    const { data: ownPlayer } = await supabase
-      .from("players")
-      .select("id")
-      .eq("club_id", access.clubId)
-      .ilike("email", profile.email)
-      .maybeSingle();
-    if (ownPlayer?.id) ids.push(String(ownPlayer.id));
-  }
-
-  const { data: guardians } = await supabase
-    .from("player_guardians")
-    .select("player_id")
-    .eq("club_id", access.clubId)
-    .eq("profile_id", access.userId);
-  for (const g of guardians ?? []) ids.push(String(g.player_id));
-
-  return [...new Set(ids)];
-}
-
-export function canAccessPlayerDevelopment(
-  access: UserAccessContext,
-  playerId: string,
-  ownPlayerIds: string[],
-): boolean {
-  if (canReadAcademy(access.roles)) return true;
-  if (canReadOwnDevelopment(access.roles)) return ownPlayerIds.includes(playerId);
-  return false;
-}
+export {
+  canAccessPlayerDevelopment,
+  resolveOwnPlayerIds,
+} from "@/lib/players/access";

@@ -9,6 +9,7 @@ import {
   getPlayerDetail,
   requirePlayerReadAccess,
 } from "@/lib/auth/session";
+import { canAccessPlayerRow, resolveOwnPlayerIds } from "@/lib/players/access";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,9 @@ export default async function PlayerDetailPage({
   const { edit, tab } = await searchParams;
   const { access, teams } = await getDashboardContext();
   requirePlayerReadAccess(access);
+
+  const ownIds = await resolveOwnPlayerIds(access);
+  if (!canAccessPlayerRow(access, id, ownIds)) notFound();
 
   const data = await getPlayerDetail(id);
   if (!data) notFound();

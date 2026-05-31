@@ -390,8 +390,6 @@ export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID
     redirect("/login?error=no_membership");
   }
 
-  await syncTrainingReminders(clubId);
-
   const unreadNotifications = await getUnreadNotificationCount(clubId);
 
   return {
@@ -474,6 +472,27 @@ function attachTeamName(player: Player, teamMap: Map<string, string>): Player {
     teamName: player.teamId ? teamMap.get(player.teamId) ?? null : null,
   };
 }
+
+export const getPlayersByTeam = cache(
+  async (teamId: string, clubId: string = DEFAULT_CLUB_ID): Promise<Player[]> => {
+    const supabase = await createClient();
+    const [teamMap, playersRes] = await Promise.all([
+      loadTeamNameMapCached(clubId),
+      supabase
+        .from("players")
+        .select(PLAYER_SELECT)
+        .eq("club_id", clubId)
+        .eq("team_id", teamId)
+        .order("last_name")
+        .order("first_name"),
+    ]);
+
+    if (playersRes.error) throw new Error(playersRes.error.message);
+    return (playersRes.data ?? []).map((row) =>
+      attachTeamName(mapPlayer(row), teamMap),
+    );
+  },
+);
 
 export const getPlayers = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<Player[]> => {
   const supabase = await createClient();
@@ -829,6 +848,7 @@ export const getAttendanceStats = cache(
     scope: AttendanceScope = "season",
     clubId: string = DEFAULT_CLUB_ID,
     teamId?: string,
+    maxTrainings?: number,
   ): Promise<PlayerAttendanceStats[]> => {
     const supabase = await createClient();
     const fromDate = getScopeDateFrom(scope);
@@ -844,6 +864,11 @@ export const getAttendanceStats = cache(
     }
     if (teamId) {
       trainingQuery = trainingQuery.eq("team_id", teamId);
+    }
+    if (maxTrainings) {
+      trainingQuery = trainingQuery
+        .order("training_date", { ascending: false })
+        .limit(maxTrainings);
     }
 
     const { data: trainings, error: trainingError } = await trainingQuery;
@@ -1176,7 +1201,7 @@ export const getMatchDetail = cache(
         .select(PLAYER_SELECT)
         .eq("club_id", clubId)
         .eq("team_id", match.teamId),
-      getAttendanceStats("season", clubId, match.teamId),
+      getAttendanceStats("season", clubId, match.teamId, 30),
     ]);
 
     const roster = rosterRes.data ?? [];
@@ -1481,7 +1506,7 @@ export const getAiReports = cache(
       if (term) query = query.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.limit(100);
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapAiReport);
   },

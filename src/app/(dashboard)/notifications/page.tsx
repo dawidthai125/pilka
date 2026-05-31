@@ -1,13 +1,23 @@
 import { NotificationsCenter } from "@/features/training/components/notifications-center";
+import { canManageSponsors, canManageTrainings } from "@/config/permissions";
 import {
   getDashboardContext,
   getNotifications,
   requireTrainingReadAccess,
+  syncSponsorContractReminders,
+  syncTrainingReminders,
 } from "@/lib/auth/session";
 
 export default async function NotificationsPage() {
   const { access } = await getDashboardContext();
   requireTrainingReadAccess(access);
+
+  if (canManageTrainings(access.roles)) {
+    await syncTrainingReminders(access.clubId);
+  }
+  if (canManageSponsors(access.roles)) {
+    await syncSponsorContractReminders(access.clubId);
+  }
 
   const notifications = await getNotifications();
 

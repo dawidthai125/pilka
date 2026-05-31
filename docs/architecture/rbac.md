@@ -74,11 +74,26 @@ erDiagram
 4. Server Actions weryfikują uprawnienia przed każdą mutacją.
 5. Uprawnienia modułowe (np. `match:manage`) zostaną dodane per moduł.
 
-## Scope zespołu (`team_id`)
+## Scope zespołu (`team_id`) — wdrożone (ETAP 11.5)
 
 - Opcjonalne pole w `club_memberships`
-- Trener przypisany do konkretnej drużyny widzi tylko dane tej drużyny
-- Zarząd (`board`) ma dostęp do wszystkich drużyn klubu
+- Trener z przypisanym `team_id` widzi **tylko zawodników, treningi i mecze swojej drużyny** (RLS: `actor_can_read_team_resource`, `actor_can_read_player_row`)
+- Trener bez `team_id` (trener główny) — dostęp club-wide w ramach roli coach
+- Zarząd (`owner`, `president`, `sports_director`) — pełny odczyt klubu
+- Zawodnik — wyłącznie własny profil (`player_id_for_user`)
+- Rodzic — wyłącznie dzieci (`parent_player_ids`)
+
+### Helpery RLS (PostgreSQL)
+
+| Funkcja | Opis |
+|---------|------|
+| `actor_can_read_player_row(club, player)` | Odczyt wiersza zawodnika |
+| `actor_can_manage_player_row(club, player)` | Mutacja zawodnika (scope trenera) |
+| `actor_can_read_team_resource(club, team)` | Odczyt treningów/meczów |
+| `actor_can_manage_team_resource(club, team)` | Mutacja treningów/meczów |
+| `coach_team_ids(club)` | Drużyny przypisane trenerowi |
+
+Aplikacja: `src/lib/players/access.ts` — guard na `/players/[id]`.
 
 ## Przepływ autoryzacji (docelowy)
 
