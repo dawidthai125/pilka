@@ -13,12 +13,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+import type { ClubRole } from "@/types/rbac";
+
 export function MobileDashboardNav({
   appName,
   clubName,
+  roles,
 }: {
   appName: string;
   clubName: string;
+  roles?: ClubRole[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -40,7 +44,7 @@ export function MobileDashboardNav({
           <p className="text-base font-semibold">{clubName}</p>
         </SheetHeader>
         <div className="px-3 py-4">
-          <DashboardNav onNavigate={() => setOpen(false)} />
+          <DashboardNav roles={roles} onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>
     </Sheet>

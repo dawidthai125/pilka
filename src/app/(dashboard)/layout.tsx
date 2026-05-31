@@ -24,7 +24,7 @@ export default async function DashboardLayout({
           ) : null}
         </div>
         <div className="flex-1 px-3 py-4">
-          <DashboardNav />
+          <DashboardNav roles={access.roles} />
         </div>
       </aside>
 

@@ -24,6 +24,7 @@ const PROJECT_REF =
 const STAGE5_MIGRATIONS = [
   "20260531190000_ai_module.sql",
   "20260531191000_seed_ai.sql",
+  "20260531192000_ai_audit_hardening.sql",
 ];
 
 function requireEnv(name) {

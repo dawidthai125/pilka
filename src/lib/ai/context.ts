@@ -10,6 +10,9 @@ import { mapMatch } from "@/lib/matches/mappers";
 const MATCH_SELECT =
   "id, club_id, team_id, competition, season, round_number, match_date, match_time, home_team_name, away_team_name, stadium, stadium_address, status, home_score, away_score, formation, mvp_player_id, coach_notes, teams(name), mvp:mvp_player_id(first_name, last_name)";
 
+const MAX_MATCHES_FOR_CONTEXT = 15;
+const MAX_ATTENDANCE_ROWS = 2000;
+
 export async function buildAiClubContext(
   clubId: string = DEFAULT_CLUB_ID,
 ): Promise<AiClubContext> {
@@ -22,6 +25,9 @@ export async function buildAiClubContext(
   const clubName = club ? getClubBrandingName(club) : "Klub";
   const seniorTeam = teams.find((t) => t.category === "seniors") ?? teams[0];
   const teamId = seniorTeam?.id;
+  const seniorPlayerIds = players
+    .filter((p) => (teamId ? p.teamId === teamId : true))
+    .map((p) => p.id);
 
   const supabase = await createClient();
   const now = new Date();
@@ -29,8 +35,17 @@ export async function buildAiClubContext(
   const weekEnd = formatIsoDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));
   const docDeadline = formatIsoDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 30));
 
+  const { data: weekTrainings } = await supabase
+    .from("trainings")
+    .select("id")
+    .eq("club_id", clubId)
+    .gte("training_date", weekStart)
+    .lte("training_date", weekEnd)
+    .eq("status", "planned");
+
+  const weekTrainingIds = (weekTrainings ?? []).map((t) => t.id);
+
   const [
-    trainingsWeek,
     attendanceRows,
     availabilityUnknown,
     matchesCompleted,
@@ -38,22 +53,22 @@ export async function buildAiClubContext(
     expiringDocs,
     injuries,
   ] = await Promise.all([
-    supabase
-      .from("trainings")
-      .select("id")
-      .eq("club_id", clubId)
-      .gte("training_date", weekStart)
-      .lte("training_date", weekEnd)
-      .eq("status", "planned"),
-    supabase
-      .from("training_attendance")
-      .select("player_id, status")
-      .eq("club_id", clubId),
-    supabase
-      .from("training_availability")
-      .select("id", { count: "exact", head: true })
-      .eq("club_id", clubId)
-      .eq("status", "unknown"),
+    seniorPlayerIds.length
+      ? supabase
+          .from("training_attendance")
+          .select("player_id, status")
+          .eq("club_id", clubId)
+          .in("player_id", seniorPlayerIds)
+          .limit(MAX_ATTENDANCE_ROWS)
+      : Promise.resolve({ data: [], error: null }),
+    weekTrainingIds.length
+      ? supabase
+          .from("training_availability")
+          .select("id", { count: "exact", head: true })
+          .eq("club_id", clubId)
+          .eq("status", "unknown")
+          .in("training_id", weekTrainingIds)
+      : Promise.resolve({ count: 0, error: null }),
     teamId
       ? supabase
           .from("matches")
@@ -63,6 +78,7 @@ export async function buildAiClubContext(
           .eq("season", DEFAULT_SEASON)
           .eq("status", "completed")
           .order("match_date", { ascending: false })
+          .limit(MAX_MATCHES_FOR_CONTEXT)
       : Promise.resolve({ data: [], error: null }),
     supabase
       .from("player_stats")
@@ -99,7 +115,7 @@ export async function buildAiClubContext(
   }
 
   const rates = players
-    .filter((p) => teamId ? p.teamId === teamId : true)
+    .filter((p) => (teamId ? p.teamId === teamId : true))
     .map((p) => {
       const stats = attendanceByPlayer.get(p.id);
       const rate = stats && stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : 0;
@@ -130,7 +146,7 @@ export async function buildAiClubContext(
     clubName,
     generatedAt: now.toISOString(),
     players: {
-      total: players.filter((p) => (teamId ? p.teamId === teamId : true)).length,
+      total: seniorPlayerIds.length,
       injured: injuries.data?.length ?? 0,
       suspended: players.filter((p) => p.status === "suspended").length,
       expiringDocuments: new Set((expiringDocs.data ?? []).map((d) => d.player_id)).size,
@@ -138,7 +154,7 @@ export async function buildAiClubContext(
       lowestAttendance: rates.slice(0, 5),
     },
     trainings: {
-      thisWeekCount: trainingsWeek.data?.length ?? 0,
+      thisWeekCount: weekTrainingIds.length,
       avgAttendanceRate: avgRate,
       missingAvailabilityCount: availabilityUnknown.count ?? 0,
     },

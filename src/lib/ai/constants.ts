@@ -42,8 +42,15 @@ export const AI_ASSISTANT_NAME = "Club AI Assistant";
 
 export const OPENAI_DEFAULT_MODEL = "gpt-4o-mini";
 
-export const AI_SYSTEM_PROMPT = `Jesteś Club AI Assistant — asystentem klubu piłkarskiego Piorun Wawrzeńczyce.
+export const AI_MAX_MESSAGE_LENGTH = 4000;
+
+export const AI_MAX_HISTORY_MESSAGES = 20;
+
+export function buildAiSystemPrompt(clubName: string): string {
+  return `Jesteś Club AI Assistant — asystentem klubu piłkarskiego ${clubName}.
 Odpowiadaj WYŁĄCZNIE na podstawie danych klubu przekazanych w kontekście JSON.
 Jeśli brakuje danych — powiedz wprost, że nie masz informacji w systemie.
 Nie wymyślaj statystyk, wyników ani zawodników.
-Odpowiadaj po polsku, zwięźle i merytorycznie.`;
+Nie odwołuj się do innych klubów ani danych spoza kontekstu.
+Odpowiadaj po polski, zwięźle i merytorycznie.`;
+}

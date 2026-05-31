@@ -8,7 +8,8 @@ import {
   canPublishAiReports,
   canUseAiChat,
 } from "@/config/permissions";
-import { DEFAULT_CLUB_ID, requireAccessContext } from "@/lib/auth/session";
+import { requireAccessContext } from "@/lib/auth/session";
+import { AI_MAX_MESSAGE_LENGTH } from "@/lib/ai/constants";
 import { buildAiClubContext, serializeAiContext } from "@/lib/ai/context";
 import { syncAiSuggestions } from "@/lib/ai/insights";
 import { generateAiAnswer, generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
@@ -24,25 +25,29 @@ function revalidateAiPaths() {
   revalidatePath("/ai/suggestions");
 }
 
-async function verifyConversationOwned(conversationId: string, userId: string) {
+async function verifyConversationOwned(
+  conversationId: string,
+  userId: string,
+  clubId: string,
+) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("ai_conversations")
     .select("id")
     .eq("id", conversationId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("user_id", userId)
     .maybeSingle();
   return !!data;
 }
 
-async function verifyReportInClub(reportId: string) {
+async function verifyReportInClub(reportId: string, clubId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("ai_reports")
     .select("id, category, status")
     .eq("id", reportId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .maybeSingle();
   return data;
 }
@@ -58,7 +63,7 @@ export async function createAiConversation(
   const { data, error } = await supabase
     .from("ai_conversations")
     .insert({
-      club_id: DEFAULT_CLUB_ID,
+      club_id: access.clubId,
       user_id: access.userId,
       title: "Nowa rozmowa",
     })
@@ -80,14 +85,17 @@ export async function sendAiMessage(
 
   const content = String(formData.get("content") ?? "").trim();
   if (!content) return { error: "Wpisz wiadomość." };
-  if (!(await verifyConversationOwned(conversationId, access.userId))) {
+  if (content.length > AI_MAX_MESSAGE_LENGTH) {
+    return { error: `Wiadomość może mieć maksymalnie ${AI_MAX_MESSAGE_LENGTH} znaków.` };
+  }
+  if (!(await verifyConversationOwned(conversationId, access.userId, access.clubId))) {
     return { error: "Rozmowa nie istnieje." };
   }
 
   const supabase = await createClient();
 
   const { error: userError } = await supabase.from("ai_messages").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     conversation_id: conversationId,
     role: "user",
     content,
@@ -98,7 +106,7 @@ export async function sendAiMessage(
     .from("ai_messages")
     .select("role, content")
     .eq("conversation_id", conversationId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", access.clubId)
     .order("created_at")
     .limit(20);
 
@@ -109,22 +117,26 @@ export async function sendAiMessage(
 
   let assistantContent: string;
   try {
+    const ctxObj = await buildAiClubContext(access.clubId);
     if (!isOpenAiConfigured()) {
-      const ctx = await buildAiClubContext();
       assistantContent =
         "OpenAI nie jest skonfigurowane (brak OPENAI_API_KEY). " +
         "Na podstawie danych systemowych: frekwencja ~" +
-        `${ctx.trainings.avgAttendanceRate}%, forma (5 meczów): ${ctx.matches.teamFormLast5}, kontuzje: ${ctx.players.injured}.`;
+        `${ctxObj.trainings.avgAttendanceRate}%, forma (5 meczów): ${ctxObj.matches.teamFormLast5}, kontuzje: ${ctxObj.players.injured}.`;
     } else {
-      const ctx = serializeAiContext(await buildAiClubContext());
-      assistantContent = await generateAiAnswer(content, ctx, history);
+      assistantContent = await generateAiAnswer(
+        content,
+        ctxObj.clubName,
+        serializeAiContext(ctxObj),
+        history,
+      );
     }
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Błąd AI." };
   }
 
   const { error: assistantError } = await supabase.from("ai_messages").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     conversation_id: conversationId,
     role: "assistant",
     content: assistantContent,
@@ -136,6 +148,7 @@ export async function sendAiMessage(
     .from("ai_conversations")
     .update({ title })
     .eq("id", conversationId)
+    .eq("club_id", access.clubId)
     .eq("user_id", access.userId);
 
   revalidateAiPaths();
@@ -150,7 +163,7 @@ export async function toggleAiConversationPin(
 ): Promise<AiActionState> {
   const access = await requireAccessContext();
   if (!canUseAiChat(access.roles)) return { error: "Brak uprawnień." };
-  if (!(await verifyConversationOwned(conversationId, access.userId))) {
+  if (!(await verifyConversationOwned(conversationId, access.userId, access.clubId))) {
     return { error: "Rozmowa nie istnieje." };
   }
 
@@ -160,6 +173,7 @@ export async function toggleAiConversationPin(
     .from("ai_conversations")
     .update({ is_pinned: pinned })
     .eq("id", conversationId)
+    .eq("club_id", access.clubId)
     .eq("user_id", access.userId);
 
   if (error) return { error: error.message };
@@ -173,8 +187,11 @@ export async function updateAiReport(
   formData: FormData,
 ): Promise<AiActionState> {
   const access = await requireAccessContext();
-  const report = await verifyReportInClub(reportId);
+  const report = await verifyReportInClub(reportId, access.clubId);
   if (!report) return { error: "Raport nie istnieje." };
+  if (report.status !== "draft") {
+    return { error: "Opublikowany raport nie może być edytowany." };
+  }
   if (!canAccessAiReportCategory(access.roles, report.category)) {
     return { error: "Brak uprawnień do tej kategorii." };
   }
@@ -188,7 +205,8 @@ export async function updateAiReport(
     .from("ai_reports")
     .update({ title, content })
     .eq("id", reportId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", access.clubId)
+    .eq("status", "draft");
 
   if (error) return { error: error.message };
   revalidateAiPaths();
@@ -203,7 +221,7 @@ export async function publishAiReport(
   const access = await requireAccessContext();
   if (!canPublishAiReports(access.roles)) return { error: "Brak uprawnień." };
 
-  const report = await verifyReportInClub(reportId);
+  const report = await verifyReportInClub(reportId, access.clubId);
   if (!report) return { error: "Raport nie istnieje." };
   if (!canAccessAiReportCategory(access.roles, report.category)) {
     return { error: "Brak uprawnień do tej kategorii." };
@@ -218,7 +236,7 @@ export async function publishAiReport(
       published_at: new Date().toISOString(),
     })
     .eq("id", reportId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", access.clubId);
 
   if (error) return { error: error.message };
   revalidateAiPaths();
@@ -227,6 +245,7 @@ export async function publishAiReport(
 }
 
 async function saveGeneratedReport(input: {
+  clubId: string;
   category: AiReportCategory;
   reportType: AiReportType;
   title: string;
@@ -239,7 +258,7 @@ async function saveGeneratedReport(input: {
   return supabase
     .from("ai_reports")
     .insert({
-      club_id: DEFAULT_CLUB_ID,
+      club_id: input.clubId,
       category: input.category,
       report_type: input.reportType,
       title: input.title,
@@ -268,14 +287,14 @@ export async function generateAiMatchReport(
     .from("matches")
     .select("home_team_name, away_team_name, home_score, away_score, match_date, status")
     .eq("id", matchId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", access.clubId)
     .maybeSingle();
 
   if (!match || match.status !== "completed") {
     return { error: "Mecz musi być zakończony." };
   }
 
-  const ctx = serializeAiContext(await buildAiClubContext());
+  const ctxObj = await buildAiClubContext(access.clubId);
   const instruction =
     `Wygeneruj raport meczowy AI po meczu ${match.home_team_name} ${match.home_score}:${match.away_score} ${match.away_team_name} (${match.match_date}). ` +
     "Sekcje: Podsumowanie, Najważniejsze wydarzenia, Wyróżnieni zawodnicy, Mocne strony, Słabe strony. Markdown.";
@@ -283,13 +302,14 @@ export async function generateAiMatchReport(
   let content: string;
   try {
     content = isOpenAiConfigured()
-      ? await generateAiReportContent(instruction, ctx)
+      ? await generateAiReportContent(instruction, ctxObj.clubName, serializeAiContext(ctxObj))
       : `## Podsumowanie\n\nMecz ${match.home_team_name} — ${match.away_team_name}: ${match.home_score}:${match.away_score}.\n\n## Najważniejsze wydarzenia\n\n(Dane z systemu — skonfiguruj OPENAI_API_KEY dla pełnej analizy AI.)`;
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Błąd generowania." };
   }
 
   const { data, error } = await saveGeneratedReport({
+    clubId: access.clubId,
     category: "matches",
     reportType: "match_summary",
     title: `Raport meczowy AI — ${match.home_team_name} vs ${match.away_team_name}`,
@@ -310,20 +330,21 @@ export async function generateAiTrainingReport(_prev: AiActionState): Promise<Ai
     return { error: "Brak uprawnień." };
   }
 
-  const ctx = await buildAiClubContext();
+  const ctxObj = await buildAiClubContext(access.clubId);
   const instruction =
     "Wygeneruj raport treningowy AI — podsumowanie tygodnia: frekwencja, aktywność zawodników, nieobecności. Markdown.";
 
   let content: string;
   try {
     content = isOpenAiConfigured()
-      ? await generateAiReportContent(instruction, serializeAiContext(ctx))
-      : `## Frekwencja\n\nŚrednia frekwencja: ${ctx.trainings.avgAttendanceRate}%.\n\n## Nieobecności\n\nBrak odpowiedzi: ${ctx.trainings.missingAvailabilityCount} zawodników.`;
+      ? await generateAiReportContent(instruction, ctxObj.clubName, serializeAiContext(ctxObj))
+      : `## Frekwencja\n\nŚrednia frekwencja: ${ctxObj.trainings.avgAttendanceRate}%.\n\n## Nieobecności\n\nBrak odpowiedzi: ${ctxObj.trainings.missingAvailabilityCount} zawodników.`;
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Błąd generowania." };
   }
 
   const { data, error } = await saveGeneratedReport({
+    clubId: access.clubId,
     category: "trainings",
     reportType: "training_weekly",
     title: "Raport treningowy AI — podsumowanie tygodnia",
@@ -341,7 +362,7 @@ export async function generateAiManagementReport(_prev: AiActionState): Promise<
   const access = await requireAccessContext();
   if (!canManageAi(access.roles)) return { error: "Brak uprawnień." };
 
-  const ctx = await buildAiClubContext();
+  const ctxObj = await buildAiClubContext(access.clubId);
   const month = new Date().toISOString().slice(0, 7);
   const instruction =
     `Wygeneruj miesięczny raport zarządu AI za ${month}: liczba treningów, meczów, średnia frekwencja, aktywność, wydarzenia. Markdown.`;
@@ -349,13 +370,14 @@ export async function generateAiManagementReport(_prev: AiActionState): Promise<
   let content: string;
   try {
     content = isOpenAiConfigured()
-      ? await generateAiReportContent(instruction, serializeAiContext(ctx))
-      : `## Raport zarządu — ${month}\n\n- Mecze rozegrane: ${ctx.matches.completedCount}\n- Średnia frekwencja: ${ctx.trainings.avgAttendanceRate}%\n- Kontuzje: ${ctx.players.injured}`;
+      ? await generateAiReportContent(instruction, ctxObj.clubName, serializeAiContext(ctxObj))
+      : `## Raport zarządu — ${month}\n\n- Mecze rozegrane: ${ctxObj.matches.completedCount}\n- Średnia frekwencja: ${ctxObj.trainings.avgAttendanceRate}%\n- Kontuzje: ${ctxObj.players.injured}`;
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Błąd generowania." };
   }
 
   const { data, error } = await saveGeneratedReport({
+    clubId: access.clubId,
     category: "management",
     reportType: "management_monthly",
     title: `Raport zarządu AI — ${month}`,
@@ -383,22 +405,23 @@ export async function generateAiSocialPosts(
     .from("matches")
     .select("home_team_name, away_team_name, home_score, away_score, round_number, status")
     .eq("id", matchId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", access.clubId)
     .maybeSingle();
 
   if (!match || match.status !== "completed") {
     return { error: "Mecz musi być zakończony." };
   }
 
+  const ctxObj = await buildAiClubContext(access.clubId);
   const base = `${match.home_team_name} ${match.home_score}:${match.away_score} ${match.away_team_name}`;
-  const ctxJson = serializeAiContext(await buildAiClubContext());
 
-  let facebookContent = `⚽ ${base} — dziękujemy kibicom! #PiorunWawrzenczyce`;
+  let facebookContent = `⚽ ${base} — dziękujemy kibicom!`;
   if (isOpenAiConfigured()) {
     try {
       facebookContent = await generateAiReportContent(
         `Napisz post na Facebooka po meczu: ${base}. Max 280 znaków, emoji.`,
-        ctxJson,
+        ctxObj.clubName,
+        serializeAiContext(ctxObj),
       );
     } catch {
       /* fallback */
@@ -410,7 +433,7 @@ export async function generateAiSocialPosts(
     {
       reportType: "social_instagram",
       title: "Post Instagram — wynik meczu",
-      content: `⚡ ${base}\n#Piorun #BKlasa`,
+      content: `⚡ ${base}\n#Klub #Piłka`,
     },
     {
       reportType: "social_website",
@@ -426,6 +449,7 @@ export async function generateAiSocialPosts(
 
   for (const post of posts) {
     await saveGeneratedReport({
+      clubId: access.clubId,
       category: "matches",
       reportType: post.reportType,
       title: post.title,
@@ -452,7 +476,7 @@ export async function dismissAiSuggestion(
     .from("ai_suggestions")
     .update({ status: "dismissed" })
     .eq("id", suggestionId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", access.clubId);
 
   if (error) return { error: error.message };
   revalidateAiPaths();
@@ -463,7 +487,7 @@ export async function refreshAiSuggestions(_prev: AiActionState): Promise<AiActi
   const access = await requireAccessContext();
   if (!canUseAiChat(access.roles)) return { error: "Brak uprawnień." };
 
-  const count = await syncAiSuggestions();
+  const count = await syncAiSuggestions(access.clubId);
   revalidateAiPaths();
   return { success: `Zaktualizowano sugestie (${count} nowych).` };
 }

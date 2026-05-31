@@ -49,7 +49,7 @@ export function DashboardHeader({
   return (
     <header className="flex h-16 items-center justify-between gap-3 border-b px-4 md:px-6">
       <div className="flex min-w-0 items-center gap-3">
-        <MobileDashboardNav appName={appName} clubName={clubName} />
+        <MobileDashboardNav appName={appName} clubName={clubName} roles={roles} />
         <div className="min-w-0">
           <p className="text-sm text-muted-foreground">Klub</p>
           <p className="truncate font-semibold">{clubName}</p>

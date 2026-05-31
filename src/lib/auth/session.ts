@@ -82,6 +82,7 @@ import {
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
 import { canManageTrainings, canReadAi } from "@/config/permissions";
+import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 
 export const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -1276,7 +1277,8 @@ export const getAiConversations = cache(
       .order("updated_at", { ascending: false });
 
     if (search?.trim()) {
-      query = query.ilike("title", `%${search.trim()}%`);
+      const term = sanitizeIlikeTerm(search);
+      if (term) query = query.ilike("title", `%${term}%`);
     }
 
     const { data, error } = await query;
@@ -1290,7 +1292,9 @@ export const getAiConversations = cache(
       .from("ai_messages")
       .select("conversation_id, content, created_at")
       .in("conversation_id", ids)
-      .order("created_at", { ascending: false });
+      .eq("club_id", clubId)
+      .order("created_at", { ascending: false })
+      .limit(Math.min(ids.length * 5, 200));
 
     const previewMap = new Map<string, string>();
     for (const row of previews ?? []) {
@@ -1327,7 +1331,8 @@ export const getAiConversationDetail = cache(
       .select("id, conversation_id, role, content, created_at")
       .eq("conversation_id", conversationId)
       .eq("club_id", clubId)
-      .order("created_at");
+      .order("created_at")
+      .limit(200);
 
     return {
       conversation: mapAiConversation(conversation),
@@ -1350,7 +1355,10 @@ export const getAiReports = cache(
       .order("created_at", { ascending: false });
 
     if (category) query = query.eq("category", category);
-    if (search?.trim()) query = query.or(`title.ilike.%${search.trim()}%,content.ilike.%${search.trim()}%`);
+    if (search?.trim()) {
+      const term = sanitizeIlikeTerm(search);
+      if (term) query = query.or(`title.ilike.%${term}%,content.ilike.%${term}%`);
+    }
 
     const { data, error } = await query;
     if (error) throw new Error(error.message);

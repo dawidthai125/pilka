@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 
 import { sendAiMessage, type AiActionState } from "@/features/ai/actions";
+import { AI_MAX_MESSAGE_LENGTH } from "@/lib/ai/constants";
 import type { AiConversationDetail } from "@/types/ai";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -53,6 +54,7 @@ export function AiChatView({ data }: { data: AiConversationDetail }) {
           name="content"
           rows={2}
           required
+          maxLength={AI_MAX_MESSAGE_LENGTH}
           placeholder="Zadaj pytanie o dane klubu..."
           className="border-input bg-background min-h-[44px] flex-1 rounded-md border px-3 py-2 text-sm shadow-xs"
         />

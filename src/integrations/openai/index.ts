@@ -1,4 +1,4 @@
-import { AI_SYSTEM_PROMPT, OPENAI_DEFAULT_MODEL } from "@/lib/ai/constants";
+import { buildAiSystemPrompt, OPENAI_DEFAULT_MODEL } from "@/lib/ai/constants";
 
 export function getOpenAiApiKey(): string | null {
   const key = process.env.OPENAI_API_KEY?.trim();
@@ -34,8 +34,7 @@ export async function callOpenAiChat(
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`OpenAI API error (${response.status}): ${body.slice(0, 200)}`);
+    throw new Error(`OpenAI API error (${response.status}). Sprawdź konfigurację klucza API.`);
   }
 
   const data = (await response.json()) as {
@@ -49,13 +48,14 @@ export async function callOpenAiChat(
 
 export async function generateAiAnswer(
   userQuestion: string,
+  clubName: string,
   clubContextJson: string,
   history: Array<{ role: "user" | "assistant"; content: string }>,
 ): Promise<string> {
   const messages: ChatMessage[] = [
     {
       role: "system",
-      content: `${AI_SYSTEM_PROMPT}\n\nKontekst danych klubu (JSON):\n${clubContextJson}`,
+      content: `${buildAiSystemPrompt(clubName)}\n\nKontekst danych klubu (JSON):\n${clubContextJson}`,
     },
     ...history.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: userQuestion },
@@ -66,12 +66,13 @@ export async function generateAiAnswer(
 
 export async function generateAiReportContent(
   instruction: string,
+  clubName: string,
   clubContextJson: string,
 ): Promise<string> {
   return callOpenAiChat([
     {
       role: "system",
-      content: `${AI_SYSTEM_PROMPT}\n\nKontekst danych klubu (JSON):\n${clubContextJson}`,
+      content: `${buildAiSystemPrompt(clubName)}\n\nKontekst danych klubu (JSON):\n${clubContextJson}`,
     },
     { role: "user", content: instruction },
   ]);

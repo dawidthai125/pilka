@@ -3,15 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { canReadAi } from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
 import { cn } from "@/lib/utils";
+import type { ClubRole } from "@/types/rbac";
 
-export function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
+export function DashboardNav({
+  roles,
+  onNavigate,
+}: {
+  roles?: ClubRole[];
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
+  const items = roles
+    ? dashboardNav.filter((item) => item.href !== "/ai" || canReadAi(roles))
+    : dashboardNav;
 
   return (
     <nav className="space-y-1">
-      {dashboardNav.map((item) => {
+      {items.map((item) => {
         const Icon = item.icon;
         const active = pathname === item.href;
 
