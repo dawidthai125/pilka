@@ -72,6 +72,13 @@ export async function createInventoryItem(
 
   const itemId = crypto.randomUUID();
   const supabase = await createClient();
+  const { data: category } = await supabase
+    .from("inventory_categories")
+    .select("id")
+    .eq("id", categoryId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+  if (!category) return { error: "Nieprawidłowa kategoria." };
 
   let photoPath: string | null = null;
   const file = formData.get("photo");
@@ -151,6 +158,14 @@ export async function issueInventoryItem(
     if (!player) return { error: "Nieprawidłowy zawodnik." };
   } else {
     profileId = readString(formData, "profileId") || access.userId;
+    const { data: membership } = await supabase
+      .from("club_memberships")
+      .select("user_id")
+      .eq("club_id", access.clubId)
+      .eq("user_id", profileId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!membership) return { error: "Wybrany użytkownik nie należy do klubu." };
   }
 
   const { error } = await supabase.from("inventory_transactions").insert({
@@ -186,10 +201,32 @@ export async function returnInventoryItem(
   }
 
   const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("inventory_items")
+    .select("id, quantity_issued")
+    .eq("id", itemId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+  if (!item) return { error: "Nie znaleziono pozycji." };
+  if (Number(item.quantity_issued) < quantity) {
+    return { error: "Kwota zwrotu przekracza ilość wydaną." };
+  }
+
+  const transactionId = readString(formData, "transactionId") || null;
+  if (transactionId) {
+    const { data: tx } = await supabase
+      .from("inventory_transactions")
+      .select("id, quantity, item_id")
+      .eq("id", transactionId)
+      .eq("club_id", access.clubId)
+      .maybeSingle();
+    if (!tx || tx.item_id !== itemId) return { error: "Nieprawidłowe powiązane wydanie." };
+  }
+
   const { error } = await supabase.from("inventory_returns").insert({
     club_id: access.clubId,
     item_id: itemId,
-    transaction_id: readString(formData, "transactionId") || null,
+    transaction_id: transactionId,
     quantity,
     return_date: readString(formData, "returnDate") || new Date().toISOString().slice(0, 10),
     condition,
@@ -214,6 +251,14 @@ export async function registerInventoryDamage(
   if (!itemId || !description) return { error: "Podaj sprzęt i opis uszkodzenia." };
 
   const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("inventory_items")
+    .select("id")
+    .eq("id", itemId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+  if (!item) return { error: "Nie znaleziono pozycji." };
+
   const { error } = await supabase.from("inventory_damages").insert({
     club_id: access.clubId,
     item_id: itemId,
@@ -239,6 +284,14 @@ export async function upsertInventoryPlayerKit(
   if (!playerId) return { error: "Wybierz zawodnika." };
 
   const supabase = await createClient();
+  const { data: player } = await supabase
+    .from("players")
+    .select("id")
+    .eq("id", playerId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+  if (!player) return { error: "Wybrany zawodnik nie należy do tego klubu." };
+
   const { error } = await supabase.from("inventory_player_kits").upsert(
     {
       club_id: access.clubId,

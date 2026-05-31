@@ -2031,6 +2031,14 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_inventory_report_summary: {
+        Args: {
+          p_club_id: string;
+          p_period_start?: string | null;
+          p_period_end?: string | null;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       club_role:

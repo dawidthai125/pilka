@@ -195,16 +195,30 @@ BEGIN
     AND i.inventory_number = 'PIORUN-MAG-' || lpad(g.i::TEXT, 4, '0');
 
   UPDATE public.inventory_items i
-  SET quantity_damaged = 1, quantity_available = GREATEST(quantity_available - 1, 0), status = 'damaged'
+  SET
+    quantity_issued = GREATEST(i.quantity_issued - 1, 0),
+    quantity_damaged = i.quantity_damaged + 1,
+    status = 'damaged'
   FROM generate_series(1, 5) AS g(i)
   WHERE i.club_id = v_club_id
     AND i.inventory_number = 'PIORUN-MAG-' || lpad(g.i::TEXT, 4, '0')
-    AND i.quantity_total >= 1;
+    AND i.quantity_issued >= 1;
 
-  -- Zwrot częściowy (3 rekordy)
-  INSERT INTO public.inventory_returns (club_id, item_id, return_date, quantity, condition, recorded_by, notes)
+  UPDATE public.inventory_items i
+  SET
+    quantity_available = GREATEST(i.quantity_available - 1, 0),
+    quantity_damaged = i.quantity_damaged + 1,
+    status = 'damaged'
+  FROM generate_series(1, 5) AS g(i)
+  WHERE i.club_id = v_club_id
+    AND i.inventory_number = 'PIORUN-MAG-' || lpad(g.i::TEXT, 4, '0')
+    AND i.quantity_issued = 0
+    AND i.quantity_available >= 1;
+
+  -- Zwrot częściowy (3 rekordy) — powiązane z wydaniami zawodników
+  INSERT INTO public.inventory_returns (club_id, transaction_id, item_id, return_date, quantity, condition, recorded_by, notes)
   SELECT
-    v_club_id, t.item_id, '2026-02-15', 1, 'functional', COALESCE(v_coach_id, v_director_id), 'Zwrot po treningu'
+    v_club_id, t.id, t.item_id, '2026-02-15', 1, 'functional', COALESCE(v_coach_id, v_director_id), 'Zwrot po treningu'
   FROM public.inventory_transactions t
   WHERE t.club_id = v_club_id AND t.player_id IS NOT NULL
   LIMIT 3;

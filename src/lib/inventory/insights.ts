@@ -91,47 +91,24 @@ export async function buildInventoryReportContent(
 ): Promise<InventoryReportContent> {
   const supabase = await createClient();
 
-  const [itemsRes, issuesRes, damagesRes] = await Promise.all([
-    supabase.from("inventory_items").select("id, status, quantity_available, quantity_issued, quantity_damaged, min_stock_level").eq("club_id", clubId),
-    supabase
-      .from("inventory_transactions")
-      .select("id, quantity, recipient_type, issue_date, item:item_id(name, category:category_id(slug))")
-      .eq("club_id", clubId)
-      .gte("issue_date", periodStart ?? "1900-01-01")
-      .lte("issue_date", periodEnd ?? "2099-12-31"),
-    supabase
-      .from("inventory_damages")
-      .select("id, status")
-      .eq("club_id", clubId),
-  ]);
+  const { data: summary } = await supabase.rpc("get_inventory_report_summary", {
+    p_club_id: clubId,
+    p_period_start: periodStart,
+    p_period_end: periodEnd,
+  });
 
-  const items = (itemsRes.data ?? []) as Array<{
-    min_stock_level: number;
-    quantity_available: number;
-    quantity_issued: number;
-    quantity_damaged: number;
-  }>;
-  const issues = (issuesRes.data ?? []) as Array<{
-    quantity: number;
-    recipient_type: string;
-    item: { category?: { slug?: string } | null } | null;
-  }>;
-  const damages = damagesRes.data ?? [];
+  const row = summary as Record<string, number> | null;
 
   const content: InventoryReportContent = {
-    totalItems: items.length,
-    lowStockCount: items.filter(
-      (i) => Number(i.min_stock_level) > 0 && Number(i.quantity_available) <= Number(i.min_stock_level),
-    ).length,
-    damagedCount: items.reduce((s, i) => s + Number(i.quantity_damaged), 0),
-    issuedCount: items.reduce((s, i) => s + Number(i.quantity_issued), 0),
-    issuesCount: issues.length,
-    ballsIssued: issues
-      .filter((t) => (t.item as { category?: { slug?: string } } | null)?.category?.slug === "balls")
-      .reduce((s, t) => s + Number(t.quantity), 0),
-    kitsIssued: issues.filter((t) => t.recipient_type === "player").length,
-    damagesCount: damages.length,
-    replacementNeeded: damages.filter((d) => d.status === "replacement_needed").length,
+    totalItems: Number(row?.total_items ?? 0),
+    lowStockCount: Number(row?.low_stock_count ?? 0),
+    damagedCount: Number(row?.damaged_count ?? 0),
+    issuedCount: Number(row?.issued_count ?? 0),
+    issuesCount: Number(row?.issues_count ?? 0),
+    ballsIssued: Number(row?.balls_issued ?? 0),
+    kitsIssued: Number(row?.kits_issued ?? 0),
+    damagesCount: Number(row?.damages_count ?? 0),
+    replacementNeeded: Number(row?.replacement_needed ?? 0),
   };
 
   if (isOpenAiConfigured()) {

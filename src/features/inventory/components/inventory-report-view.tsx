@@ -42,13 +42,16 @@ export function InventoryReportView({ report }: { report: InventoryReport }) {
         </header>
 
         {statItems.length ? (
-          <section className="grid gap-3 sm:grid-cols-3 break-inside-avoid print:gap-2">
+          <section className="break-inside-avoid">
+            <h2 className="mb-2 font-semibold">Statystyki</h2>
+            <div className="grid gap-3 sm:grid-cols-3 print:gap-2">
             {statItems.map((item) => (
               <div key={item.label} className="rounded-lg border p-4 text-center">
                 <p className="text-xs text-muted-foreground">{item.label}</p>
                 <p className="text-xl font-semibold">{item.value}</p>
               </div>
             ))}
+            </div>
           </section>
         ) : null}
 

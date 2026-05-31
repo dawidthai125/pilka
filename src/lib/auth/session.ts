@@ -2387,7 +2387,7 @@ export const getPlayerInventoryPortalData = cache(
     const playerId = String(playerRow.id);
     const playerName = `${playerRow.first_name ?? ""} ${playerRow.last_name ?? ""}`.trim();
 
-    const [kitRes, assignmentsRes, issuesRes, returnsRes] = await Promise.all([
+    const [kitRes, assignmentsRes, issuesRes] = await Promise.all([
       supabase
         .from("inventory_player_kits")
         .select("*, player:player_id(first_name, last_name)")
@@ -2408,28 +2408,29 @@ export const getPlayerInventoryPortalData = cache(
         .eq("player_id", playerId)
         .order("issue_date", { ascending: false })
         .limit(30),
-      supabase
-        .from("inventory_returns")
-        .select("*, item:item_id(name), recorder:recorded_by(full_name)")
-        .eq("club_id", clubId)
-        .order("return_date", { ascending: false })
-        .limit(30),
     ]);
 
-    const issueIds = new Set((issuesRes.data ?? []).map((i) => String((i as { id: string }).id)));
-    const returns = (returnsRes.data ?? [])
-      .filter((r) => {
-        const row = r as { transaction_id?: string | null };
-        return !row.transaction_id || issueIds.has(String(row.transaction_id));
-      })
-      .map((r) => mapInventoryReturn(r as Record<string, unknown>));
+    const issues = (issuesRes.data ?? []).map(mapInventoryTransaction);
+    const issueIds = issues.map((i) => i.id);
+
+    const returnsRes = issueIds.length
+      ? await supabase
+          .from("inventory_returns")
+          .select("*, item:item_id(name), recorder:recorded_by(full_name)")
+          .eq("club_id", clubId)
+          .in("transaction_id", issueIds)
+          .order("return_date", { ascending: false })
+          .limit(30)
+      : { data: [] };
+
+    const returns = (returnsRes.data ?? []).map((r) => mapInventoryReturn(r as Record<string, unknown>));
 
     return {
       playerId,
       playerName,
       kit: kitRes.data ? mapInventoryPlayerKit(kitRes.data) : null,
       assignments: (assignmentsRes.data ?? []).map(mapInventoryKitAssignment),
-      issues: (issuesRes.data ?? []).map(mapInventoryTransaction),
+      issues,
       returns,
     };
   },

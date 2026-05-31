@@ -23,6 +23,7 @@ const STAGE8_MIGRATIONS = [
   "20260602100000_inventory_module.sql",
   "20260602101000_seed_inventory.sql",
   "20260602102000_inventory_audit_hardening.sql",
+  "20260602103000_inventory_audit_hardening.sql",
 ];
 
 function requireEnv(name) {
