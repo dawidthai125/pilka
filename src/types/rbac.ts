@@ -73,6 +73,9 @@ export const PERMISSIONS = [
   "website:manage",
   "website:create",
   "website:publish",
+  "integration:read",
+  "integration:manage",
+  "integration:sync",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

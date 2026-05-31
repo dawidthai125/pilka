@@ -82,7 +82,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -124,6 +124,17 @@ import type {
   WebsiteSettings,
   WebsiteSocialIntegration,
 } from "@/types/website";
+import type {
+  ExternalTeam,
+  Integration,
+  IntegrationClubMapping,
+  IntegrationDashboardStats,
+  IntegrationImport,
+  IntegrationProvider,
+  IntegrationSource,
+  SyncConflict,
+  SyncLog,
+} from "@/types/integrations";
 import {
   mapFinanceBudget,
   mapFinanceDocument,
@@ -155,6 +166,15 @@ import {
   mapWebsiteSettings,
   mapWebsiteSocialIntegration,
 } from "@/lib/website/mappers";
+import {
+  mapExternalTeam,
+  mapIntegration,
+  mapIntegrationClubMapping,
+  mapIntegrationImport,
+  mapIntegrationSource,
+  mapSyncConflict,
+  mapSyncLog,
+} from "@/lib/integrations/mappers";
 import { buildInventoryAlerts } from "@/lib/inventory/insights";
 import {
   mapSponsor,
@@ -2502,5 +2522,155 @@ export const getWebsiteSocialIntegrationsForCms = cache(
       .order("platform");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapWebsiteSocialIntegration(row as Record<string, unknown>));
+  },
+);
+
+export function requireIntegrationReadAccess(access: UserAccessContext) {
+  if (!canReadIntegrations(access.roles)) redirect("/dashboard");
+}
+
+export function requireIntegrationManageAccess(access: UserAccessContext) {
+  if (!canManageIntegrations(access.roles)) redirect("/integrations");
+}
+
+export const getIntegrationsForClub = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<Integration[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("integrations")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("provider");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapIntegration(row as Record<string, unknown>));
+  },
+);
+
+export const getIntegrationSources = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, integrationId?: string): Promise<IntegrationSource[]> => {
+    const supabase = await createClient();
+    let query = supabase.from("integration_sources").select("*").eq("club_id", clubId).order("priority");
+    if (integrationId) query = query.eq("integration_id", integrationId);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapIntegrationSource(row as Record<string, unknown>));
+  },
+);
+
+export const getIntegrationClubMappings = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<IntegrationClubMapping[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("integration_club_mappings")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("is_primary", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapIntegrationClubMapping(row as Record<string, unknown>));
+  },
+);
+
+export const getExternalTeamsForIntegrations = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<ExternalTeam[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("external_teams")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("category_label");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapExternalTeam(row as Record<string, unknown>));
+  },
+);
+
+export const getIntegrationSyncLogs = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 30): Promise<SyncLog[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("sync_logs")
+      .select("*, creator:created_by(full_name)")
+      .eq("club_id", clubId)
+      .order("started_at", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapSyncLog(row as Record<string, unknown>));
+  },
+);
+
+export const getIntegrationSyncErrors = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<SyncLog[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("sync_logs")
+      .select("*, creator:created_by(full_name)")
+      .eq("club_id", clubId)
+      .in("status", ["error", "partial"])
+      .order("started_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapSyncLog(row as Record<string, unknown>));
+  },
+);
+
+export const getIntegrationImports = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<IntegrationImport[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("integration_imports")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapIntegrationImport(row as Record<string, unknown>));
+  },
+);
+
+export const getIntegrationConflicts = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, pendingOnly = false): Promise<SyncConflict[]> => {
+    const supabase = await createClient();
+    let query = supabase.from("sync_conflicts").select("*").eq("club_id", clubId).order("created_at", { ascending: false });
+    if (pendingOnly) query = query.eq("status", "pending");
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapSyncConflict(row as Record<string, unknown>));
+  },
+);
+
+export const getIntegrationDashboardStats = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<IntegrationDashboardStats> => {
+    const [integrations, logs, conflicts] = await Promise.all([
+      getIntegrationsForClub(clubId),
+      getIntegrationSyncLogs(clubId, 10),
+      getIntegrationConflicts(clubId, true),
+    ]);
+    const activeIntegrations = integrations.filter((i) => i.status === "ready").length;
+    const recentErrors = logs.filter((l) => l.status === "error").length;
+    const lastSyncAt =
+      integrations
+        .map((i) => i.lastSyncAt)
+        .filter(Boolean)
+        .sort()
+        .reverse()[0] ?? null;
+    return {
+      activeIntegrations,
+      pendingConflicts: conflicts.length,
+      recentErrors,
+      lastSyncAt,
+    };
+  },
+);
+
+export const getIntegrationByProvider = cache(
+  async (provider: IntegrationProvider, clubId: string = DEFAULT_CLUB_ID): Promise<Integration | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("integrations")
+      .select("*")
+      .eq("club_id", clubId)
+      .eq("provider", provider)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ? mapIntegration(data as Record<string, unknown>) : null;
   },
 );

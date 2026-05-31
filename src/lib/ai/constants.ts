@@ -14,6 +14,7 @@ export const AI_REPORT_CATEGORY_LABELS: Record<AiReportCategory, string> = {
   finance: "Finanse klubu",
   inventory: "Magazyn klubu",
   website: "Strona klubu",
+  integrations: "Integracje rozgrywkowe",
 };
 
 export const AI_REPORT_TYPE_LABELS: Record<AiReportType, string> = {

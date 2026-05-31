@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Package,
   Shield,
+  Link2,
   ListOrdered,
   Trophy,
   User,
@@ -56,6 +57,12 @@ export const dashboardNav = [
     title: "Tabela ligowa",
     href: "/matches/league-table",
     icon: ListOrdered,
+  },
+  {
+    title: "Integracje",
+    href: "/integrations",
+    icon: Link2,
+    audience: "integration_staff" as const,
   },
   {
     title: "Panel trenera",

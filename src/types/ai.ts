@@ -8,7 +8,8 @@ export type AiReportCategory =
   | "sponsors"
   | "finance"
   | "inventory"
-  | "website";
+  | "website"
+  | "integrations";
 
 export type AiReportType =
   | "match_summary"
@@ -151,6 +152,18 @@ export type AiClubContext = {
     lowStockItems: Array<{ name: string; available: number; minLevel: number }>;
     openDamages: Array<{ item: string | null; description: string; status: string }>;
     playersWithoutKit: Array<{ name: string }>;
+  };
+  integrations: {
+    integrations: Array<Record<string, unknown>>;
+    recentSyncLogs: Array<Record<string, unknown>>;
+    recentImports: Array<Record<string, unknown>>;
+    pendingConflicts: Array<Record<string, unknown>>;
+    summary: {
+      activeIntegrations: number;
+      recentErrors: number;
+      partialSyncs: number;
+      pendingConflicts: number;
+    };
   };
 };
 

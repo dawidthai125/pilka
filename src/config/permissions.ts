@@ -16,6 +16,9 @@ export const ROLE_LABELS: Record<ClubRole, string> = {
   website_admin: "Administrator strony",
 };
 
+const integrationRead: Permission[] = ["integration:read"];
+const integrationManage: Permission[] = ["integration:manage", "integration:sync"];
+
 const leadership: Permission[] = [
   "club:read",
   "club:manage",
@@ -50,6 +53,7 @@ const leadership: Permission[] = [
   "finance:manage",
   "inventory:read",
   "inventory:manage",
+  ...integrationRead,
 ];
 
 const websiteFull: Permission[] = [
@@ -96,6 +100,7 @@ const coachingStaff: Permission[] = [
   "inventory:read",
   "website:read",
   "website:create",
+  "integration:read",
 ];
 
 const websiteStaff: Permission[] = [
@@ -111,9 +116,9 @@ const websiteStaff: Permission[] = [
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
-  owner: [...leadership, ...websiteFull, "sponsor:read", "sponsor:manage"],
+  owner: [...leadership, ...integrationManage, ...websiteFull, "sponsor:read", "sponsor:manage"],
   president: [...leadership, ...websiteFull, "sponsor:read", "sponsor:manage"],
-  sports_director: [...leadership, "sponsor:read"],
+  sports_director: [...leadership, ...integrationManage, "sponsor:read"],
   treasurer: [
     "club:read",
     "team:read",
@@ -178,6 +183,9 @@ export const ALL_PERMISSIONS = [
   "website:manage",
   "website:create",
   "website:publish",
+  "integration:read",
+  "integration:manage",
+  "integration:sync",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -374,4 +382,20 @@ export function canCreateWebsiteNews(roles: ClubRole[]): boolean {
 
 export function canPublishWebsiteNews(roles: ClubRole[]): boolean {
   return canManageWebsite(roles);
+}
+
+export function canReadIntegrations(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canManageIntegrations(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "sports_director"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canSyncIntegrations(roles: ClubRole[]): boolean {
+  return canManageIntegrations(roles);
 }

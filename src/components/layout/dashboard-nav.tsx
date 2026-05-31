@@ -9,6 +9,7 @@ import {
   canAccessSponsorPortal,
   canReadAi,
   canReadFinance,
+  canReadIntegrations,
   canReadInventory,
   canReadSponsors,
   canReadWebsite,
@@ -76,6 +77,9 @@ export function DashboardNav({
           if ("audience" in item && item.audience === "website_staff") {
             return canReadWebsite(roles);
           }
+          if ("audience" in item && item.audience === "integration_staff") {
+            return canReadIntegrations(roles);
+          }
           return true;
         })
     : dashboardNav;
@@ -93,6 +97,8 @@ export function DashboardNav({
                 ? pathname.startsWith("/inventory") && !pathname.startsWith("/inventory/portal")
                 : item.href === "/website"
                   ? pathname.startsWith("/website")
+                  : item.href === "/integrations"
+                    ? pathname.startsWith("/integrations")
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (

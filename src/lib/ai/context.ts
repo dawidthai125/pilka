@@ -9,6 +9,7 @@ import { mapMatch } from "@/lib/matches/mappers";
 import { buildSponsorAiContext } from "@/lib/sponsors/insights";
 import { buildFinanceAiContext } from "@/lib/finance/insights";
 import { buildInventoryAiContext } from "@/lib/inventory/insights";
+import { buildIntegrationsAiContext } from "@/lib/integrations/insights";
 
 const MATCH_SELECT =
   "id, club_id, team_id, competition, season, round_number, match_date, match_time, home_team_name, away_team_name, stadium, stadium_address, status, home_score, away_score, formation, mvp_player_id, coach_notes, teams(name), mvp:mvp_player_id(first_name, last_name)";
@@ -148,6 +149,7 @@ export async function buildAiClubContext(
   const sponsors = await buildSponsorAiContext(clubId);
   const finance = await buildFinanceAiContext(clubId);
   const inventory = await buildInventoryAiContext(clubId);
+  const integrations = await buildIntegrationsAiContext(clubId);
 
   return {
     clubName,
@@ -180,6 +182,7 @@ export async function buildAiClubContext(
     sponsors,
     finance,
     inventory,
+    integrations,
   };
 }
 

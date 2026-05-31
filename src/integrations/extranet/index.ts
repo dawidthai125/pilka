@@ -7,10 +7,17 @@ export type ExtranetMatchReport = {
 
 export type ExtranetClient = {
   pushMatchReport: (report: ExtranetMatchReport) => Promise<void>;
+  isApiAvailable: () => boolean;
 };
 
 export const extranetClient: ExtranetClient = {
+  isApiAvailable() {
+    return Boolean(process.env.EXTRANET_API_URL && process.env.EXTRANET_API_KEY);
+  },
   async pushMatchReport(_report: ExtranetMatchReport) {
-    throw new Error("Extranet integration not implemented");
+    if (!extranetClient.isApiAvailable()) {
+      throw new Error("Extranet: brak skonfigurowanego API — raporty można eksportować ręcznie.");
+    }
+    throw new Error("Extranet API adapter not configured");
   },
 };
