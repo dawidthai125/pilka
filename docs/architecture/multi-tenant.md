@@ -9,7 +9,16 @@ System obsługuje wiele klubów w jednej instancji aplikacji. Każdy klub to izo
 | Pole | Opis |
 |------|------|
 | `clubs.id` | UUID — klucz techniczny |
-| `clubs.slug` | Identyfikator URL (np. `piorun-wawrzenczyce`) |
+| `clubs.slug` | Identyfikator URL (np. `piorun-wawrzenczyce`) — **stabilny**, niezależny od nazw |
+
+## Model nazw klubu
+
+| Pole | Przeznaczenie | Przykład |
+|------|---------------|----------|
+| `public_name` | Branding — UI, nawigacja, komunikacja | Piorun Wawrzeńczyce |
+| `official_name` | Licencja, protokoły, dokumenty związku | GLKS Mietków |
+
+Pola są niezależne. Po zmianie licencji wystarczy `UPDATE official_name` — bez migracji schematu. Helpery w aplikacji: `src/lib/club/names.ts`.
 
 ## Izolacja danych
 

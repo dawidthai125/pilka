@@ -102,8 +102,8 @@ Skrypt wykonuje: migracje SQL → seed użytkowników → (opcjonalnie) konfigur
 
 | Pole | Wartość |
 |------|---------|
-| Nazwa | Piorun Wawrzeńczyce |
-| Licencja | GLKS Mietków |
+| Nazwa publiczna | Piorun Wawrzeńczyce |
+| Nazwa oficjalna | GLKS Mietków |
 | Związek | DZPN |
 | Poziom | B Klasa |
 

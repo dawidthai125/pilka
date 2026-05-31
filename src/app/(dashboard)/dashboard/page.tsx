@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Users, Building2, Shield, User } from "lucide-react";
 
-import { getDashboardContext } from "@/lib/auth/session";
+import { DocumentAlertsPanel } from "@/features/players/components/document-alerts-panel";
+import { getDashboardContext, getDocumentAlerts, getPlayerCounts } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/rbac/permissions";
+import { formatClubOfficialSubtitle, getClubBrandingName } from "@/lib/club/names";
 import { ROLE_LABELS } from "@/config/permissions";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,6 +19,10 @@ import { cn } from "@/lib/utils";
 
 export default async function DashboardPage() {
   const { profile, access, club, teams } = await getDashboardContext();
+  const canReadPlayers = hasPermission(access, "player:read");
+  const [playerCounts, documentAlerts] = canReadPlayers
+    ? await Promise.all([getPlayerCounts(), getDocumentAlerts()])
+    : [{ total: 0, active: 0 }, []];
 
   return (
     <div className="space-y-8">
@@ -26,13 +33,16 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Klub</CardDescription>
-            <CardTitle className="text-lg">{club.publicName}</CardTitle>
+            <CardTitle className="text-lg">{getClubBrandingName(club)}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
+            {formatClubOfficialSubtitle(club) ? (
+              <p className="text-sm text-muted-foreground">{formatClubOfficialSubtitle(club)}</p>
+            ) : null}
             <p className="text-sm text-muted-foreground">{club.competitionLevel}</p>
           </CardContent>
         </Card>
@@ -45,6 +55,19 @@ export default async function DashboardPage() {
             <p className="text-sm text-muted-foreground">W systemie klubu</p>
           </CardContent>
         </Card>
+        {canReadPlayers ? (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Zawodnicy</CardDescription>
+              <CardTitle className="text-lg">{playerCounts.total}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                {playerCounts.active} aktywnych
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Twoje role</CardDescription>
@@ -69,6 +92,10 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      {canReadPlayers && documentAlerts.length > 0 ? (
+        <DocumentAlertsPanel alerts={documentAlerts} />
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -84,6 +111,11 @@ export default async function DashboardPage() {
             <Link href="/teams" className={cn(buttonVariants({ variant: "outline" }))}>
               Drużyny
             </Link>
+            {canReadPlayers ? (
+              <Link href="/players" className={cn(buttonVariants({ variant: "outline" }))}>
+                Zawodnicy
+              </Link>
+            ) : null}
             <Link href="/members" className={cn(buttonVariants({ variant: "outline" }))}>
               Role
             </Link>

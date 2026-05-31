@@ -22,12 +22,19 @@ export async function updateClubProfile(
     return { error: "Brak uprawnień do edycji profilu klubu." };
   }
 
+  const publicName = String(formData.get("publicName") ?? "").trim();
+  const officialName = String(formData.get("officialName") ?? "").trim();
+
+  if (!publicName || !officialName) {
+    return { error: "Podaj nazwę publiczną i nazwę oficjalną klubu." };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("clubs")
     .update({
-      public_name: String(formData.get("publicName") ?? "").trim(),
-      official_name: String(formData.get("officialName") ?? "").trim() || null,
+      public_name: publicName,
+      official_name: officialName,
       association: String(formData.get("association") ?? "").trim() || null,
       competition_level: String(formData.get("competitionLevel") ?? "").trim() || null,
       voivodeship: String(formData.get("voivodeship") ?? "").trim() || null,

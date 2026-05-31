@@ -11,6 +11,8 @@
     "validate:env": "node scripts/validate-env.mjs",
     "build": "npm run validate:env && npm run typecheck && next build",
     "setup:stage1": "node scripts/setup-stage1.mjs",
+    "setup:stage2": "node scripts/setup-stage2.mjs",
+    "db:migrate:players-audit": "node scripts/run-sql.mjs supabase/migrations/20260531163000_players_audit_hardening.sql",
     "db:migrate:security": "node scripts/run-sql.mjs supabase/migrations/20260531140000_security_hardening.sql"
   },
   "dependencies": {

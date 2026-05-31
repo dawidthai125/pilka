@@ -25,22 +25,38 @@ const leadership: Permission[] = [
   "profile:manage",
   "settings:read",
   "settings:manage",
+  "player:read",
+  "player:manage",
+  "player:notes",
+];
+
+const playerReadOnly: Permission[] = [
+  "club:read",
+  "team:read",
+  "profile:read",
+  "profile:manage",
+  "player:read",
+];
+
+const coachingStaff: Permission[] = [
+  "club:read",
+  "team:read",
+  "team:manage",
+  "member:read",
+  "profile:read",
+  "settings:read",
+  "player:read",
+  "player:manage",
+  "player:notes",
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
   owner: leadership,
   president: leadership,
   sports_director: leadership,
-  coach: [
-    "club:read",
-    "team:read",
-    "team:manage",
-    "member:read",
-    "profile:read",
-    "settings:read",
-  ],
-  player: ["club:read", "team:read", "profile:read", "profile:manage"],
-  parent: ["club:read", "team:read", "profile:read", "profile:manage"],
+  coach: coachingStaff,
+  player: playerReadOnly,
+  parent: playerReadOnly,
   sponsor: ["club:read", "team:read", "profile:read"],
 };
 
@@ -56,6 +72,9 @@ export const ALL_PERMISSIONS = [
   "profile:manage",
   "settings:read",
   "settings:manage",
+  "player:read",
+  "player:manage",
+  "player:notes",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -72,4 +91,24 @@ export function canManageTeams(roles: ClubRole[]): boolean {
 
 export function canManageClub(roles: ClubRole[]): boolean {
   return roles.some((role) => LEADERSHIP_ROLES.includes(role));
+}
+
+export function canReadPlayers(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (
+      ["owner", "president", "sports_director", "coach", "player", "parent"] as ClubRole[]
+    ).includes(role),
+  );
+}
+
+export function canManagePlayers(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canAccessCoachNotes(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
+  );
 }

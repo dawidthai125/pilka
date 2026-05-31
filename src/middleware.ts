@@ -10,6 +10,7 @@ const protectedPrefixes = [
   "/profile",
   "/club",
   "/teams",
+  "/players",
   "/members",
 ];
 

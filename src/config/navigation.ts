@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Shield,
   User,
+  UserRound,
   Users,
 } from "lucide-react";
 
@@ -26,6 +27,11 @@ export const dashboardNav = [
     title: "Drużyny",
     href: "/teams",
     icon: Users,
+  },
+  {
+    title: "Zawodnicy",
+    href: "/players",
+    icon: UserRound,
   },
   {
     title: "Role i uprawnienia",

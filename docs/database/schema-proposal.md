@@ -23,8 +23,8 @@ Tenant — klub piłkarski.
 |---------|-----|------|
 | `id` | UUID PK | |
 | `slug` | TEXT UNIQUE | Identyfikator URL |
-| `public_name` | TEXT | Nazwa publiczna |
-| `official_name` | TEXT | Nazwa licencyjna |
+| `public_name` | TEXT NOT NULL | Nazwa publiczna (branding) |
+| `official_name` | TEXT NOT NULL | Nazwa oficjalna (licencja, dokumenty) |
 | `association` | TEXT | Związek (np. DZPN) |
 | `competition_level` | TEXT | Poziom (np. B Klasa) |
 | `country` | TEXT | Domyślnie `PL` |
@@ -67,6 +67,19 @@ Powiązanie użytkownik ↔ klub ↔ rola (RBAC).
 - `user_club_ids()` — aktywne kluby użytkownika
 - `user_has_club_role(club_id, roles[])` — sprawdzenie roli
 - `handle_new_user()` — trigger tworzenia profilu po rejestracji
+
+## Moduły ETAP 2 — Zawodnicy (migracja `20260531160000_players_module`)
+
+| Tabela | Opis |
+|--------|------|
+| `players` | Profil zawodnika — dane osobowe, piłkarskie, status |
+| `player_documents` | Metadane dokumentów (+ Storage `club-assets`) |
+| `player_stats` | Statystyki sezonowe |
+| `player_club_history` | Transfery, kluby, zmiany pozycji/numeru |
+| `player_injuries` | Historia kontuzji |
+| `player_coach_notes` | Notatki sztabu szkoleniowego |
+
+Szczegóły: [`docs/modules/stage-2-players.md`](../modules/stage-2-players.md)
 
 ## Moduły przyszłe (planowane tabele)
 

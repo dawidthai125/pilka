@@ -41,6 +41,9 @@ export const PERMISSIONS = [
   "profile:manage",
   "settings:read",
   "settings:manage",
+  "player:read",
+  "player:manage",
+  "player:notes",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -73,8 +76,10 @@ export type Profile = {
 export type Club = {
   id: string;
   slug: string;
+  /** Nazwa publiczna — branding w UI (np. Piorun Wawrzeńczyce). */
   publicName: string;
-  officialName: string | null;
+  /** Nazwa oficjalna — licencja / dokumenty (np. GLKS Mietków; w przyszłości może = publicName). */
+  officialName: string;
   association: string | null;
   competitionLevel: string | null;
   country: string;

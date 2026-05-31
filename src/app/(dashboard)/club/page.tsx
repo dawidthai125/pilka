@@ -1,4 +1,5 @@
 import { getDashboardContext } from "@/lib/auth/session";
+import { getClubBrandingName } from "@/lib/club/names";
 import { ClubProfileForm } from "@/features/club/components/club-profile-form";
 
 export default async function ClubPage() {
@@ -9,7 +10,7 @@ export default async function ClubPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Profil klubu</h1>
         <p className="text-sm text-muted-foreground">
-          Dane klubu {club.publicName} w systemie Football Club OS.
+          Dane klubu {getClubBrandingName(club)} w systemie Football Club OS.
         </p>
       </div>
       <ClubProfileForm club={club} roles={access.roles} />

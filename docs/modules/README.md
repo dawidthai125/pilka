@@ -8,10 +8,11 @@ Dokumentacja poszczególnych modułów biznesowych będzie tworzona etapami zgod
 |-------|---------|--------|
 | Fundament | — | ✅ Ukończony |
 | ETAP 1 — Auth i klub | [stage-1-auth-and-club.md](./stage-1-auth-and-club.md) | ✅ Ukończony |
-| Autoryzacja (rozszerzenia) | `features/auth/` | Planowany (Faza 2) |
-| Członkostwo | `features/members/` | Planowany (Faza 2) |
-| Drużyny | `features/teams/` | Planowany (Faza 3) |
-| Zawodnicy | `features/players/` | Planowany (Faza 4) |
+| ETAP 2 — Zawodnicy | [stage-2-players.md](./stage-2-players.md) | ✅ Ukończony |
+| Autoryzacja (rozszerzenia) | `features/auth/` | Planowany |
+| Członkostwo | `features/members/` | Planowany |
+| Drużyny | `features/teams/` | Częściowo (ETAP 1) |
+| Zawodnicy | `features/players/` | ✅ ETAP 2 |
 | Treningi | `features/training/` | Planowany (Faza 5) |
 | Mecze | `features/matches/` | Planowany (Faza 6) |
 | Komunikacja | `features/communication/` | Planowany (Faza 7) |

@@ -1,9 +1,23 @@
 import { z } from "zod";
 
 import { CLUB_ROLES, TEAM_CATEGORIES } from "@/types/rbac";
+import {
+  COACH_NOTE_TYPES,
+  DOMINANT_FEET,
+  PLAYER_DOCUMENT_TYPES,
+  PLAYER_HISTORY_EVENT_TYPES,
+  PLAYER_POSITIONS,
+  PLAYER_STATUSES,
+} from "@/types/players";
 
 export const clubRoleSchema = z.enum(CLUB_ROLES);
 export const teamCategorySchema = z.enum(TEAM_CATEGORIES);
+export const playerStatusSchema = z.enum(PLAYER_STATUSES);
+export const playerPositionSchema = z.enum(PLAYER_POSITIONS);
+export const dominantFootSchema = z.enum(DOMINANT_FEET);
+export const playerDocumentTypeSchema = z.enum(PLAYER_DOCUMENT_TYPES);
+export const playerHistoryEventTypeSchema = z.enum(PLAYER_HISTORY_EVENT_TYPES);
+export const coachNoteTypeSchema = z.enum(COACH_NOTE_TYPES);
 
 export function parseClubRole(value: string) {
   return clubRoleSchema.safeParse(value);
@@ -11,6 +25,30 @@ export function parseClubRole(value: string) {
 
 export function parseTeamCategory(value: string) {
   return teamCategorySchema.safeParse(value);
+}
+
+export function parsePlayerStatus(value: string) {
+  return playerStatusSchema.safeParse(value);
+}
+
+export function parsePlayerPosition(value: string) {
+  return playerPositionSchema.safeParse(value);
+}
+
+export function parseDominantFoot(value: string) {
+  return dominantFootSchema.safeParse(value);
+}
+
+export function parsePlayerDocumentType(value: string) {
+  return playerDocumentTypeSchema.safeParse(value);
+}
+
+export function parsePlayerHistoryEventType(value: string) {
+  return playerHistoryEventTypeSchema.safeParse(value);
+}
+
+export function parseCoachNoteType(value: string) {
+  return coachNoteTypeSchema.safeParse(value);
 }
 
 export function safeRedirectPath(next: string | null, fallback = "/dashboard"): string {

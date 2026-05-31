@@ -4,6 +4,10 @@ import { useActionState } from "react";
 
 import { updateClubProfile, type ClubActionState } from "@/features/club/actions";
 import { canManageClub } from "@/config/permissions";
+import {
+  getClubBrandingName,
+  getClubOfficialName,
+} from "@/lib/club/names";
 import type { Club, ClubRole } from "@/types/rbac";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +38,7 @@ export function ClubProfileForm({
         <CardTitle>Profil klubu</CardTitle>
         <CardDescription>
           {canEdit
-            ? "Edytuj dane klubu widoczne w systemie."
+            ? "Nazwa publiczna i oficjalna są niezależne — po zmianie licencji wystarczy zaktualizować nazwę oficjalną."
             : "Podgląd danych klubu (brak uprawnień do edycji)."}
         </CardDescription>
       </CardHeader>
@@ -55,18 +59,27 @@ export function ClubProfileForm({
             <Input
               id="publicName"
               name="publicName"
-              defaultValue={club.publicName}
+              defaultValue={getClubBrandingName(club)}
               disabled={!canEdit}
+              required
             />
+            <p className="text-xs text-muted-foreground">
+              Widoczna w panelu, nawigacji i komunikacji z użytkownikami.
+            </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="officialName">Nazwa licencyjna</Label>
+            <Label htmlFor="officialName">Nazwa oficjalna</Label>
             <Input
               id="officialName"
               name="officialName"
-              defaultValue={club.officialName ?? ""}
+              defaultValue={getClubOfficialName(club)}
               disabled={!canEdit}
+              required
             />
+            <p className="text-xs text-muted-foreground">
+              Licencja i dokumenty związku. Można ją później zmienić na nazwę publiczną bez
+              przebudowy systemu.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="association">Związek</Label>
