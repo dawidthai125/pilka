@@ -32,6 +32,10 @@ const leadership: Permission[] = [
   "training:manage",
   "training:attendance",
   "training:availability",
+  "match:read",
+  "match:manage",
+  "match:squad",
+  "match:events",
 ];
 
 const playerReadOnly: Permission[] = [
@@ -42,6 +46,7 @@ const playerReadOnly: Permission[] = [
   "player:read",
   "training:read",
   "training:availability",
+  "match:read",
 ];
 
 const coachingStaff: Permission[] = [
@@ -58,6 +63,10 @@ const coachingStaff: Permission[] = [
   "training:manage",
   "training:attendance",
   "training:availability",
+  "match:read",
+  "match:manage",
+  "match:squad",
+  "match:events",
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
@@ -89,6 +98,10 @@ export const ALL_PERMISSIONS = [
   "training:manage",
   "training:attendance",
   "training:availability",
+  "match:read",
+  "match:manage",
+  "match:squad",
+  "match:events",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -147,4 +160,26 @@ export function canMarkTrainingAttendance(roles: ClubRole[]): boolean {
 
 export function canSetTrainingAvailability(roles: ClubRole[]): boolean {
   return canReadTrainings(roles);
+}
+
+export function canReadMatches(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (
+      ["owner", "president", "sports_director", "coach", "player", "parent"] as ClubRole[]
+    ).includes(role),
+  );
+}
+
+export function canManageMatches(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canManageMatchSquad(roles: ClubRole[]): boolean {
+  return canManageMatches(roles);
+}
+
+export function canManageMatchEvents(roles: ClubRole[]): boolean {
+  return canManageMatches(roles);
 }

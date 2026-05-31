@@ -4,6 +4,8 @@ import {
   ClipboardList,
   LayoutDashboard,
   Shield,
+  ListOrdered,
+  Trophy,
   User,
   UserRound,
   Users,
@@ -39,6 +41,16 @@ export const dashboardNav = [
     title: "Treningi",
     href: "/training",
     icon: CalendarDays,
+  },
+  {
+    title: "Mecze",
+    href: "/matches",
+    icon: Trophy,
+  },
+  {
+    title: "Tabela ligowa",
+    href: "/matches/league-table",
+    icon: ListOrdered,
   },
   {
     title: "Panel trenera",

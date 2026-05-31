@@ -17,6 +17,17 @@ import type {
   PlayerAttendanceStats,
   Training,
 } from "@/types/trainings";
+import type {
+  LeagueTableEntry,
+  Match,
+  MatchCalendarView,
+  MatchDetailData,
+  MatchFilters,
+  MatchPlayerStats,
+  PlayerFormStats,
+  TeamFormStats,
+  TeamMatchStats,
+} from "@/types/matches";
 import { getDocumentAlertLevel, sortDocumentAlerts } from "@/lib/players/documents";
 import {
   mapCoachNote,
@@ -42,6 +53,19 @@ import {
   reminderScheduledAt,
 } from "@/lib/training/notifications";
 import { getCalendarRange, parseLocalDate } from "@/lib/training/calendar";
+import { getMatchCalendarRange } from "@/lib/matches/calendar";
+import {
+  aggregatePlayerMatchStats,
+  aggregateTeamStats,
+  computeTeamForm,
+  mapLeagueEntry,
+  mapLineupPosition,
+  mapMatch,
+  mapMatchEvent,
+  mapSquadEntry,
+} from "@/lib/matches/mappers";
+import { DEFAULT_COMPETITION, DEFAULT_SEASON } from "@/lib/matches/constants";
+import { getClubBrandingName } from "@/lib/club/names";
 import { TRAINING_REMINDER_TYPES } from "@/types/trainings";
 import { canManageTrainings } from "@/config/permissions";
 
@@ -278,6 +302,15 @@ export function requireTrainingReadAccess(access: UserAccessContext) {
     redirect("/dashboard");
   }
 }
+
+export function requireMatchReadAccess(access: UserAccessContext) {
+  if (!hasPermission(access, "match:read")) {
+    redirect("/dashboard");
+  }
+}
+
+const MATCH_SELECT =
+  "id, club_id, team_id, competition, season, round_number, match_date, match_time, home_team_name, away_team_name, stadium, stadium_address, status, home_score, away_score, formation, mvp_player_id, coach_notes, teams(name), mvp:mvp_player_id(first_name, last_name)";
 
 const TRAINING_SELECT =
   "id, club_id, team_id, name, training_date, start_time, end_time, location, description, coach_user_id, status, teams(name), profiles:coach_user_id(full_name)";
@@ -914,4 +947,284 @@ export const getCoaches = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
       member.role === "president" ||
       member.role === "sports_director",
   );
+});
+
+export { DEFAULT_COMPETITION as MATCH_DEFAULT_COMPETITION, DEFAULT_SEASON as MATCH_DEFAULT_SEASON };
+
+export const getMatches = cache(
+  async (
+    clubId: string = DEFAULT_CLUB_ID,
+    view: MatchCalendarView = "month",
+    anchorIso: string = new Date().toISOString().slice(0, 10),
+    filters: MatchFilters = {},
+  ): Promise<Match[]> => {
+    const supabase = await createClient();
+    const anchor = parseLocalDate(anchorIso);
+    const { from, to } = getMatchCalendarRange(view, anchor);
+
+    let query = supabase
+      .from("matches")
+      .select(MATCH_SELECT)
+      .eq("club_id", clubId)
+      .gte("match_date", from)
+      .lte("match_date", to)
+      .order("match_date")
+      .order("match_time");
+
+    if (filters.teamId) query = query.eq("team_id", filters.teamId);
+    if (filters.season) query = query.eq("season", filters.season);
+    if (filters.competition) query = query.eq("competition", filters.competition);
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapMatch(row));
+  },
+);
+
+export const getMatchDetail = cache(
+  async (matchId: string, clubId: string = DEFAULT_CLUB_ID): Promise<MatchDetailData | null> => {
+    const supabase = await createClient();
+    const matchRes = await supabase
+      .from("matches")
+      .select(MATCH_SELECT)
+      .eq("club_id", clubId)
+      .eq("id", matchId)
+      .maybeSingle();
+
+    if (matchRes.error || !matchRes.data) return null;
+    const match = mapMatch(matchRes.data);
+
+    const [
+      squadRes,
+      lineupRes,
+      eventsRes,
+      statsRes,
+      mvpRes,
+      rosterRes,
+      attendanceStats,
+    ] = await Promise.all([
+      supabase
+        .from("match_squad")
+        .select("id, match_id, player_id, squad_role")
+        .eq("club_id", clubId)
+        .eq("match_id", matchId),
+      supabase
+        .from("match_lineup_positions")
+        .select("id, match_id, player_id, slot_code, pos_x, pos_y")
+        .eq("club_id", clubId)
+        .eq("match_id", matchId),
+      supabase
+        .from("match_events")
+        .select("id, match_id, event_type, minute, player_id, related_player_id, notes, created_at")
+        .eq("club_id", clubId)
+        .eq("match_id", matchId)
+        .order("minute"),
+      supabase
+        .from("match_player_stats")
+        .select("player_id, minutes_played, goals, assists, yellow_cards, red_cards")
+        .eq("club_id", clubId)
+        .eq("match_id", matchId),
+      supabase
+        .from("match_mvp_history")
+        .select("player_id, created_at")
+        .eq("club_id", clubId)
+        .eq("match_id", matchId),
+      supabase
+        .from("players")
+        .select(PLAYER_SELECT)
+        .eq("club_id", clubId)
+        .eq("team_id", match.teamId),
+      getAttendanceStats("season", clubId, match.teamId),
+    ]);
+
+    const roster = rosterRes.data ?? [];
+    const nameMap = new Map(
+      roster.map((p) => [p.id, `${p.first_name} ${p.last_name}`]),
+    );
+    const metaMap = new Map(
+      roster.map((p) => [
+        p.id,
+        { status: p.status, jersey: p.jersey_number },
+      ]),
+    );
+    const rateMap = new Map(attendanceStats.map((s) => [s.playerId, s.attendanceRate]));
+
+    const { data: lastActivityRows } = await supabase
+      .from("training_attendance")
+      .select("player_id, marked_at")
+      .eq("club_id", clubId)
+      .in("player_id", roster.map((p) => p.id))
+      .order("marked_at", { ascending: false });
+
+    const lastActivityMap = new Map<string, string>();
+    for (const row of lastActivityRows ?? []) {
+      if (!lastActivityMap.has(row.player_id)) {
+        lastActivityMap.set(row.player_id, row.marked_at);
+      }
+    }
+
+    const playerStats: MatchPlayerStats[] = aggregatePlayerMatchStats(
+      (statsRes.data ?? []).map((row) => ({
+        playerId: row.player_id,
+        playerName: nameMap.get(row.player_id) ?? "Zawodnik",
+        minutesPlayed: row.minutes_played,
+        goals: row.goals,
+        assists: row.assists,
+        yellowCards: row.yellow_cards,
+        redCards: row.red_cards,
+      })),
+    );
+
+    return {
+      match,
+      squad: (squadRes.data ?? []).map((row) =>
+        mapSquadEntry({
+          ...row,
+          playerName: nameMap.get(row.player_id),
+          jerseyNumber: metaMap.get(row.player_id)?.jersey ?? null,
+          playerStatus: metaMap.get(row.player_id)?.status ?? "active",
+          attendanceRate: rateMap.get(row.player_id) ?? 0,
+          lastActivity: lastActivityMap.get(row.player_id) ?? null,
+        }),
+      ),
+      lineup: (lineupRes.data ?? []).map((row) =>
+        mapLineupPosition({ ...row, playerName: nameMap.get(row.player_id) }),
+      ),
+      events: (eventsRes.data ?? []).map((row) =>
+        mapMatchEvent({
+          ...row,
+          playerName: row.player_id ? nameMap.get(row.player_id) : null,
+          relatedPlayerName: row.related_player_id
+            ? nameMap.get(row.related_player_id)
+            : null,
+        }),
+      ),
+      playerStats,
+      mvpHistory: (mvpRes.data ?? []).map((row) => ({
+        playerId: row.player_id,
+        playerName: nameMap.get(row.player_id) ?? "Zawodnik",
+        createdAt: row.created_at,
+      })),
+    };
+  },
+);
+
+export const getLeagueTable = cache(
+  async (
+    competition: string = DEFAULT_COMPETITION,
+    season: string = DEFAULT_SEASON,
+    clubId: string = DEFAULT_CLUB_ID,
+  ): Promise<LeagueTableEntry[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("league_table_entries")
+      .select("*")
+      .eq("club_id", clubId)
+      .eq("competition", competition)
+      .eq("season", season)
+      .order("points", { ascending: false })
+      .order("goals_for", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapLeagueEntry);
+  },
+);
+
+export const getTeamMatchStats = cache(
+  async (
+    teamId: string,
+    season: string = DEFAULT_SEASON,
+    clubId: string = DEFAULT_CLUB_ID,
+  ): Promise<{ stats: TeamMatchStats; form: TeamFormStats; ownTeamName: string }> => {
+    const club = await getClub(clubId);
+    const ownTeamName = club ? getClubBrandingName(club) : "Klub";
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("matches")
+      .select(MATCH_SELECT)
+      .eq("club_id", clubId)
+      .eq("team_id", teamId)
+      .eq("season", season)
+      .eq("status", "completed");
+
+    if (error) throw new Error(error.message);
+    const matches = (data ?? []).map(mapMatch);
+    return {
+      ownTeamName,
+      stats: aggregateTeamStats(matches, ownTeamName),
+      form: computeTeamForm(matches, ownTeamName),
+    };
+  },
+);
+
+export const getPlayerFormStats = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, teamId?: string): Promise<PlayerFormStats[]> => {
+    const supabase = await createClient();
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const sinceIso = since.toISOString().slice(0, 10);
+
+    let matchQuery = supabase
+      .from("matches")
+      .select("id")
+      .eq("club_id", clubId)
+      .eq("status", "completed")
+      .gte("match_date", sinceIso);
+
+    if (teamId) matchQuery = matchQuery.eq("team_id", teamId);
+
+    const { data: matches } = await matchQuery;
+    if (!matches?.length) return [];
+
+    const matchIds = matches.map((m) => m.id);
+    const { data: stats, error } = await supabase
+      .from("match_player_stats")
+      .select("player_id, minutes_played, goals, assists")
+      .eq("club_id", clubId)
+      .in("match_id", matchIds);
+
+    if (error) throw new Error(error.message);
+
+    const playerIds = [...new Set((stats ?? []).map((s) => s.player_id))];
+    if (!playerIds.length) return [];
+
+    const { data: players } = await supabase
+      .from("players")
+      .select("id, first_name, last_name")
+      .in("id", playerIds);
+
+    const nameMap = new Map(players?.map((p) => [p.id, `${p.first_name} ${p.last_name}`]) ?? []);
+    const map = new Map<string, PlayerFormStats>();
+
+    for (const row of stats ?? []) {
+      const current = map.get(row.player_id) ?? {
+        playerId: row.player_id,
+        playerName: nameMap.get(row.player_id) ?? "Zawodnik",
+        matchesLast30Days: 0,
+        goals: 0,
+        assists: 0,
+        minutes: 0,
+      };
+      current.matchesLast30Days += 1;
+      current.goals += row.goals;
+      current.assists += row.assists;
+      current.minutes += row.minutes_played;
+      map.set(row.player_id, current);
+    }
+
+    return [...map.values()].sort((a, b) => b.goals - a.goals);
+  },
+);
+
+export const getMatchFilterOptions = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("matches")
+    .select("season, competition")
+    .eq("club_id", clubId);
+
+  const seasons = [...new Set((data ?? []).map((r) => r.season))].sort();
+  const competitions = [...new Set((data ?? []).map((r) => r.competition))].sort();
+  return { seasons, competitions };
 });

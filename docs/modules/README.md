@@ -13,8 +13,8 @@ Dokumentacja poszczególnych modułów biznesowych będzie tworzona etapami zgod
 | Członkostwo | `features/members/` | Planowany |
 | Drużyny | `features/teams/` | Częściowo (ETAP 1) |
 | Zawodnicy | `features/players/` | ✅ ETAP 2 |
-| Treningi | `features/training/` | Planowany (Faza 5) |
-| Mecze | `features/matches/` | Planowany (Faza 6) |
+| Treningi | [stage-3-trainings.md](./stage-3-trainings.md) | ✅ ETAP 3 |
+| Mecze | [stage-4-matches.md](./stage-4-matches.md) | ✅ ETAP 4 |
 | Komunikacja | `features/communication/` | Planowany (Faza 7) |
 | Sponsorzy | `features/sponsors/` | Planowany (Faza 8) |
 | AI | `features/ai/` | Planowany (Faza 9) |

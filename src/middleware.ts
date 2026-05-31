@@ -12,6 +12,8 @@ const protectedPrefixes = [
   "/teams",
   "/players",
   "/training",
+  "/matches",
+  "/integrations",
   "/notifications",
   "/members",
 ];

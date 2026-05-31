@@ -15,6 +15,12 @@ import {
   AVAILABILITY_STATUSES,
   TRAINING_STATUSES,
 } from "@/types/trainings";
+import {
+  FORMATION_CODES,
+  MATCH_EVENT_TYPES,
+  MATCH_SQUAD_ROLES,
+  MATCH_STATUSES,
+} from "@/types/matches";
 
 export const clubRoleSchema = z.enum(CLUB_ROLES);
 export const teamCategorySchema = z.enum(TEAM_CATEGORIES);
@@ -28,6 +34,10 @@ export const trainingStatusSchema = z.enum(TRAINING_STATUSES);
 export const availabilityStatusSchema = z.enum(AVAILABILITY_STATUSES);
 export const absenceReasonSchema = z.enum(ABSENCE_REASONS);
 export const attendanceStatusSchema = z.enum(ATTENDANCE_STATUSES);
+export const matchStatusSchema = z.enum(MATCH_STATUSES);
+export const matchSquadRoleSchema = z.enum(MATCH_SQUAD_ROLES);
+export const matchEventTypeSchema = z.enum(MATCH_EVENT_TYPES);
+export const formationCodeSchema = z.enum(FORMATION_CODES);
 
 export function parseClubRole(value: string) {
   return clubRoleSchema.safeParse(value);
@@ -75,6 +85,22 @@ export function parseAbsenceReason(value: string) {
 
 export function parseAttendanceStatus(value: string) {
   return attendanceStatusSchema.safeParse(value);
+}
+
+export function parseMatchStatus(value: string) {
+  return matchStatusSchema.safeParse(value);
+}
+
+export function parseMatchSquadRole(value: string) {
+  return matchSquadRoleSchema.safeParse(value);
+}
+
+export function parseMatchEventType(value: string) {
+  return matchEventTypeSchema.safeParse(value);
+}
+
+export function parseFormationCode(value: string) {
+  return formationCodeSchema.safeParse(value);
 }
 
 export function safeRedirectPath(next: string | null, fallback = "/dashboard"): string {

@@ -540,6 +540,248 @@ export type Database = {
         };
         Relationships: [];
       };
+      matches: {
+        Row: {
+          id: string;
+          club_id: string;
+          team_id: string;
+          competition: string;
+          season: string;
+          round_number: number | null;
+          match_date: string;
+          match_time: string;
+          home_team_name: string;
+          away_team_name: string;
+          stadium: string | null;
+          stadium_address: string | null;
+          status: Database["public"]["Enums"]["match_status"];
+          home_score: number | null;
+          away_score: number | null;
+          formation: string | null;
+          mvp_player_id: string | null;
+          coach_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          team_id: string;
+          competition: string;
+          season: string;
+          round_number?: number | null;
+          match_date: string;
+          match_time: string;
+          home_team_name: string;
+          away_team_name: string;
+          stadium?: string | null;
+          stadium_address?: string | null;
+          status?: Database["public"]["Enums"]["match_status"];
+          home_score?: number | null;
+          away_score?: number | null;
+          formation?: string | null;
+          mvp_player_id?: string | null;
+          coach_notes?: string | null;
+        };
+        Update: {
+          team_id?: string;
+          competition?: string;
+          season?: string;
+          round_number?: number | null;
+          match_date?: string;
+          match_time?: string;
+          home_team_name?: string;
+          away_team_name?: string;
+          stadium?: string | null;
+          stadium_address?: string | null;
+          status?: Database["public"]["Enums"]["match_status"];
+          home_score?: number | null;
+          away_score?: number | null;
+          formation?: string | null;
+          mvp_player_id?: string | null;
+          coach_notes?: string | null;
+        };
+        Relationships: [];
+      };
+      match_squad: {
+        Row: {
+          id: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          squad_role: Database["public"]["Enums"]["match_squad_role"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          squad_role?: Database["public"]["Enums"]["match_squad_role"];
+        };
+        Update: { squad_role?: Database["public"]["Enums"]["match_squad_role"] };
+        Relationships: [];
+      };
+      match_lineup_positions: {
+        Row: {
+          id: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          slot_code: string;
+          pos_x: number;
+          pos_y: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          slot_code: string;
+          pos_x: number;
+          pos_y: number;
+        };
+        Update: {
+          slot_code?: string;
+          pos_x?: number;
+          pos_y?: number;
+        };
+        Relationships: [];
+      };
+      match_events: {
+        Row: {
+          id: string;
+          club_id: string;
+          match_id: string;
+          event_type: Database["public"]["Enums"]["match_event_type"];
+          minute: number;
+          player_id: string | null;
+          related_player_id: string | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          match_id: string;
+          event_type: Database["public"]["Enums"]["match_event_type"];
+          minute: number;
+          player_id?: string | null;
+          related_player_id?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      match_player_stats: {
+        Row: {
+          id: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          minutes_played: number;
+          goals: number;
+          assists: number;
+          yellow_cards: number;
+          red_cards: number;
+          is_starter: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          minutes_played?: number;
+          goals?: number;
+          assists?: number;
+          yellow_cards?: number;
+          red_cards?: number;
+          is_starter?: boolean;
+        };
+        Update: {
+          minutes_played?: number;
+          goals?: number;
+          assists?: number;
+          yellow_cards?: number;
+          red_cards?: number;
+          is_starter?: boolean;
+        };
+        Relationships: [];
+      };
+      match_mvp_history: {
+        Row: {
+          id: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          selected_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          match_id: string;
+          player_id: string;
+          selected_by?: string | null;
+        };
+        Update: Record<string, never>;
+        Relationships: [];
+      };
+      league_table_entries: {
+        Row: {
+          id: string;
+          club_id: string;
+          competition: string;
+          season: string;
+          team_name: string;
+          played: number;
+          won: number;
+          drawn: number;
+          lost: number;
+          goals_for: number;
+          goals_against: number;
+          points: number;
+          is_own_club: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          competition: string;
+          season: string;
+          team_name: string;
+          played?: number;
+          won?: number;
+          drawn?: number;
+          lost?: number;
+          goals_for?: number;
+          goals_against?: number;
+          points?: number;
+          is_own_club?: boolean;
+          sort_order?: number;
+        };
+        Update: {
+          played?: number;
+          won?: number;
+          drawn?: number;
+          lost?: number;
+          goals_for?: number;
+          goals_against?: number;
+          points?: number;
+          is_own_club?: boolean;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -588,6 +830,9 @@ export type Database = {
       absence_reason: "work" | "school" | "injury" | "travel" | "illness" | "other";
       attendance_status: "present" | "absent" | "late" | "excused";
       training_reminder_type: "hours_48" | "hours_24" | "hours_3";
+      match_status: "planned" | "in_progress" | "completed" | "cancelled" | "postponed";
+      match_squad_role: "squad" | "starter" | "substitute";
+      match_event_type: "goal" | "assist" | "yellow_card" | "red_card" | "substitution" | "injury";
     };
     CompositeTypes: Record<string, never>;
   };
