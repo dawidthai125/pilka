@@ -57,6 +57,7 @@ export function MatchReportView({ data }: { data: MatchDetailData }) {
               <li key={ev.id}>
                 {ev.minute}&apos; {MATCH_EVENT_TYPE_LABELS[ev.eventType]}
                 {ev.playerName ? ` — ${ev.playerName}` : ""}
+                {ev.relatedPlayerName ? ` (${ev.relatedPlayerName})` : ""}
               </li>
             ))}
           </ul>

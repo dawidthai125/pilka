@@ -125,7 +125,7 @@ function SquadRoleForm({ matchId, playerId, current }: { matchId: string; player
   const [state, formAction, pending] = useActionState(action, initialState);
 
   return (
-    <form action={formAction} className="flex gap-1">
+    <form action={formAction} className="flex flex-col gap-1 sm:flex-row sm:items-center">
       <input type="hidden" name="playerId" value={playerId} />
       <select name="squadRole" defaultValue={current} className={selectClassName}>
         {Object.entries(MATCH_SQUAD_ROLE_LABELS).map(([v, l]) => (<option key={v} value={v}>{l}</option>))}

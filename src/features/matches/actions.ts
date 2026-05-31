@@ -75,6 +75,37 @@ async function verifyPlayerOnMatchTeam(matchId: string, playerId: string) {
   return !!data;
 }
 
+type StatField = "goals" | "assists" | "yellow_cards" | "red_cards";
+
+async function incrementMatchPlayerStat(
+  matchId: string,
+  playerId: string,
+  field: StatField,
+) {
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("match_player_stats")
+    .select("minutes_played, goals, assists, yellow_cards, red_cards, is_starter")
+    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("match_id", matchId)
+    .eq("player_id", playerId)
+    .maybeSingle();
+
+  const payload = {
+    club_id: DEFAULT_CLUB_ID,
+    match_id: matchId,
+    player_id: playerId,
+    minutes_played: existing?.minutes_played ?? 0,
+    goals: (existing?.goals ?? 0) + (field === "goals" ? 1 : 0),
+    assists: (existing?.assists ?? 0) + (field === "assists" ? 1 : 0),
+    yellow_cards: (existing?.yellow_cards ?? 0) + (field === "yellow_cards" ? 1 : 0),
+    red_cards: (existing?.red_cards ?? 0) + (field === "red_cards" ? 1 : 0),
+    is_starter: existing?.is_starter ?? false,
+  };
+
+  await supabase.from("match_player_stats").upsert(payload, { onConflict: "match_id,player_id" });
+}
+
 export async function createMatch(
   _prev: MatchActionState,
   formData: FormData,
@@ -132,14 +163,25 @@ export async function updateMatch(
   if (!canManageMatches(access.roles)) return { error: "Brak uprawnień." };
   if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
 
+  const teamId = String(formData.get("teamId") ?? "").trim();
+  if (!teamId || !(await verifyTeamInClub(teamId))) {
+    return { error: "Drużyna nie należy do klubu." };
+  }
+
   const statusParsed = parseMatchStatus(String(formData.get("status") ?? "planned"));
   if (!statusParsed.success) return { error: "Nieprawidłowy status." };
+
+  const homeScore = parseOptionalInt(formData.get("homeScore"));
+  const awayScore = parseOptionalInt(formData.get("awayScore"));
+  if ((homeScore === null) !== (awayScore === null)) {
+    return { error: "Podaj oba wyniki lub zostaw oba puste." };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("matches")
     .update({
-      team_id: String(formData.get("teamId") ?? "").trim(),
+      team_id: teamId,
       competition: String(formData.get("competition") ?? "").trim(),
       season: String(formData.get("season") ?? "").trim(),
       round_number: parseOptionalInt(formData.get("roundNumber")),
@@ -150,8 +192,8 @@ export async function updateMatch(
       stadium: nullableString(formData.get("stadium")),
       stadium_address: nullableString(formData.get("stadiumAddress")),
       status: statusParsed.data,
-      home_score: parseOptionalInt(formData.get("homeScore")),
-      away_score: parseOptionalInt(formData.get("awayScore")),
+      home_score: homeScore,
+      away_score: awayScore,
       formation: nullableString(formData.get("formation")),
       coach_notes: nullableString(formData.get("coachNotes")),
     })
@@ -227,6 +269,7 @@ export async function saveLineupPosition(
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
   if (!canManageMatchSquad(access.roles)) return { error: "Brak uprawnień." };
+  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
 
   const playerId = String(formData.get("playerId") ?? "").trim();
   const slotCode = String(formData.get("slotCode") ?? "").trim();
@@ -265,6 +308,7 @@ export async function addMatchEvent(
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
   if (!canManageMatchEvents(access.roles)) return { error: "Brak uprawnień." };
+  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
 
   const eventParsed = parseMatchEventType(String(formData.get("eventType") ?? ""));
   const minute = parseOptionalInt(formData.get("minute"));
@@ -274,6 +318,9 @@ export async function addMatchEvent(
 
   if (!eventParsed.success || minute === null) {
     return { error: "Wybierz typ zdarzenia i minutę." };
+  }
+  if (minute < 0 || minute > 130) {
+    return { error: "Minuta musi być w zakresie 0–130." };
   }
   if (playerId && !(await verifyPlayerOnMatchTeam(matchId, playerId))) {
     return { error: "Zawodnik nie należy do drużyny meczu." };
@@ -295,6 +342,20 @@ export async function addMatchEvent(
   });
 
   if (error) return { error: error.message };
+
+  if (playerId) {
+    const statField: Partial<Record<string, StatField>> = {
+      goal: "goals",
+      assist: "assists",
+      yellow_card: "yellow_cards",
+      red_card: "red_cards",
+    };
+    const field = statField[eventParsed.data];
+    if (field) {
+      await incrementMatchPlayerStat(matchId, playerId, field);
+    }
+  }
+
   revalidateMatchPaths(matchId);
   return { success: "Zdarzenie dodane." };
 }
@@ -306,6 +367,7 @@ export async function setMatchMvp(
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
   if (!canManageMatches(access.roles)) return { error: "Brak uprawnień." };
+  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
 
   const playerId = String(formData.get("playerId") ?? "").trim();
   if (!playerId || !(await verifyPlayerOnMatchTeam(matchId, playerId))) {
@@ -363,6 +425,13 @@ export async function upsertLeagueTableEntry(
     is_own_club: formData.get("isOwnClub") === "on",
   };
 
+  if (updatePayload.played !== updatePayload.won + updatePayload.drawn + updatePayload.lost) {
+    return { error: "Suma Z+R+P musi równać się liczbie meczów (M)." };
+  }
+  if (updatePayload.goals_for < 0 || updatePayload.goals_against < 0) {
+    return { error: "Bramki nie mogą być ujemne." };
+  }
+
   const insertPayload = {
     club_id: DEFAULT_CLUB_ID,
     competition,
@@ -373,8 +442,14 @@ export async function upsertLeagueTableEntry(
 
   const supabase = await createClient();
   const { error } = entryId
-    ? await supabase.from("league_table_entries").update(updatePayload).eq("id", entryId)
-    : await supabase.from("league_table_entries").insert(insertPayload);
+    ? await supabase
+        .from("league_table_entries")
+        .update(updatePayload)
+        .eq("id", entryId)
+        .eq("club_id", DEFAULT_CLUB_ID)
+    : await supabase.from("league_table_entries").upsert(insertPayload, {
+        onConflict: "club_id,competition,season,team_name",
+      });
 
   if (error) return { error: error.message };
   revalidateMatchPaths();

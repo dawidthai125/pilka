@@ -46,7 +46,7 @@ export default async function MatchDetailPage({
 
   const [teamStats, playerForm, teamPlayers] = await Promise.all([
     getTeamMatchStats(data.match.teamId, data.match.season),
-    getPlayerFormStats(undefined, data.match.teamId),
+    getPlayerFormStats(data.match.teamId),
     getPlayers(),
   ]);
 

@@ -25,6 +25,7 @@ const STAGE4_MIGRATIONS = [
   "20260531180000_matches_module.sql",
   "20260531181000_seed_matches.sql",
   "20260531182000_matches_audit_hardening.sql",
+  "20260531183000_matches_audit_hardening.sql",
 ];
 
 function requireEnv(name) {

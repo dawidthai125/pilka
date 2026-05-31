@@ -13,7 +13,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 border-r bg-card md:flex md:flex-col">
+      <aside className="hidden w-64 shrink-0 border-r bg-card md:flex md:flex-col print:hidden">
         <div className="border-b px-6 py-5">
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {siteConfig.shortName}
@@ -29,14 +29,16 @@ export default async function DashboardLayout({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <DashboardHeader
-          profile={profile}
-          roles={access.roles}
-          clubName={getClubBrandingName(club)}
-          appName={siteConfig.shortName}
-          unreadNotifications={unreadNotifications}
-        />
-        <main className="flex-1 px-4 py-6 md:px-6 md:py-8">{children}</main>
+        <div className="print:hidden">
+          <DashboardHeader
+            profile={profile}
+            roles={access.roles}
+            clubName={getClubBrandingName(club)}
+            appName={siteConfig.shortName}
+            unreadNotifications={unreadNotifications}
+          />
+        </div>
+        <main className="flex-1 px-4 py-6 md:px-6 md:py-8 print:p-0">{children}</main>
       </div>
     </div>
   );

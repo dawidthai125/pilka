@@ -1054,7 +1054,8 @@ export const getMatchDetail = cache(
       .select("player_id, marked_at")
       .eq("club_id", clubId)
       .in("player_id", roster.map((p) => p.id))
-      .order("marked_at", { ascending: false });
+      .order("marked_at", { ascending: false })
+      .limit(Math.min(roster.length * 5, 150));
 
     const lastActivityMap = new Map<string, string>();
     for (const row of lastActivityRows ?? []) {
@@ -1063,17 +1064,18 @@ export const getMatchDetail = cache(
       }
     }
 
-    const playerStats: MatchPlayerStats[] = aggregatePlayerMatchStats(
-      (statsRes.data ?? []).map((row) => ({
+    const playerStats: MatchPlayerStats[] = (statsRes.data ?? [])
+      .map((row) => ({
         playerId: row.player_id,
         playerName: nameMap.get(row.player_id) ?? "Zawodnik",
+        matchesPlayed: 1,
         minutesPlayed: row.minutes_played,
         goals: row.goals,
         assists: row.assists,
         yellowCards: row.yellow_cards,
         redCards: row.red_cards,
-      })),
-    );
+      }))
+      .sort((a, b) => b.goals - a.goals || b.minutesPlayed - a.minutesPlayed);
 
     return {
       match,
@@ -1126,7 +1128,14 @@ export const getLeagueTable = cache(
       .order("goals_for", { ascending: false });
 
     if (error) throw new Error(error.message);
-    return (data ?? []).map(mapLeagueEntry);
+    return (data ?? [])
+      .map(mapLeagueEntry)
+      .sort(
+        (a, b) =>
+          b.points - a.points ||
+          b.goalDifference - a.goalDifference ||
+          b.goalsFor - a.goalsFor,
+      );
   },
 );
 
@@ -1159,7 +1168,7 @@ export const getTeamMatchStats = cache(
 );
 
 export const getPlayerFormStats = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, teamId?: string): Promise<PlayerFormStats[]> => {
+  async (teamId?: string, clubId: string = DEFAULT_CLUB_ID): Promise<PlayerFormStats[]> => {
     const supabase = await createClient();
     const since = new Date();
     since.setDate(since.getDate() - 30);
