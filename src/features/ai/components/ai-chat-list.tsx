@@ -11,9 +11,8 @@ import {
   type AiActionState,
 } from "@/features/ai/actions";
 import type { AiConversation } from "@/types/ai";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 
 const initialState: AiActionState = {};
 
