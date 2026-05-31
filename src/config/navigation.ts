@@ -1,4 +1,5 @@
 import {
+  Bot,
   Building2,
   CalendarDays,
   ClipboardList,
@@ -56,6 +57,11 @@ export const dashboardNav = [
     title: "Panel trenera",
     href: "/training/coach",
     icon: ClipboardList,
+  },
+  {
+    title: "Club AI Assistant",
+    href: "/ai",
+    icon: Bot,
   },
   {
     title: "Role i uprawnienia",

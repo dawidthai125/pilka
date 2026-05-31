@@ -66,7 +66,22 @@ import {
 import { DEFAULT_COMPETITION, DEFAULT_SEASON } from "@/lib/matches/constants";
 import { getClubBrandingName } from "@/lib/club/names";
 import { TRAINING_REMINDER_TYPES } from "@/types/trainings";
-import { canManageTrainings } from "@/config/permissions";
+import type {
+  AiConversation,
+  AiConversationDetail,
+  AiReport,
+  AiReportCategory,
+  AiReportCategoryRow,
+  AiSuggestion,
+} from "@/types/ai";
+import {
+  mapAiConversation,
+  mapAiMessage,
+  mapAiReport,
+  mapAiReportCategory,
+  mapAiSuggestion,
+} from "@/lib/ai/mappers";
+import { canManageTrainings, canReadAi } from "@/config/permissions";
 
 export const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
@@ -304,6 +319,12 @@ export function requireTrainingReadAccess(access: UserAccessContext) {
 
 export function requireMatchReadAccess(access: UserAccessContext) {
   if (!hasPermission(access, "match:read")) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireAiReadAccess(access: UserAccessContext) {
+  if (!canReadAi(access.roles)) {
     redirect("/dashboard");
   }
 }
@@ -1236,3 +1257,144 @@ export const getMatchFilterOptions = cache(async (clubId: string = DEFAULT_CLUB_
   const competitions = [...new Set((data ?? []).map((r) => r.competition))].sort();
   return { seasons, competitions };
 });
+
+export const getAiConversations = cache(
+  async (
+    clubId: string = DEFAULT_CLUB_ID,
+    search?: string,
+  ): Promise<AiConversation[]> => {
+    const user = await getUser();
+    if (!user) return [];
+
+    const supabase = await createClient();
+    let query = supabase
+      .from("ai_conversations")
+      .select("id, club_id, user_id, title, is_pinned, created_at, updated_at")
+      .eq("club_id", clubId)
+      .eq("user_id", user.id)
+      .order("is_pinned", { ascending: false })
+      .order("updated_at", { ascending: false });
+
+    if (search?.trim()) {
+      query = query.ilike("title", `%${search.trim()}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const conversations = (data ?? []).map(mapAiConversation);
+    if (!conversations.length) return conversations;
+
+    const ids = conversations.map((c) => c.id);
+    const { data: previews } = await supabase
+      .from("ai_messages")
+      .select("conversation_id, content, created_at")
+      .in("conversation_id", ids)
+      .order("created_at", { ascending: false });
+
+    const previewMap = new Map<string, string>();
+    for (const row of previews ?? []) {
+      if (!previewMap.has(row.conversation_id)) {
+        previewMap.set(row.conversation_id, row.content.slice(0, 120));
+      }
+    }
+
+    return conversations.map((c) => ({ ...c, preview: previewMap.get(c.id) ?? null }));
+  },
+);
+
+export const getAiConversationDetail = cache(
+  async (
+    conversationId: string,
+    clubId: string = DEFAULT_CLUB_ID,
+  ): Promise<AiConversationDetail | null> => {
+    const user = await getUser();
+    if (!user) return null;
+
+    const supabase = await createClient();
+    const { data: conversation, error } = await supabase
+      .from("ai_conversations")
+      .select("id, club_id, user_id, title, is_pinned, created_at, updated_at")
+      .eq("id", conversationId)
+      .eq("club_id", clubId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error || !conversation) return null;
+
+    const { data: messages } = await supabase
+      .from("ai_messages")
+      .select("id, conversation_id, role, content, created_at")
+      .eq("conversation_id", conversationId)
+      .eq("club_id", clubId)
+      .order("created_at");
+
+    return {
+      conversation: mapAiConversation(conversation),
+      messages: (messages ?? []).map(mapAiMessage),
+    };
+  },
+);
+
+export const getAiReports = cache(
+  async (
+    clubId: string = DEFAULT_CLUB_ID,
+    category?: AiReportCategory,
+    search?: string,
+  ): Promise<AiReport[]> => {
+    const supabase = await createClient();
+    let query = supabase
+      .from("ai_reports")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("created_at", { ascending: false });
+
+    if (category) query = query.eq("category", category);
+    if (search?.trim()) query = query.or(`title.ilike.%${search.trim()}%,content.ilike.%${search.trim()}%`);
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapAiReport);
+  },
+);
+
+export const getAiReport = cache(
+  async (reportId: string, clubId: string = DEFAULT_CLUB_ID): Promise<AiReport | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("ai_reports")
+      .select("*")
+      .eq("id", reportId)
+      .eq("club_id", clubId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return mapAiReport(data);
+  },
+);
+
+export const getAiReportCategories = cache(async (): Promise<AiReportCategoryRow[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ai_report_categories")
+    .select("id, label, sort_order")
+    .order("sort_order");
+
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapAiReportCategory);
+});
+
+export const getAiSuggestions = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, status: AiSuggestion["status"] = "open"): Promise<AiSuggestion[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("ai_suggestions")
+      .select("*")
+      .eq("club_id", clubId)
+      .eq("status", status)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map(mapAiSuggestion);
+  },
+);

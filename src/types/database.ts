@@ -782,6 +782,142 @@ export type Database = {
         };
         Relationships: [];
       };
+      ai_report_categories: {
+        Row: {
+          id: Database["public"]["Enums"]["ai_report_category"];
+          label: string;
+          sort_order: number;
+        };
+        Insert: {
+          id: Database["public"]["Enums"]["ai_report_category"];
+          label: string;
+          sort_order?: number;
+        };
+        Update: {
+          label?: string;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      ai_conversations: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          title: string;
+          is_pinned: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          title?: string;
+          is_pinned?: boolean;
+        };
+        Update: {
+          title?: string;
+          is_pinned?: boolean;
+        };
+        Relationships: [];
+      };
+      ai_messages: {
+        Row: {
+          id: string;
+          club_id: string;
+          conversation_id: string;
+          role: Database["public"]["Enums"]["ai_message_role"];
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          conversation_id: string;
+          role: Database["public"]["Enums"]["ai_message_role"];
+          content: string;
+        };
+        Update: {
+          content?: string;
+        };
+        Relationships: [];
+      };
+      ai_reports: {
+        Row: {
+          id: string;
+          club_id: string;
+          category: Database["public"]["Enums"]["ai_report_category"];
+          report_type: Database["public"]["Enums"]["ai_report_type"];
+          title: string;
+          content: string;
+          status: Database["public"]["Enums"]["ai_report_status"];
+          metadata: Json;
+          source_type: string | null;
+          source_id: string | null;
+          created_by: string | null;
+          reviewed_by: string | null;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          category: Database["public"]["Enums"]["ai_report_category"];
+          report_type: Database["public"]["Enums"]["ai_report_type"];
+          title: string;
+          content: string;
+          status?: Database["public"]["Enums"]["ai_report_status"];
+          metadata?: Json;
+          source_type?: string | null;
+          source_id?: string | null;
+          created_by?: string | null;
+          reviewed_by?: string | null;
+          published_at?: string | null;
+        };
+        Update: {
+          title?: string;
+          content?: string;
+          status?: Database["public"]["Enums"]["ai_report_status"];
+          metadata?: Json;
+          reviewed_by?: string | null;
+          published_at?: string | null;
+        };
+        Relationships: [];
+      };
+      ai_suggestions: {
+        Row: {
+          id: string;
+          club_id: string;
+          suggestion_type: Database["public"]["Enums"]["ai_suggestion_type"];
+          title: string;
+          description: string;
+          action_hint: string | null;
+          metadata: Json;
+          status: Database["public"]["Enums"]["ai_suggestion_status"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          suggestion_type: Database["public"]["Enums"]["ai_suggestion_type"];
+          title: string;
+          description: string;
+          action_hint?: string | null;
+          metadata?: Json;
+          status?: Database["public"]["Enums"]["ai_suggestion_status"];
+        };
+        Update: {
+          title?: string;
+          description?: string;
+          action_hint?: string | null;
+          metadata?: Json;
+          status?: Database["public"]["Enums"]["ai_suggestion_status"];
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -833,6 +969,23 @@ export type Database = {
       match_status: "planned" | "in_progress" | "completed" | "cancelled" | "postponed";
       match_squad_role: "squad" | "starter" | "substitute";
       match_event_type: "goal" | "assist" | "yellow_card" | "red_card" | "substitution" | "injury";
+      ai_message_role: "user" | "assistant" | "system";
+      ai_report_category: "matches" | "trainings" | "players" | "management" | "sponsors";
+      ai_report_type:
+        | "match_summary"
+        | "training_weekly"
+        | "management_monthly"
+        | "social_facebook"
+        | "social_instagram"
+        | "social_website"
+        | "social_round";
+      ai_report_status: "draft" | "published" | "archived";
+      ai_suggestion_type:
+        | "low_attendance"
+        | "missing_availability"
+        | "expiring_documents"
+        | "high_injuries";
+      ai_suggestion_status: "open" | "dismissed" | "resolved";
     };
     CompositeTypes: Record<string, never>;
   };

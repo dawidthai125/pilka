@@ -1,4 +1,5 @@
 import type { ClubRole, Permission } from "@/types/rbac";
+import type { AiReportCategory } from "@/types/ai";
 import { CLUB_ROLES } from "@/types/rbac";
 
 export { CLUB_ROLES };
@@ -36,6 +37,11 @@ const leadership: Permission[] = [
   "match:manage",
   "match:squad",
   "match:events",
+  "ai:read",
+  "ai:chat",
+  "ai:reports",
+  "ai:manage",
+  "ai:publish",
 ];
 
 const playerReadOnly: Permission[] = [
@@ -67,6 +73,10 @@ const coachingStaff: Permission[] = [
   "match:manage",
   "match:squad",
   "match:events",
+  "ai:read",
+  "ai:chat",
+  "ai:reports_sports",
+  "ai:publish",
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
@@ -102,6 +112,12 @@ export const ALL_PERMISSIONS = [
   "match:manage",
   "match:squad",
   "match:events",
+  "ai:read",
+  "ai:chat",
+  "ai:reports",
+  "ai:reports_sports",
+  "ai:manage",
+  "ai:publish",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -182,4 +198,43 @@ export function canManageMatchSquad(roles: ClubRole[]): boolean {
 
 export function canManageMatchEvents(roles: ClubRole[]): boolean {
   return canManageMatches(roles);
+}
+
+const AI_ACCESS_ROLES: ClubRole[] = ["owner", "president", "sports_director", "coach"];
+
+export function canReadAi(roles: ClubRole[]): boolean {
+  return roles.some((role) => AI_ACCESS_ROLES.includes(role));
+}
+
+export function canUseAiChat(roles: ClubRole[]): boolean {
+  return canReadAi(roles);
+}
+
+export function canManageAiReports(roles: ClubRole[]): boolean {
+  return roles.some((role) => LEADERSHIP_ROLES.includes(role));
+}
+
+export function canManageSportsAiReports(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canManageAi(roles: ClubRole[]): boolean {
+  return roles.some((role) => LEADERSHIP_ROLES.includes(role));
+}
+
+export function canPublishAiReports(roles: ClubRole[]): boolean {
+  return canManageSportsAiReports(roles);
+}
+
+export function canAccessAiReportCategory(
+  roles: ClubRole[],
+  category: AiReportCategory,
+): boolean {
+  if (canManageAiReports(roles)) return true;
+  if (canManageSportsAiReports(roles)) {
+    return (["matches", "trainings", "players"] as AiReportCategory[]).includes(category);
+  }
+  return false;
 }
