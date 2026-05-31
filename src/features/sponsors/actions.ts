@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { canManageSponsors } from "@/config/permissions";
-import { requireAccessContext } from "@/lib/auth/session";
+import { getClub, requireAccessContext } from "@/lib/auth/session";
+import { getClubBrandingName } from "@/lib/club/names";
 import { buildSponsorReportContent } from "@/lib/sponsors/insights";
 import { generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
 import { createClient } from "@/lib/supabase/server";
@@ -257,21 +258,36 @@ export async function createSponsorPublication(
   if (error || !data) return { error: error?.message ?? "Błąd zapisu publikacji." };
 
   const sponsorIds = formData.getAll("sponsorIds").map(String).filter(Boolean);
-  for (const sponsorId of sponsorIds) {
-    await supabase.from("sponsor_publication_links").insert({
-      club_id: access.clubId,
-      publication_id: data.id,
-      sponsor_id: sponsorId,
-    });
-    await supabase.from("sponsor_exposure").insert({
-      club_id: access.clubId,
-      sponsor_id: sponsorId,
-      exposure_type: "publication",
-      title,
-      description: readString(formData, "description") || null,
-      exposure_date: publishedAt,
-      publication_id: data.id,
-    });
+  if (sponsorIds.length) {
+    const { data: validSponsors } = await supabase
+      .from("sponsors")
+      .select("id")
+      .eq("club_id", access.clubId)
+      .in("id", sponsorIds);
+
+    const validIds = (validSponsors ?? []).map((s) => s.id);
+    const description = readString(formData, "description") || null;
+
+    if (validIds.length) {
+      await supabase.from("sponsor_publication_links").insert(
+        validIds.map((sponsorId) => ({
+          club_id: access.clubId,
+          publication_id: data.id,
+          sponsor_id: sponsorId,
+        })),
+      );
+      await supabase.from("sponsor_exposure").insert(
+        validIds.map((sponsorId) => ({
+          club_id: access.clubId,
+          sponsor_id: sponsorId,
+          exposure_type: "publication" as const,
+          title,
+          description,
+          exposure_date: publishedAt,
+          publication_id: data.id,
+        })),
+      );
+    }
   }
 
   revalidatePath("/sponsors/publications");
@@ -292,13 +308,15 @@ export async function generateSponsorReport(
 
   const content = await buildSponsorReportContent(access.clubId, sponsorId, periodStart, periodEnd);
   const sponsorName = String(content.sponsorName ?? "Sponsor");
+  const club = await getClub(access.clubId);
+  const clubName = club ? getClubBrandingName(club) : "Klub";
 
   let aiSummary = "";
   if (isOpenAiConfigured()) {
     try {
       aiSummary = await generateAiReportContent(
         `Przygotuj krótkie podsumowanie raportu sponsorskiego dla ${sponsorName} za okres ${periodStart}–${periodEnd}. Markdown, max 400 słów.`,
-        sponsorName,
+        clubName,
         JSON.stringify(content, null, 2),
       );
     } catch {
@@ -348,7 +366,8 @@ export async function publishSponsorReport(
     .from("sponsor_reports")
     .update({ status: "published" })
     .eq("id", reportId)
-    .eq("club_id", access.clubId);
+    .eq("club_id", access.clubId)
+    .eq("status", "draft");
 
   if (error) return { error: error.message };
   revalidatePath(`/sponsors/reports/${reportId}`);

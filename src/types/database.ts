@@ -1277,6 +1277,13 @@ export type Database = {
         };
         Returns: boolean;
       };
+      get_sponsor_portal_schedule: {
+        Args: {
+          p_club_id: string;
+          p_team_id: string;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       club_role:

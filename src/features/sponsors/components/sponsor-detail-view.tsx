@@ -95,7 +95,7 @@ export function SponsorDetailView({
                       key={a.id}
                       href={a.fileUrl}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="mt-1 inline-block text-primary underline"
                     >
                       {a.fileName}
@@ -145,7 +145,7 @@ export function SponsorDetailView({
         </ul>
         {canManage ? (
           <form action={noteFormAction} className="mt-4 space-y-3 border-t pt-4">
-            <select name="noteType" className="border-input bg-background h-10 rounded-md border px-3 text-sm">
+            <select name="noteType" className="border-input bg-background min-h-[44px] rounded-md border px-3 text-sm">
               {SPONSOR_NOTE_TYPES.map((t) => (
                 <option key={t} value={t}>{SPONSOR_NOTE_TYPE_LABELS[t]}</option>
               ))}

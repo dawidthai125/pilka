@@ -12,6 +12,8 @@ import { dashboardNav } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import type { ClubRole } from "@/types/rbac";
 
+const SPONSOR_ONLY_HREFS = ["/dashboard", "/profile", "/club", "/sponsors/portal"];
+
 export function DashboardNav({
   roles,
   onNavigate,
@@ -21,12 +23,16 @@ export function DashboardNav({
 }) {
   const pathname = usePathname();
   const items = roles
-    ? dashboardNav.filter((item) => {
-        if (item.href === "/ai") return canReadAi(roles);
-        if ("audience" in item && item.audience === "staff") return canReadSponsors(roles);
-        if ("audience" in item && item.audience === "sponsor") return canAccessSponsorPortal(roles);
-        return true;
-      })
+    ? canAccessSponsorPortal(roles) && !canReadSponsors(roles)
+      ? dashboardNav.filter((item) => SPONSOR_ONLY_HREFS.includes(item.href))
+      : dashboardNav.filter((item) => {
+          if (item.href === "/ai") return canReadAi(roles);
+          if ("audience" in item && item.audience === "staff") return canReadSponsors(roles);
+          if ("audience" in item && item.audience === "sponsor") {
+            return canAccessSponsorPortal(roles);
+          }
+          return true;
+        })
     : dashboardNav;
 
   return (

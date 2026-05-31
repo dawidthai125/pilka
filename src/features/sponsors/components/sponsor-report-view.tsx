@@ -26,16 +26,16 @@ export function SponsorReportView({
   const aiSummary = typeof content.aiSummary === "string" ? content.aiSummary : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-4">
       <div className="flex flex-wrap gap-2 print:hidden">
-        <Button type="button" onClick={() => window.print()}>Pobierz PDF / Drukuj</Button>
+        <Button type="button" onClick={() => window.print()}>Drukuj / PDF</Button>
         <Link href={`/sponsors/${report.sponsorId}`} className={cn(buttonVariants({ variant: "outline" }))}>
           Powrót do sponsora
         </Link>
       </div>
 
-      <article className="mx-auto max-w-3xl space-y-6 rounded-xl border bg-card p-6 print:border-0 print:p-0">
-        <header className="border-b pb-4 text-center">
+      <article className="mx-auto max-w-3xl space-y-6 rounded-xl border bg-card p-6 print:max-w-none print:rounded-none print:border-0 print:bg-white print:p-0">
+        <header className="border-b pb-4 text-center print:pb-3">
           <h1 className="text-2xl font-bold">Raport sponsorski</h1>
           <p className="text-muted-foreground">{sponsorName}</p>
           <p className="mt-2 text-sm">
@@ -64,7 +64,7 @@ export function SponsorReportView({
         ) : null}
 
         {exposureEvents.length ? (
-          <section>
+          <section className="break-inside-avoid">
             <h2 className="mb-2 font-semibold">Lista wydarzeń</h2>
             <ul className="space-y-1 text-sm">
               {exposureEvents.map((e, i) => (

@@ -27,13 +27,15 @@ export async function buildSponsorAiContext(clubId: string): Promise<SponsorAiCo
         .from("sponsor_contracts")
         .select("name, end_date, value, status, sponsors(company_name)")
         .eq("club_id", clubId)
-        .in("status", ["active", "expiring"]),
-      supabase.from("sponsors").select("id, company_name").eq("club_id", clubId),
+        .in("status", ["active", "expiring"])
+        .limit(200),
+      supabase.from("sponsors").select("id, company_name").eq("club_id", clubId).limit(500),
       supabase
         .from("sponsor_notes")
         .select("sponsor_id, contact_date")
         .eq("club_id", clubId)
-        .order("contact_date", { ascending: false }),
+        .order("contact_date", { ascending: false })
+        .limit(500),
     ]);
 
   const lastContactMap = new Map<string, string>();
@@ -80,9 +82,14 @@ export async function buildSponsorReportContent(
 ): Promise<Record<string, unknown>> {
   const supabase = await createClient();
 
-  const [{ data: sponsor }, { data: exposure }, { data: publications }, { data: matches }] =
+  const [{ data: sponsor }, { data: exposure }, { data: linkRows }, { data: matches }] =
     await Promise.all([
-      supabase.from("sponsors").select("company_name").eq("id", sponsorId).maybeSingle(),
+      supabase
+        .from("sponsors")
+        .select("company_name")
+        .eq("id", sponsorId)
+        .eq("club_id", clubId)
+        .maybeSingle(),
       supabase
         .from("sponsor_exposure")
         .select("title, exposure_type, exposure_date")
@@ -92,7 +99,7 @@ export async function buildSponsorReportContent(
         .lte("exposure_date", periodEnd),
       supabase
         .from("sponsor_publication_links")
-        .select("publication_id, sponsor_publications(title, published_at, source)")
+        .select("publication_id")
         .eq("sponsor_id", sponsorId)
         .eq("club_id", clubId),
       supabase
@@ -107,9 +114,18 @@ export async function buildSponsorReportContent(
         .limit(10),
     ]);
 
-  const pubList = (publications ?? [])
-    .map((p) => p.sponsor_publications as { title?: string; published_at?: string; source?: string } | null)
-    .filter(Boolean);
+  const publicationIds = (linkRows ?? []).map((row) => row.publication_id);
+  let pubList: Array<{ title: string; published_at: string; source: string }> = [];
+  if (publicationIds.length) {
+    const { data: pubs } = await supabase
+      .from("sponsor_publications")
+      .select("title, published_at, source")
+      .in("id", publicationIds)
+      .eq("club_id", clubId)
+      .gte("published_at", periodStart)
+      .lte("published_at", periodEnd);
+    pubList = pubs ?? [];
+  }
 
   const results = (matches ?? [])
     .map((m) => `${m.home_team_name} ${m.home_score}:${m.away_score} ${m.away_team_name}`)
@@ -120,7 +136,7 @@ export async function buildSponsorReportContent(
     periodStart,
     periodEnd,
     publicationsCount: pubList.length,
-    publications: pubList.map((p) => ({ title: p?.title, date: p?.published_at, source: p?.source })),
+    publications: pubList.map((p) => ({ title: p.title, date: p.published_at, source: p.source })),
     exposureCount: exposure?.length ?? 0,
     exposureEvents: (exposure ?? []).map((e) => ({
       title: e.title,
@@ -128,6 +144,6 @@ export async function buildSponsorReportContent(
       date: e.exposure_date,
     })),
     teamResults: results || "Brak zakończonych meczów w okresie.",
-    highlights: pubList.slice(0, 5).map((p) => p?.title).filter(Boolean),
+    highlights: pubList.slice(0, 5).map((p) => p.title).filter(Boolean),
   };
 }

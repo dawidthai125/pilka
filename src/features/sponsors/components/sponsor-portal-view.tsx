@@ -59,22 +59,30 @@ export function SponsorPortalView({ data }: { data: SponsorPortalData }) {
         <section className="rounded-xl border p-4 sm:p-6">
           <h2 className="mb-3 font-semibold">Terminarz drużyny</h2>
           <ul className="space-y-2 text-sm">
-            {data.upcomingMatches.map((m) => (
-              <li key={m.id}>
-                {m.matchDate} {m.matchTime} — {m.homeTeamName} vs {m.awayTeamName}
-              </li>
-            ))}
+            {data.upcomingMatches.length ? (
+              data.upcomingMatches.map((m) => (
+                <li key={m.id}>
+                  {m.matchDate} {m.matchTime} — {m.homeTeamName} vs {m.awayTeamName}
+                </li>
+              ))
+            ) : (
+              <li className="text-muted-foreground">Brak zaplanowanych meczów.</li>
+            )}
           </ul>
         </section>
 
         <section className="rounded-xl border p-4 sm:p-6">
           <h2 className="mb-3 font-semibold">Wyniki drużyny</h2>
           <ul className="space-y-2 text-sm">
-            {data.recentResults.map((m) => (
-              <li key={m.id}>
-                {m.matchDate}: {m.homeTeamName} {m.homeScore}:{m.awayScore} {m.awayTeamName}
-              </li>
-            ))}
+            {data.recentResults.length ? (
+              data.recentResults.map((m) => (
+                <li key={m.id}>
+                  {m.matchDate}: {m.homeTeamName} {m.homeScore}:{m.awayScore} {m.awayTeamName}
+                </li>
+              ))
+            ) : (
+              <li className="text-muted-foreground">Brak wyników do wyświetlenia.</li>
+            )}
           </ul>
         </section>
       </div>

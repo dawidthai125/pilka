@@ -8,6 +8,7 @@ import {
   getSponsorDashboardStats,
   getSponsors,
   requireSponsorReadAccess,
+  syncSponsorContractReminders,
 } from "@/lib/auth/session";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,10 @@ import { cn } from "@/lib/utils";
 export default async function SponsorsPage() {
   const { access } = await getDashboardContext();
   requireSponsorReadAccess(access);
+
+  if (canManageSponsors(access.roles)) {
+    await syncSponsorContractReminders(access.clubId);
+  }
 
   const [sponsors, stats] = await Promise.all([
     getSponsors(access.clubId),

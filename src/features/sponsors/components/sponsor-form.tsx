@@ -94,7 +94,7 @@ export function SponsorForm() {
         <select
           id="cooperationStatus"
           name="cooperationStatus"
-          className="border-input bg-background mt-1 h-10 w-full rounded-md border px-3 text-sm"
+          className="border-input bg-background min-h-[44px] mt-1 h-10 w-full rounded-md border px-3 text-sm"
           defaultValue="potential"
         >
           {SPONSOR_COOPERATION_STATUSES.map((s) => (

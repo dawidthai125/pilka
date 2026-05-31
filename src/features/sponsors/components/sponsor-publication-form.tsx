@@ -32,7 +32,7 @@ export function SponsorPublicationForm({ sponsors }: { sponsors: Sponsor[] }) {
       </div>
       <div>
         <Label htmlFor="source">Źródło</Label>
-        <select id="source" name="source" className="border-input bg-background mt-1 h-10 w-full rounded-md border px-3 text-sm">
+        <select id="source" name="source" className="border-input bg-background mt-1 min-h-[44px] w-full rounded-md border px-3 text-sm">
           {SPONSOR_PUBLICATION_SOURCES.map((s) => (
             <option key={s} value={s}>{SPONSOR_PUBLICATION_SOURCE_LABELS[s]}</option>
           ))}

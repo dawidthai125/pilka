@@ -17,7 +17,7 @@ export default async function SponsorDetailPage({
   const { access } = await getDashboardContext();
   requireSponsorReadAccess(access);
 
-  const data = await getSponsorDetail(id, access.clubId);
+  const data = await getSponsorDetail(id, access.clubId, canManageSponsors(access.roles));
   if (!data) notFound();
 
   return (

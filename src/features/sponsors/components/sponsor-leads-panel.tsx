@@ -70,7 +70,7 @@ function LeadStatusForm({ leadId, status }: { leadId: string; status: SponsorLea
       <select
         name="status"
         defaultValue={status}
-        className="border-input bg-background h-9 rounded-md border px-2 text-sm"
+        className="border-input bg-background min-h-[44px] h-9 rounded-md border px-2 text-sm sm:min-h-[36px]"
       >
         {SPONSOR_LEAD_STATUSES.map((s) => (
           <option key={s} value={s}>{SPONSOR_LEAD_STATUS_LABELS[s]}</option>

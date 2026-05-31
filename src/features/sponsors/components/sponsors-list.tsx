@@ -35,7 +35,7 @@ export function SponsorsList({ sponsors }: { sponsors: Sponsor[] }) {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as SponsorCooperationStatus | "all")}
-          className="border-input bg-background h-11 rounded-md border px-3 text-sm shadow-xs sm:h-9"
+          className="border-input bg-background min-h-[44px] h-11 rounded-md border px-3 text-sm shadow-xs sm:h-9"
         >
           <option value="all">Wszystkie statusy</option>
           <option value="active">Aktywny</option>

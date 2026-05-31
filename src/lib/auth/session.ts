@@ -307,7 +307,6 @@ export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID
   }
 
   await syncTrainingReminders(clubId);
-  await syncSponsorContractReminders(clubId);
 
   const unreadNotifications = await getUnreadNotificationCount(clubId);
 
@@ -1464,7 +1463,8 @@ export const syncSponsorContractReminders = cache(async (clubId: string = DEFAUL
     .eq("club_id", clubId)
     .gte("end_date", today)
     .lte("end_date", horizonDate)
-    .in("status", ["active", "expiring"]);
+    .in("status", ["active", "expiring"])
+    .limit(100);
 
   if (!contracts?.length) return;
 
@@ -1530,7 +1530,7 @@ export const getSponsors = cache(
       if (term) query = query.ilike("company_name", `%${term}%`);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.limit(500);
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapSponsor);
   },
@@ -1552,18 +1552,23 @@ export const getSponsor = cache(
 );
 
 export const getSponsorDetail = cache(
-  async (sponsorId: string, clubId: string = DEFAULT_CLUB_ID): Promise<SponsorDetailData | null> => {
+  async (
+    sponsorId: string,
+    clubId: string = DEFAULT_CLUB_ID,
+    includeFinancial = false,
+  ): Promise<SponsorDetailData | null> => {
     const sponsor = await getSponsor(sponsorId, clubId);
     if (!sponsor) return null;
 
     const supabase = await createClient();
-    const [contracts, notes, exposure, reports, financial] = await Promise.all([
+    const [contractsRes, notesRes, exposureRes, reportsRes] = await Promise.all([
       supabase
         .from("sponsor_contracts")
         .select("*")
         .eq("sponsor_id", sponsorId)
         .eq("club_id", clubId)
-        .order("end_date", { ascending: false }),
+        .order("end_date", { ascending: false })
+        .limit(20),
       supabase
         .from("sponsor_notes")
         .select("*, author:author_id(full_name)")
@@ -1583,16 +1588,23 @@ export const getSponsorDetail = cache(
         .select("*")
         .eq("sponsor_id", sponsorId)
         .eq("club_id", clubId)
-        .order("period_end", { ascending: false }),
-      supabase
+        .order("period_end", { ascending: false })
+        .limit(20),
+    ]);
+
+    let financialRows: Database["public"]["Tables"]["sponsor_financial_entries"]["Row"][] = [];
+    if (includeFinancial) {
+      const { data: financialData } = await supabase
         .from("sponsor_financial_entries")
         .select("*")
         .eq("sponsor_id", sponsorId)
         .eq("club_id", clubId)
-        .order("due_date", { ascending: false }),
-    ]);
+        .order("due_date", { ascending: false })
+        .limit(50);
+      financialRows = financialData ?? [];
+    }
 
-    const contractRows = contracts.data ?? [];
+    const contractRows = contractsRes.data ?? [];
     const contractIds = contractRows.map((c) => c.id);
     let attachments: ReturnType<typeof mapSponsorContractAttachment>[] = [];
     if (contractIds.length) {
@@ -1608,10 +1620,10 @@ export const getSponsorDetail = cache(
       sponsor,
       contracts: contractRows.map(mapSponsorContract),
       contractAttachments: attachments,
-      notes: (notes.data ?? []).map(mapSponsorNote),
-      exposure: (exposure.data ?? []).map(mapSponsorExposure),
-      reports: (reports.data ?? []).map(mapSponsorReport),
-      financialEntries: (financial.data ?? []).map(mapSponsorFinancialEntry),
+      notes: (notesRes.data ?? []).map(mapSponsorNote),
+      exposure: (exposureRes.data ?? []).map(mapSponsorExposure),
+      reports: (reportsRes.data ?? []).map(mapSponsorReport),
+      financialEntries: financialRows.map(mapSponsorFinancialEntry),
     };
   },
 );
@@ -1623,7 +1635,8 @@ export const getSponsorLeads = cache(
       .from("sponsor_leads")
       .select("*")
       .eq("club_id", clubId)
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .limit(100);
 
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapSponsorLead);
@@ -1637,7 +1650,8 @@ export const getSponsorPublications = cache(
       .from("sponsor_publications")
       .select("*")
       .eq("club_id", clubId)
-      .order("published_at", { ascending: false });
+      .order("published_at", { ascending: false })
+      .limit(100);
 
     if (error) throw new Error(error.message);
     const publications = (data ?? []).map(mapSponsorPublication);
@@ -1683,7 +1697,8 @@ export const getSponsorDashboardStats = cache(
         .from("sponsor_contracts")
         .select("value, status")
         .eq("club_id", clubId)
-        .in("status", ["active", "expiring"]),
+        .in("status", ["active", "expiring"])
+        .limit(200),
       supabase
         .from("sponsor_leads")
         .select("id", { count: "exact", head: true })
@@ -1731,22 +1746,26 @@ export const getSponsorPortalData = cache(
     if (!sponsor) return null;
 
     const supabase = await createClient();
-    const teamId = "b2c3d4e5-f6a7-8901-bcde-f12345678901";
+    const teams = await getTeams(clubId);
+    const seniorTeam = teams.find((t) => t.category === "seniors") ?? teams[0];
+    const teamId = seniorTeam?.id;
 
-    const [contracts, reports, linkRows, upcoming, results] = await Promise.all([
+    const [contracts, reports, linkRows, scheduleResult] = await Promise.all([
       supabase
         .from("sponsor_contracts")
         .select("*")
         .eq("sponsor_id", sponsor.id)
         .eq("club_id", clubId)
-        .order("end_date", { ascending: false }),
+        .order("end_date", { ascending: false })
+        .limit(10),
       supabase
         .from("sponsor_reports")
         .select("*")
         .eq("sponsor_id", sponsor.id)
         .eq("club_id", clubId)
         .eq("status", "published")
-        .order("period_end", { ascending: false }),
+        .order("period_end", { ascending: false })
+        .limit(10),
       supabase
         .from("sponsor_publication_links")
         .select("publication_id")
@@ -1754,23 +1773,12 @@ export const getSponsorPortalData = cache(
         .eq("club_id", clubId)
         .order("created_at", { ascending: false })
         .limit(20),
-      supabase
-        .from("matches")
-        .select("id, home_team_name, away_team_name, match_date, match_time, status")
-        .eq("club_id", clubId)
-        .eq("team_id", teamId)
-        .eq("status", "planned")
-        .gte("match_date", new Date().toISOString().slice(0, 10))
-        .order("match_date")
-        .limit(5),
-      supabase
-        .from("matches")
-        .select("id, home_team_name, away_team_name, home_score, away_score, match_date")
-        .eq("club_id", clubId)
-        .eq("team_id", teamId)
-        .eq("status", "completed")
-        .order("match_date", { ascending: false })
-        .limit(5),
+      teamId
+        ? supabase.rpc("get_sponsor_portal_schedule", {
+            p_club_id: clubId,
+            p_team_id: teamId,
+          })
+        : Promise.resolve({ data: { upcoming: [], results: [] }, error: null }),
     ]);
 
     const publicationIds = (linkRows.data ?? []).map((r) => r.publication_id);
@@ -1784,25 +1792,41 @@ export const getSponsorPortalData = cache(
       pubRows = (pubs ?? []).map(mapSponsorPublication);
     }
 
+    type ScheduleMatch = {
+      id: string;
+      home_team_name: string;
+      away_team_name: string;
+      match_date: string;
+      match_time?: string;
+      home_score?: number | null;
+      away_score?: number | null;
+      status?: string;
+    };
+
+    const schedule = (scheduleResult.data ?? { upcoming: [], results: [] }) as {
+      upcoming?: ScheduleMatch[];
+      results?: ScheduleMatch[];
+    };
+
     return {
       sponsor,
       contracts: (contracts.data ?? []).map(mapSponsorContract),
       reports: (reports.data ?? []).map(mapSponsorReport),
       publications: pubRows,
-      upcomingMatches: (upcoming.data ?? []).map((m) => ({
+      upcomingMatches: (schedule.upcoming ?? []).map((m) => ({
         id: m.id,
         homeTeamName: m.home_team_name,
         awayTeamName: m.away_team_name,
         matchDate: m.match_date,
-        matchTime: m.match_time.slice(0, 5),
-        status: m.status,
+        matchTime: m.match_time ?? "",
+        status: m.status ?? "planned",
       })),
-      recentResults: (results.data ?? []).map((m) => ({
+      recentResults: (schedule.results ?? []).map((m) => ({
         id: m.id,
         homeTeamName: m.home_team_name,
         awayTeamName: m.away_team_name,
-        homeScore: m.home_score,
-        awayScore: m.away_score,
+        homeScore: m.home_score ?? null,
+        awayScore: m.away_score ?? null,
         matchDate: m.match_date,
       })),
     };

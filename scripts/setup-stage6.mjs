@@ -22,6 +22,7 @@ const PROJECT_REF =
 const STAGE6_MIGRATIONS = [
   "20260531200000_sponsors_module.sql",
   "20260531201000_seed_sponsors.sql",
+  "20260531202000_sponsors_audit_hardening.sql",
 ];
 
 function requireEnv(name) {
