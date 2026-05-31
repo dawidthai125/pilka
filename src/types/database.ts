@@ -910,6 +910,9 @@ export type Database = {
           contact_phone: string | null;
           contact_email: string | null;
           cooperation_status: Database["public"]["Enums"]["sponsor_cooperation_status"];
+          show_on_website: boolean;
+          public_tier: Database["public"]["Enums"]["website_sponsor_tier"] | null;
+          public_description: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -1998,6 +2001,122 @@ export type Database = {
         };
         Relationships: [];
       };
+      website_settings: {
+        Row: {
+          club_id: string;
+          public_site_enabled: boolean;
+          logo_path: string | null;
+          logo_dark_path: string | null;
+          primary_color: string;
+          secondary_color: string;
+          accent_color: string;
+          hero_image_path: string | null;
+          hero_title: string | null;
+          hero_subtitle: string | null;
+          contact_address: string | null;
+          contact_email: string | null;
+          contact_phone: string | null;
+          google_maps_embed_url: string | null;
+          seo_title: string | null;
+          seo_description: string | null;
+          og_image_path: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          club_id: string;
+          public_site_enabled?: boolean;
+          logo_path?: string | null;
+          logo_dark_path?: string | null;
+          primary_color?: string;
+          secondary_color?: string;
+          accent_color?: string;
+          hero_image_path?: string | null;
+          hero_title?: string | null;
+          hero_subtitle?: string | null;
+          contact_address?: string | null;
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          google_maps_embed_url?: string | null;
+          seo_title?: string | null;
+          seo_description?: string | null;
+          og_image_path?: string | null;
+        };
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      website_news: {
+        Row: {
+          id: string;
+          club_id: string;
+          slug: string;
+          title: string;
+          excerpt: string | null;
+          featured_image_path: string | null;
+          content: string;
+          category: Database["public"]["Enums"]["website_news_category"];
+          status: Database["public"]["Enums"]["website_news_status"];
+          author_id: string | null;
+          published_at: string | null;
+          ai_generated: boolean;
+          ai_source_report_id: string | null;
+          seo_title: string | null;
+          seo_description: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      website_gallery_albums: {
+        Row: {
+          id: string;
+          club_id: string;
+          slug: string;
+          title: string;
+          description: string | null;
+          category: Database["public"]["Enums"]["website_gallery_category"];
+          cover_image_path: string | null;
+          sort_order: number;
+          is_published: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      website_gallery_photos: {
+        Row: {
+          id: string;
+          club_id: string;
+          album_id: string;
+          image_path: string;
+          caption: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      website_social_integrations: {
+        Row: {
+          id: string;
+          club_id: string;
+          platform: Database["public"]["Enums"]["website_social_platform"];
+          profile_url: string | null;
+          is_enabled: boolean;
+          api_connected: boolean;
+          last_sync_at: string | null;
+          config: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -2039,6 +2158,26 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_public_website_home: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
+      get_public_team_stats: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
+      get_public_players: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
+      get_public_sponsors: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
+      get_public_website_sitemap: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
     };
     Enums: {
       club_role:
@@ -2049,7 +2188,8 @@ export type Database = {
         | "coach"
         | "player"
         | "parent"
-        | "sponsor";
+        | "sponsor"
+        | "website_admin";
       membership_status: "active" | "invited" | "suspended" | "archived";
       team_category: "seniors" | "u18" | "u12" | "u10" | "other";
       player_status: "active" | "injured" | "suspended" | "inactive";
@@ -2085,7 +2225,8 @@ export type Database = {
         | "management"
         | "sponsors"
         | "finance"
-        | "inventory";
+        | "inventory"
+        | "website";
       ai_report_type:
         | "match_summary"
         | "training_weekly"
@@ -2166,6 +2307,11 @@ export type Database = {
         | "damaged_equipment"
         | "issue_history";
       inventory_report_status: "draft" | "published";
+      website_news_category: "matches" | "club" | "transfers" | "academy" | "sponsors" | "other";
+      website_news_status: "draft" | "pending_review" | "published" | "archived";
+      website_gallery_category: "matches" | "trainings" | "club" | "events";
+      website_sponsor_tier: "main" | "supporting" | "partner";
+      website_social_platform: "facebook" | "instagram" | "tiktok" | "youtube";
     };
     CompositeTypes: Record<string, never>;
   };

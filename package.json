@@ -18,6 +18,8 @@
     "setup:stage6": "node scripts/setup-stage6.mjs",
     "setup:stage7": "node scripts/setup-stage7.mjs",
     "setup:stage8": "node scripts/setup-stage8.mjs",
+    "setup:stage9": "node scripts/setup-stage9.mjs",
+    "db:migrate:website-audit": "node scripts/run-sql.mjs supabase/migrations/20260603102000_website_audit_hardening.sql",
     "db:migrate:finance-audit": "node scripts/run-sql.mjs supabase/migrations/20260601102000_finance_audit_hardening.sql",
     "db:migrate:inventory-audit": "node scripts/run-sql.mjs supabase/migrations/20260602103000_inventory_audit_hardening.sql",
     "db:migrate:sponsors-audit": "node scripts/run-sql.mjs supabase/migrations/20260531202000_sponsors_audit_hardening.sql",

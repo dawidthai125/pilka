@@ -3,6 +3,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
+  Globe,
   Handshake,
   LayoutDashboard,
   Package,
@@ -101,6 +102,12 @@ export const dashboardNav = [
     href: "/inventory/portal",
     icon: Package,
     audience: "player" as const,
+  },
+  {
+    title: "Strona klubu",
+    href: "/website",
+    icon: Globe,
+    audience: "website_staff" as const,
   },
   {
     title: "Role i uprawnienia",

@@ -11,6 +11,7 @@ import {
   canReadFinance,
   canReadInventory,
   canReadSponsors,
+  canReadWebsite,
 } from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ const PLAYER_ONLY_HREFS = [
   "/matches",
   "/players",
 ];
+const WEBSITE_ADMIN_HREFS = ["/dashboard", "/profile", "/website"];
 
 export function DashboardNav({
   roles,
@@ -45,7 +47,9 @@ export function DashboardNav({
 }) {
   const pathname = usePathname();
   const items = roles
-    ? canAccessSponsorPortal(roles) && !canReadSponsors(roles)
+    ? roles.includes("website_admin") && !canReadFinance(roles) && !canReadInventory(roles)
+      ? dashboardNav.filter((item) => WEBSITE_ADMIN_HREFS.some((h) => item.href === h || item.href.startsWith(`${h}/`)))
+      : canAccessSponsorPortal(roles) && !canReadSponsors(roles)
       ? dashboardNav.filter((item) => SPONSOR_ONLY_HREFS.includes(item.href))
       : canAccessFinancePortal(roles) && !canReadFinance(roles)
         ? dashboardNav.filter((item) => PARENT_ONLY_HREFS.includes(item.href))
@@ -69,6 +73,9 @@ export function DashboardNav({
           if ("audience" in item && item.audience === "player") {
             return canAccessInventoryPortal(roles);
           }
+          if ("audience" in item && item.audience === "website_staff") {
+            return canReadWebsite(roles);
+          }
           return true;
         })
     : dashboardNav;
@@ -84,7 +91,9 @@ export function DashboardNav({
               ? pathname.startsWith("/finance") && !pathname.startsWith("/finance/portal")
               : item.href === "/inventory"
                 ? pathname.startsWith("/inventory") && !pathname.startsWith("/inventory/portal")
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                : item.href === "/website"
+                  ? pathname.startsWith("/website")
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link

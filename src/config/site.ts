@@ -1,8 +1,8 @@
 export const siteConfig = {
-  name: "Football Club OS",
-  shortName: "FC OS",
+  name: "Piorun Wawrzeńczyce",
+  shortName: "Piorun",
   description:
-    "Nowoczesny system operacyjny do zarządzania klubami piłkarskimi.",
+    "Oficjalna strona klubu piłkarskiego Piorun Wawrzeńczyce (GLKS Mietków) — aktualności, mecze, tabela i kadra.",
   locale: "pl-PL",
   defaultClubSlug: "piorun-wawrzenczyce",
 } as const;

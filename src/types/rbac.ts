@@ -7,6 +7,7 @@ export const CLUB_ROLES = [
   "player",
   "parent",
   "sponsor",
+  "website_admin",
 ] as const;
 
 export type ClubRole = (typeof CLUB_ROLES)[number];
@@ -68,6 +69,10 @@ export const PERMISSIONS = [
   "inventory:read",
   "inventory:manage",
   "inventory:portal",
+  "website:read",
+  "website:manage",
+  "website:create",
+  "website:publish",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

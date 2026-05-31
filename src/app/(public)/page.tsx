@@ -1,35 +1,53 @@
-import Link from "next/link";
+import type { Metadata } from "next";
 
-import { siteConfig } from "@/config/site";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {
+  ClubHeroSection,
+  GalleryPreviewSection,
+  MatchHighlightCard,
+  NewsCardsSection,
+  PublicLeagueTableSection,
+  SponsorsStrip,
+  TeamStatsSection,
+  loadClubHomepageData,
+} from "@/features/website/components/club-site-page";
+import { buildPublicPageMetadata } from "@/lib/website/seo";
 
-export default function HomePage() {
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPublicPageMetadata("Strona główna", "/");
+}
+
+export default async function ClubHomePage() {
+  const { home, news, league, sponsors, stats, albums, heroImageUrl } = await loadClubHomepageData();
+  if (!home) return null;
+
   return (
-    <section className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">Football Club OS</p>
-        <h1 className="text-3xl font-semibold tracking-tight">{siteConfig.name}</h1>
-        <p className="max-w-2xl text-muted-foreground">{siteConfig.description}</p>
-      </div>
+    <>
+      <ClubHeroSection
+        title={home.settings.heroTitle ?? home.club.publicName}
+        subtitle={home.settings.heroSubtitle}
+        heroImageUrl={heroImageUrl}
+      />
 
-      <div className="flex flex-wrap gap-3">
-        <Link href="/login" className={cn(buttonVariants())}>
-          Zaloguj się
-        </Link>
-        <Link href="/register" className={cn(buttonVariants({ variant: "outline" }))}>
-          Rejestracja
-        </Link>
-      </div>
+      <section className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-2">
+        <MatchHighlightCard label="Najbliższy mecz" match={home.nextMatch} href="/mecze" />
+        <MatchHighlightCard label="Ostatni wynik" match={home.lastResult} href="/mecze" />
+      </section>
 
-      <div className="rounded-lg border bg-card p-6 text-card-foreground">
-        <h2 className="text-lg font-medium">ETAP 1 — gotowy</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Logowanie, panel klubu, drużyny, role RBAC i dashboard. Uruchom{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">npm run setup:stage1</code>{" "}
-          po ustawieniu hasła bazy w <code className="rounded bg-muted px-1 py-0.5 text-xs">.env.local</code>.
-        </p>
-      </div>
-    </section>
+      <NewsCardsSection news={news} />
+      <SponsorsStrip sponsors={sponsors} />
+      <PublicLeagueTableSection entries={league.entries} ownTeamName={league.ownTeamName} />
+      <TeamStatsSection stats={stats} />
+      <GalleryPreviewSection albums={albums.map((a) => ({ slug: a.slug, title: a.title, category: a.category }))} />
+
+      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+        <div className="rounded-xl border bg-card p-8 text-center">
+          <h2 className="text-xl font-bold">Kadra drużyny</h2>
+          <p className="mt-2 text-muted-foreground">Poznaj zawodników, numery i statystyki sezonu.</p>
+          <a href="/druzyna" className="mt-4 inline-flex min-h-[44px] items-center rounded-md bg-[var(--club-primary)] px-5 text-sm font-semibold text-[var(--club-accent)]">
+            Zobacz skład
+          </a>
+        </div>
+      </section>
+    </>
   );
 }

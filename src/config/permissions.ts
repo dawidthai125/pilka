@@ -13,6 +13,7 @@ export const ROLE_LABELS: Record<ClubRole, string> = {
   player: "Zawodnik",
   parent: "Rodzic",
   sponsor: "Sponsor",
+  website_admin: "Administrator strony",
 };
 
 const leadership: Permission[] = [
@@ -51,6 +52,13 @@ const leadership: Permission[] = [
   "inventory:manage",
 ];
 
+const websiteFull: Permission[] = [
+  "website:read",
+  "website:manage",
+  "website:create",
+  "website:publish",
+];
+
 const parentPortal: Permission[] = [
   "club:read",
   "team:read",
@@ -86,11 +94,25 @@ const coachingStaff: Permission[] = [
   "ai:reports_sports",
   "ai:publish",
   "inventory:read",
+  "website:read",
+  "website:create",
+];
+
+const websiteStaff: Permission[] = [
+  "club:read",
+  "profile:read",
+  "profile:manage",
+  "settings:read",
+  "website:read",
+  "website:manage",
+  "website:create",
+  "website:publish",
+  "ai:read",
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
-  owner: [...leadership, "sponsor:read", "sponsor:manage"],
-  president: [...leadership, "sponsor:read", "sponsor:manage"],
+  owner: [...leadership, ...websiteFull, "sponsor:read", "sponsor:manage"],
+  president: [...leadership, ...websiteFull, "sponsor:read", "sponsor:manage"],
   sports_director: [...leadership, "sponsor:read"],
   treasurer: [
     "club:read",
@@ -111,6 +133,7 @@ export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
   player: [...parentPortal.filter((p) => p !== "finance:portal"), "inventory:portal"],
   parent: parentPortal,
   sponsor: ["club:read", "team:read", "match:read", "profile:read", "sponsor:portal"],
+  website_admin: websiteStaff,
 };
 
 export const ALL_PERMISSIONS = [
@@ -151,6 +174,10 @@ export const ALL_PERMISSIONS = [
   "inventory:read",
   "inventory:manage",
   "inventory:portal",
+  "website:read",
+  "website:manage",
+  "website:create",
+  "website:publish",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -270,6 +297,7 @@ export function canAccessAiReportCategory(
   if (canManageAiReports(roles)) return true;
   if (category === "sponsors" || category === "finance") return canManageAiReports(roles) || roles.includes("treasurer");
   if (category === "inventory") return canManageInventory(roles) || roles.includes("sports_director");
+  if (category === "website") return canManageWebsite(roles) || roles.includes("coach");
   if (canManageSportsAiReports(roles)) {
     return (["matches", "trainings", "players"] as AiReportCategory[]).includes(category);
   }
@@ -324,4 +352,26 @@ export function canIssueInventory(roles: ClubRole[]): boolean {
 
 export function canAccessInventoryPortal(roles: ClubRole[]): boolean {
   return roles.includes("player");
+}
+
+export function canReadWebsite(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "website_admin", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canManageWebsite(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "website_admin"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canCreateWebsiteNews(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "website_admin", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canPublishWebsiteNews(roles: ClubRole[]): boolean {
+  return canManageWebsite(roles);
 }

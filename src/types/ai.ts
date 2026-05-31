@@ -7,7 +7,8 @@ export type AiReportCategory =
   | "management"
   | "sponsors"
   | "finance"
-  | "inventory";
+  | "inventory"
+  | "website";
 
 export type AiReportType =
   | "match_summary"

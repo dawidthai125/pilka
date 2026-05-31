@@ -82,7 +82,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canAccessFinancePortal, canAccessInventoryPortal } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -118,6 +118,12 @@ import type {
   InventoryTransaction,
   PlayerInventoryPortalData,
 } from "@/types/inventory";
+import type {
+  WebsiteGalleryAlbum,
+  WebsiteNews,
+  WebsiteSettings,
+  WebsiteSocialIntegration,
+} from "@/types/website";
 import {
   mapFinanceBudget,
   mapFinanceDocument,
@@ -143,6 +149,12 @@ import {
   mapInventorySupplier,
   mapInventoryTransaction,
 } from "@/lib/inventory/mappers";
+import {
+  mapWebsiteGalleryAlbum,
+  mapWebsiteNews,
+  mapWebsiteSettings,
+  mapWebsiteSocialIntegration,
+} from "@/lib/website/mappers";
 import { buildInventoryAlerts } from "@/lib/inventory/insights";
 import {
   mapSponsor,
@@ -2433,5 +2445,62 @@ export const getPlayerInventoryPortalData = cache(
       issues,
       returns,
     };
+  },
+);
+
+export function requireWebsiteCmsAccess(access: UserAccessContext) {
+  if (!canReadWebsite(access.roles)) redirect("/dashboard");
+}
+
+export function requireWebsiteManageAccess(access: UserAccessContext) {
+  if (!canManageWebsite(access.roles)) redirect("/website");
+}
+
+export const getWebsiteSettingsForCms = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteSettings | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("website_settings").select("*").eq("club_id", clubId).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return mapWebsiteSettings(data as Record<string, unknown>);
+  },
+);
+
+export const getWebsiteNewsForCms = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteNews[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("website_news")
+      .select("*, author:author_id(full_name)")
+      .eq("club_id", clubId)
+      .order("updated_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapWebsiteNews(row as Record<string, unknown>));
+  },
+);
+
+export const getWebsiteGalleryAlbumsForCms = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteGalleryAlbum[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("website_gallery_albums")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("sort_order");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapWebsiteGalleryAlbum(row as Record<string, unknown>));
+  },
+);
+
+export const getWebsiteSocialIntegrationsForCms = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteSocialIntegration[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("website_social_integrations")
+      .select("*")
+      .eq("club_id", clubId)
+      .order("platform");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapWebsiteSocialIntegration(row as Record<string, unknown>));
   },
 );

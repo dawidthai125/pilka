@@ -1,22 +1,10 @@
-import { siteConfig } from "@/config/site";
+import { ClubSitePageWrapper } from "@/features/website/components/club-site-page";
 
-export default function PublicLayout({
+/** ISR — wartość jak PUBLIC_WEBSITE_REVALIDATE_SECONDS (Next wymaga literału) */
+export const revalidate = 60;
+
+export default function PublicClubLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="mx-auto flex w-full max-w-5xl items-center px-6 py-4">
-          <span className="text-sm font-semibold tracking-wide">
-            {siteConfig.shortName}
-          </span>
-        </div>
-      </header>
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-10">
-        {children}
-      </main>
-    </div>
-  );
+}: Readonly<{ children: React.ReactNode }>) {
+  return <ClubSitePageWrapper>{children}</ClubSitePageWrapper>;
 }

@@ -1,0 +1,71 @@
+import type {
+  WebsiteGalleryCategory,
+  WebsiteNewsCategory,
+  WebsiteNewsStatus,
+  WebsiteSocialPlatform,
+  WebsiteSponsorTier,
+} from "@/types/website";
+
+export {
+  WEBSITE_NEWS_CATEGORIES,
+  WEBSITE_GALLERY_CATEGORIES,
+  WEBSITE_SOCIAL_PLATFORMS,
+  WEBSITE_SPONSOR_TIERS,
+} from "@/types/website";
+
+/** ISR — zgodne z Vercel (revalidate segmentów publicznych) */
+export const PUBLIC_WEBSITE_REVALIDATE_SECONDS = 60;
+
+export const WEBSITE_NEWS_CATEGORY_LABELS: Record<WebsiteNewsCategory, string> = {
+  matches: "Mecze",
+  club: "Klub",
+  transfers: "Transfery",
+  academy: "Akademia",
+  sponsors: "Sponsorzy",
+  other: "Inne",
+};
+
+export const WEBSITE_NEWS_STATUS_LABELS: Record<WebsiteNewsStatus, string> = {
+  draft: "Szkic",
+  pending_review: "Do zatwierdzenia",
+  published: "Opublikowany",
+  archived: "Archiwum",
+};
+
+export const WEBSITE_GALLERY_CATEGORY_LABELS: Record<WebsiteGalleryCategory, string> = {
+  matches: "Mecze",
+  trainings: "Treningi",
+  club: "Klub",
+  events: "Wydarzenia",
+};
+
+export const WEBSITE_SPONSOR_TIER_LABELS: Record<WebsiteSponsorTier, string> = {
+  main: "Sponsorzy główni",
+  supporting: "Sponsorzy wspierający",
+  partner: "Partnerzy",
+};
+
+export const WEBSITE_SOCIAL_PLATFORM_LABELS: Record<WebsiteSocialPlatform, string> = {
+  facebook: "Facebook",
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  youtube: "YouTube",
+};
+
+export const DEFAULT_WEBSITE_COLORS = {
+  primary: "#0B3D2E",
+  secondary: "#F4C430",
+  accent: "#FFFFFF",
+} as const;
+
+export const PUBLIC_NAV_LINKS = [
+  { href: "/", label: "Strona główna" },
+  { href: "/aktualnosci", label: "Aktualności" },
+  { href: "/mecze", label: "Mecze" },
+  { href: "/druzyna", label: "Drużyna" },
+  { href: "/tabela", label: "Tabela" },
+  { href: "/sponsorzy", label: "Sponsorzy" },
+  { href: "/galeria", label: "Galeria" },
+  { href: "/kontakt", label: "Kontakt" },
+  { href: "/kibic", label: "Panel kibica" },
+] as const;
