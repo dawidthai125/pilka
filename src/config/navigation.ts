@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   Globe,
+  GraduationCap,
   Handshake,
   LayoutDashboard,
   Package,
@@ -63,6 +64,12 @@ export const dashboardNav = [
     href: "/integrations",
     icon: Link2,
     audience: "integration_staff" as const,
+  },
+  {
+    title: "Akademia",
+    href: "/academy",
+    icon: GraduationCap,
+    audience: "academy_staff" as const,
   },
   {
     title: "Panel trenera",

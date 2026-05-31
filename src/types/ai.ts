@@ -9,7 +9,9 @@ export type AiReportCategory =
   | "finance"
   | "inventory"
   | "website"
-  | "integrations";
+  | "integrations"
+  | "academy"
+  | "scouting";
 
 export type AiReportType =
   | "match_summary"
@@ -164,6 +166,17 @@ export type AiClubContext = {
       partialSyncs: number;
       pendingConflicts: number;
     };
+  };
+  academy: {
+    groups: Array<Record<string, unknown>>;
+    topTalents: Array<Record<string, unknown>>;
+    regressions: Array<Record<string, unknown>>;
+    recentAssessments: Array<Record<string, unknown>>;
+    activeGoals: Array<Record<string, unknown>>;
+    recentTransitions: Array<Record<string, unknown>>;
+    scoutingProspects: Array<Record<string, unknown>>;
+    scoutingReports: Array<Record<string, unknown>>;
+    summary: Record<string, unknown>;
   };
 };
 

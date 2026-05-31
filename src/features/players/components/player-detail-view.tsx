@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 
 import {
@@ -46,6 +47,7 @@ const tabs = [
   { id: "basic", label: "Dane podstawowe" },
   { id: "documents", label: "Dokumenty" },
   { id: "stats", label: "Statystyki" },
+  { id: "development", label: "Rozwój" },
   { id: "history", label: "Historia klubowa" },
   { id: "injuries", label: "Historia kontuzji" },
   { id: "notes", label: "Notatki trenerskie" },
@@ -130,6 +132,22 @@ export function PlayerDetailView({
         <DocumentsTab data={data} canManage={canManage} />
       ) : null}
       {activeTab === "stats" ? <StatsTab data={data} canManage={canManage} /> : null}
+      {activeTab === "development" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Rozwój zawodnika</CardTitle>
+            <CardDescription>Oceny trenerskie, cele, testy motoryczne i wykresy postępów.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href={`/academy/development/${player.id}`}
+              className="inline-flex min-h-[44px] items-center rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground"
+            >
+              Otwórz pełny profil rozwoju
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
       {activeTab === "history" ? (
         <HistoryTab playerId={player.id} history={data.history} canManage={canManage} />
       ) : null}

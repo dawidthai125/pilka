@@ -15,6 +15,8 @@ export const AI_REPORT_CATEGORY_LABELS: Record<AiReportCategory, string> = {
   inventory: "Magazyn klubu",
   website: "Strona klubu",
   integrations: "Integracje rozgrywkowe",
+  academy: "Akademia i rozwój",
+  scouting: "Skauting",
 };
 
 export const AI_REPORT_TYPE_LABELS: Record<AiReportType, string> = {
@@ -40,7 +42,13 @@ export const AI_SUGGESTION_TYPE_LABELS: Record<AiSuggestionType, string> = {
   high_injuries: "Kontuzje",
 };
 
-export const AI_SPORTS_CATEGORIES: AiReportCategory[] = ["matches", "trainings", "players"];
+export const AI_SPORTS_CATEGORIES: AiReportCategory[] = [
+  "matches",
+  "trainings",
+  "players",
+  "academy",
+  "scouting",
+];
 
 export const AI_ASSISTANT_NAME = "Club AI Assistant";
 

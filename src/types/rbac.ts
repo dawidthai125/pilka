@@ -4,6 +4,7 @@ export const CLUB_ROLES = [
   "sports_director",
   "treasurer",
   "coach",
+  "scout",
   "player",
   "parent",
   "sponsor",
@@ -76,6 +77,11 @@ export const PERMISSIONS = [
   "integration:read",
   "integration:manage",
   "integration:sync",
+  "academy:read",
+  "academy:manage",
+  "academy:read_own",
+  "scouting:read",
+  "scouting:manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

@@ -7,10 +7,13 @@ import {
   canAccessFinancePortal,
   canAccessInventoryPortal,
   canAccessSponsorPortal,
+  canReadAcademy,
   canReadAi,
   canReadFinance,
   canReadIntegrations,
   canReadInventory,
+  canReadOwnDevelopment,
+  canReadScouting,
   canReadSponsors,
   canReadWebsite,
 } from "@/config/permissions";
@@ -27,6 +30,7 @@ const PARENT_ONLY_HREFS = [
   "/training",
   "/matches",
   "/players",
+  "/academy/development",
 ];
 const PLAYER_ONLY_HREFS = [
   "/dashboard",
@@ -36,6 +40,7 @@ const PLAYER_ONLY_HREFS = [
   "/training",
   "/matches",
   "/players",
+  "/academy/development",
 ];
 const WEBSITE_ADMIN_HREFS = ["/dashboard", "/profile", "/website"];
 
@@ -80,6 +85,9 @@ export function DashboardNav({
           if ("audience" in item && item.audience === "integration_staff") {
             return canReadIntegrations(roles);
           }
+          if ("audience" in item && item.audience === "academy_staff") {
+            return canReadAcademy(roles) || canReadOwnDevelopment(roles) || canReadScouting(roles);
+          }
           return true;
         })
     : dashboardNav;
@@ -99,6 +107,8 @@ export function DashboardNav({
                   ? pathname.startsWith("/website")
                   : item.href === "/integrations"
                     ? pathname.startsWith("/integrations")
+                    : item.href === "/academy"
+                      ? pathname.startsWith("/academy")
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
