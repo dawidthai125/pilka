@@ -2282,6 +2282,13 @@ export type Database = {
         };
         Returns: Json;
       };
+      team_development_average: {
+        Args: {
+          p_club_id: string;
+          p_team_id: string;
+        };
+        Returns: number;
+      };
       get_inventory_report_summary: {
         Args: {
           p_club_id: string;

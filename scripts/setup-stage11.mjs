@@ -23,6 +23,7 @@ const STAGE11_MIGRATIONS = [
   "20260605100000_academy_module.sql",
   "20260605101000_seed_academy.sql",
   "20260605102000_academy_audit_hardening.sql",
+  "20260605103000_academy_audit_fixes.sql",
 ];
 
 function requireEnv(name) {

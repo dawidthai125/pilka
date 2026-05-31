@@ -3,16 +3,19 @@ import {
   AcademyGroupsPanel,
   AcademyStatsCards,
 } from "@/features/academy/components/academy-panels";
+import { canReadAcademy } from "@/config/permissions";
 import {
   getAcademyDashboardStats,
   getAcademyGroups,
   requireAcademyReadAccess,
 } from "@/lib/academy/loaders";
 import { getDashboardContext } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
 
 export default async function AcademyPage() {
   const { access } = await getDashboardContext();
   requireAcademyReadAccess(access);
+  if (!canReadAcademy(access.roles)) redirect("/academy/development");
 
   const [stats, groups] = await Promise.all([
     getAcademyDashboardStats(access.clubId),

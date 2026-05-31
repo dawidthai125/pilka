@@ -23,6 +23,7 @@
     "setup:stage11": "node scripts/setup-stage11.mjs",
     "db:migrate:integrations-audit": "node scripts/run-sql.mjs supabase/migrations/20260604102000_integrations_audit_hardening.sql",
     "db:migrate:academy-audit": "node scripts/run-sql.mjs supabase/migrations/20260605102000_academy_audit_hardening.sql",
+    "db:migrate:academy-audit-fixes": "node scripts/run-sql.mjs supabase/migrations/20260605103000_academy_audit_fixes.sql",
     "db:migrate:website-audit": "node scripts/run-sql.mjs supabase/migrations/20260603102000_website_audit_hardening.sql",
     "db:migrate:finance-audit": "node scripts/run-sql.mjs supabase/migrations/20260601102000_finance_audit_hardening.sql",
     "db:migrate:inventory-audit": "node scripts/run-sql.mjs supabase/migrations/20260602103000_inventory_audit_hardening.sql",

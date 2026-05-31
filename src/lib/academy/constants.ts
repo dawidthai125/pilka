@@ -1,3 +1,4 @@
+import { canReadAcademy, canReadOwnDevelopment, canReadScouting } from "@/config/permissions";
 import type {
   AcademyAgeGroup,
   AcademyStaffRole,
@@ -8,6 +9,7 @@ import type {
   ScoutingPlayerStatus,
   TeamTransitionType,
 } from "@/types/academy";
+import type { ClubRole } from "@/types/rbac";
 
 export const ACADEMY_AGE_GROUP_LABELS: Record<AcademyAgeGroup, string> = {
   skrzaty: "Skrzaty",
@@ -97,6 +99,18 @@ export const ACADEMY_NAV = [
   { href: "/academy/scouting", label: "Skauting" },
   { href: "/academy/opponents", label: "Przeciwnicy" },
 ] as const;
+
+export function getAcademyNavItems(roles: ClubRole[]) {
+  const staff = canReadAcademy(roles);
+  const own = canReadOwnDevelopment(roles);
+  const scouting = canReadScouting(roles);
+
+  return ACADEMY_NAV.filter((item) => {
+    if (item.href === "/academy/development") return staff || own;
+    if (item.href === "/academy/scouting" || item.href === "/academy/opponents") return scouting;
+    return staff;
+  });
+}
 
 export const ACADEMY_AI_PROMPTS = {
   development: [

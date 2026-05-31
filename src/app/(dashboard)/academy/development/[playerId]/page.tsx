@@ -30,28 +30,15 @@ export default async function PlayerDevelopmentPage({
   if (!player || !detail) notFound();
 
   const supabase = await createClient();
-  let teamRows: Array<{ overall_rating: number }> = [];
-  if (player.teamId) {
-    const { data: teamPlayers } = await supabase
-      .from("players")
-      .select("id")
-      .eq("club_id", access.clubId)
-      .eq("team_id", player.teamId);
-    const playerIds = (teamPlayers ?? []).map((r) => r.id);
-    if (playerIds.length) {
-      const { data } = await supabase
-        .from("player_development")
-        .select("overall_rating")
-        .eq("club_id", access.clubId)
-        .in("player_id", playerIds);
-      teamRows = (data ?? []) as Array<{ overall_rating: number }>;
-    }
-  }
 
-  const teamAverage =
-    teamRows.length
-      ? Math.round(teamRows.reduce((s, r) => s + Number(r.overall_rating), 0) / teamRows.length)
-      : undefined;
+  let teamAverage: number | undefined;
+  if (player.teamId) {
+    const { data } = await supabase.rpc("team_development_average", {
+      p_club_id: access.clubId,
+      p_team_id: player.teamId,
+    });
+    if (data != null) teamAverage = Number(data);
+  }
 
   return (
     <PlayerDevelopmentPanel

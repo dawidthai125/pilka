@@ -6,12 +6,14 @@ import { usePathname } from "next/navigation";
 import { ACADEMY_NAV } from "@/lib/academy/constants";
 import { cn } from "@/lib/utils";
 
-export function AcademySubNav() {
+type NavItem = (typeof ACADEMY_NAV)[number];
+
+export function AcademySubNav({ items }: { items: readonly NavItem[] }) {
   const pathname = usePathname();
 
   return (
     <nav className="flex gap-2 overflow-x-auto pb-2">
-      {ACADEMY_NAV.map((item) => (
+      {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}

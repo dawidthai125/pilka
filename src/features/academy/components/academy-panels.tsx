@@ -188,15 +188,23 @@ export function PlayerDevelopmentPanel({
   const [range, setRange] = useState<DevelopmentChartRange>("year");
   const [devState, devAction, devPending] = useActionState(upsertPlayerDevelopmentAction, initial);
   const [assessState, assessAction, assessPending] = useActionState(addPlayerAssessmentAction, initial);
-  const [goalAction, goalPending] = useActionState(upsertPlayerGoalAction, initial);
-  const [testAction, testPending] = useActionState(addFitnessTestAction, initial);
-  const [transAction, transPending] = useActionState(addTeamTransitionAction, initial);
+  const [, goalAction, goalPending] = useActionState(upsertPlayerGoalAction, initial);
+  const [, testAction, testPending] = useActionState(addFitnessTestAction, initial);
+  const [, transAction, transPending] = useActionState(addTeamTransitionAction, initial);
 
   const history = filterByChartRange(detail.history, range, "recordedAt");
-  const chartPoints = history.map((h) => ({
+  let chartPoints = history.map((h) => ({
     label: h.recordedAt.slice(0, 10),
     value: h.overallRating,
   }));
+  if (!chartPoints.length && detail.development) {
+    chartPoints = [
+      {
+        label: detail.development.updatedAt.slice(0, 10),
+        value: detail.development.overallRating,
+      },
+    ];
+  }
 
   const teamPoints = teamAverage != null
     ? chartPoints.map((p) => ({ label: p.label, value: teamAverage }))

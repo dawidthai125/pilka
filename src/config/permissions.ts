@@ -422,7 +422,7 @@ export function canSyncIntegrations(roles: ClubRole[]): boolean {
 
 export function canReadAcademy(roles: ClubRole[]): boolean {
   return roles.some((role) =>
-    (["owner", "president", "sports_director", "coach", "scout"] as ClubRole[]).includes(role),
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
   );
 }
 

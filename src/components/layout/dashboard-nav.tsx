@@ -30,6 +30,7 @@ const PARENT_ONLY_HREFS = [
   "/training",
   "/matches",
   "/players",
+  "/academy",
   "/academy/development",
 ];
 const PLAYER_ONLY_HREFS = [
@@ -40,6 +41,7 @@ const PLAYER_ONLY_HREFS = [
   "/training",
   "/matches",
   "/players",
+  "/academy",
   "/academy/development",
 ];
 const WEBSITE_ADMIN_HREFS = ["/dashboard", "/profile", "/website"];

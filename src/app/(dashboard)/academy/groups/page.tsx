@@ -1,10 +1,13 @@
 import { AcademyGroupsPanel } from "@/features/academy/components/academy-panels";
+import { canReadAcademy } from "@/config/permissions";
 import { getAcademyGroups, requireAcademyReadAccess } from "@/lib/academy/loaders";
 import { getDashboardContext } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
 
 export default async function AcademyGroupsPage() {
   const { access } = await getDashboardContext();
   requireAcademyReadAccess(access);
+  if (!canReadAcademy(access.roles)) redirect("/academy/development");
   const groups = await getAcademyGroups(access.clubId);
 
   return (
