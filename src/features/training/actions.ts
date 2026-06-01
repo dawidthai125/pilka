@@ -9,6 +9,7 @@ import {
 } from "@/config/permissions";
 import { requireAccessContext } from "@/lib/auth/session";
 import { buildReminderCopy, reminderScheduledAt } from "@/lib/training/notifications";
+import { resolveOwnPlayerIds } from "@/lib/players/access";
 import { TRAINING_REMINDER_TYPES } from "@/types/trainings";
 import {
   parseAbsenceReason,
@@ -324,25 +325,14 @@ export async function setTrainingAvailability(
   }
 
   const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", access.userId)
-    .maybeSingle();
+  const playerIdRaw = String(formData.get("playerId") ?? "").trim();
+  const ownIds = await resolveOwnPlayerIds(access);
+  const playerId = playerIdRaw && ownIds.includes(playerIdRaw) ? playerIdRaw : ownIds[0];
 
-  const { data: player } = profile?.email
-    ? await supabase
-        .from("players")
-        .select("id")
-        .eq("club_id", clubId)
-        .ilike("email", profile.email)
-        .maybeSingle()
-    : { data: null };
-
-  if (!player) {
+  if (!playerId) {
     return { error: "Nie znaleziono profilu zawodnika powiązanego z kontem." };
   }
-  if (!(await verifyPlayerOnTrainingTeam(trainingId, player.id, clubId))) {
+  if (!(await verifyPlayerOnTrainingTeam(trainingId, playerId, clubId))) {
     return { error: "Zawodnik nie należy do drużyny tego treningu." };
   }
 
@@ -350,7 +340,7 @@ export async function setTrainingAvailability(
     {
       club_id: clubId,
       training_id: trainingId,
-      player_id: player.id,
+      player_id: playerId,
       status: statusParsed.data,
       absence_reason: absenceReason,
       notes,

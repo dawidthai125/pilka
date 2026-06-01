@@ -702,6 +702,7 @@ export type Database = {
           match_id: string;
           player_id: string;
           squad_role: Database["public"]["Enums"]["match_squad_role"];
+          call_status: Database["public"]["Enums"]["match_call_status"];
           created_at: string;
           updated_at: string;
         };
@@ -711,8 +712,12 @@ export type Database = {
           match_id: string;
           player_id: string;
           squad_role?: Database["public"]["Enums"]["match_squad_role"];
+          call_status?: Database["public"]["Enums"]["match_call_status"];
         };
-        Update: { squad_role?: Database["public"]["Enums"]["match_squad_role"] };
+        Update: {
+          squad_role?: Database["public"]["Enums"]["match_squad_role"];
+          call_status?: Database["public"]["Enums"]["match_call_status"];
+        };
         Relationships: [];
       };
       match_lineup_positions: {
@@ -1355,6 +1360,7 @@ export type Database = {
           sponsor_id: string | null;
           grant_id: string | null;
           player_fee_id: string | null;
+          crm_donation_id: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1377,6 +1383,7 @@ export type Database = {
           amount?: number;
           description?: string;
           category?: Database["public"]["Enums"]["finance_income_category"];
+          crm_donation_id?: string | null;
         };
         Relationships: [];
       };
@@ -2689,6 +2696,66 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      availability_reasons: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      player_availability: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      attendance_records: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      match_squad_responses: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      crm_contacts: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      crm_interactions: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      crm_tasks: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      crm_events: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      crm_event_attendees: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      crm_donations: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -2823,7 +2890,15 @@ export type Database = {
       coach_note_type: "observation" | "progress" | "health" | "training_goal";
       training_status: "planned" | "completed" | "cancelled";
       availability_status: "present" | "absent" | "unknown";
-      absence_reason: "work" | "school" | "injury" | "travel" | "illness" | "other";
+      absence_reason:
+        | "work"
+        | "school"
+        | "injury"
+        | "travel"
+        | "illness"
+        | "vacation"
+        | "family"
+        | "other";
       attendance_status: "present" | "absent" | "late" | "excused";
       training_reminder_type: "hours_48" | "hours_24" | "hours_3";
       match_status: "planned" | "in_progress" | "completed" | "cancelled" | "postponed";
@@ -2947,7 +3022,35 @@ export type Database = {
         | "general"
         | "club_announcement"
         | "coach_message_new"
-        | "chat_message_new";
+        | "chat_message_new"
+        | "match_squad_call"
+        | "availability_reminder"
+        | "crm_task_reminder";
+      availability_event_type: "training" | "match" | "club_event";
+      attendance_record_source: "training" | "match";
+      match_call_status: "called_up" | "reserve" | "not_called_up";
+      crm_contact_type:
+        | "sponsor"
+        | "partner"
+        | "parent"
+        | "volunteer"
+        | "donor"
+        | "company"
+        | "institution"
+        | "media";
+      crm_pipeline_status:
+        | "new_contact"
+        | "conversation"
+        | "offer_sent"
+        | "negotiation"
+        | "active_sponsor"
+        | "lost";
+      crm_interaction_type: "meeting" | "phone" | "email" | "event" | "sponsorship";
+      crm_task_type: "call_back" | "send_offer" | "meeting" | "reminder";
+      crm_task_status: "open" | "done" | "cancelled";
+      crm_event_type: "tournament" | "club_picnic" | "sponsor_meeting" | "parent_meeting" | "other";
+      crm_volunteer_area: "match_help" | "transport" | "event_org" | "tournament_ops";
+      crm_event_rsvp: "invited" | "confirmed" | "declined" | "attended";
       notification_delivery_status: "pending" | "sent" | "failed" | "cancelled";
     };
     CompositeTypes: Record<string, never>;

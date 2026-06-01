@@ -4,7 +4,7 @@ export type TrainingStatus = (typeof TRAINING_STATUSES)[number];
 export const AVAILABILITY_STATUSES = ["present", "absent", "unknown"] as const;
 export type AvailabilityStatus = (typeof AVAILABILITY_STATUSES)[number];
 
-export const ABSENCE_REASONS = ["work", "school", "injury", "travel", "illness", "other"] as const;
+export const ABSENCE_REASONS = ["work", "school", "injury", "travel", "illness", "vacation", "family", "other"] as const;
 export type AbsenceReason = (typeof ABSENCE_REASONS)[number];
 
 export const ATTENDANCE_STATUSES = ["present", "absent", "late", "excused"] as const;

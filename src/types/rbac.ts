@@ -97,6 +97,11 @@ export const PERMISSIONS = [
   "communication:create",
   "communication:manage",
   "communication:publish",
+  "attendance:read",
+  "attendance:report",
+  "crm:read",
+  "crm:manage",
+  "crm:portal",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

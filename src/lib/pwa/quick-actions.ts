@@ -79,11 +79,11 @@ export function getQuickActionsForRoles(roles: ClubRole[]): QuickAction[] {
       icon: NotebookPen,
     });
   }
-  if (canSetTrainingAvailability(roles) && !canManageTrainings(roles)) {
+  if (canSetTrainingAvailability(roles)) {
     actions.push({
-      id: "availability",
-      label: "Zgłoś dostępność",
-      href: "/training",
+      id: "availability-hub",
+      label: "Frekwencja",
+      href: "/attendance",
       icon: ClipboardCheck,
     });
   }

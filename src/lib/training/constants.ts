@@ -25,6 +25,8 @@ export const ABSENCE_REASON_LABELS: Record<AbsenceReason, string> = {
   injury: "Kontuzja",
   travel: "Wyjazd",
   illness: "Choroba",
+  vacation: "Urlop",
+  family: "Sprawy rodzinne",
   other: "Inny",
 };
 

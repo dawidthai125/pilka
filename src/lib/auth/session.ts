@@ -84,7 +84,8 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canReadCommunication, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canReadCommunication, canReadAttendance, canReadCrm, canManageCrm, canAccessCrmPortal, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
+import { resolveOwnPlayerIds } from "@/lib/players/access";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -554,6 +555,30 @@ export function requireCommunicationReadAccess(access: UserAccessContext) {
   }
 }
 
+export function requireAttendanceReadAccess(access: UserAccessContext) {
+  if (!canReadAttendance(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireCrmReadAccess(access: UserAccessContext) {
+  if (!canReadCrm(access.roles) && !canAccessCrmPortal(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireCrmManageAccess(access: UserAccessContext) {
+  if (!canManageCrm(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireCrmPortalAccess(access: UserAccessContext) {
+  if (!canAccessCrmPortal(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
 export async function requireVideoDetailAccess(access: UserAccessContext, videoId: string) {
   if (canReadVideos(access.roles)) return;
 
@@ -976,13 +1001,17 @@ export const getTrainingDetail = cache(
 
     let myPlayerId: string | null = null;
     if (user) {
-      const profile = await getProfile(user.id);
-      if (profile?.email) {
-        const match = roster.find(
-          (player) => player.email?.toLowerCase() === profile.email.toLowerCase(),
-        );
-        myPlayerId = match?.id ?? null;
-      }
+      const { data: membership } = await supabase
+        .from("club_memberships")
+        .select("role")
+        .eq("club_id", clubId)
+        .eq("user_id", user.id)
+        .eq("status", "active");
+      const roles = (membership ?? []).map((m) => m.role as import("@/types/rbac").ClubRole);
+      const accessCtx = buildAccessContext({ userId: user.id, clubId, roles });
+      const ownIds = await resolveOwnPlayerIds(accessCtx);
+      const onTeam = ownIds.find((id) => roster.some((p) => p.id === id));
+      myPlayerId = onTeam ?? ownIds[0] ?? null;
     }
 
     return {

@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useTransition } from "react";
 
+import { AttendanceQuickActions } from "@/features/attendance/components/attendance-quick-actions";
 import {
   addTrainingSessionNote,
   cancelTraining,
@@ -91,7 +92,10 @@ export function TrainingDetailView({
       </div>
 
       {canSetAvailability && myPlayerId && training.status === "planned" ? (
-        <AvailabilityForm trainingId={training.id} current={myAvailability ?? null} />
+        <>
+          <AttendanceQuickActions trainingId={training.id} playerId={myPlayerId} />
+          <AvailabilityForm trainingId={training.id} current={myAvailability ?? null} playerId={myPlayerId} />
+        </>
       ) : null}
 
       {canMarkAttendance && training.status !== "cancelled" ? (
@@ -122,9 +126,11 @@ export function TrainingDetailView({
 function AvailabilityForm({
   trainingId,
   current,
+  playerId,
 }: {
   trainingId: string;
   current: TrainingDetailData["availability"][number] | null;
+  playerId?: string;
 }) {
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
@@ -161,6 +167,7 @@ function AvailabilityForm({
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+          {playerId ? <input type="hidden" name="playerId" value={playerId} /> : null}
           {feedback.error ? (
             <p className="md:col-span-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {feedback.error}

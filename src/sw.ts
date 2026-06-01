@@ -34,6 +34,8 @@ const PROTECTED_PREFIXES = [
   "/content",
   "/league",
   "/communication",
+  "/attendance",
+  "/crm",
 ];
 
 function isProtectedAppPath(pathname: string): boolean {

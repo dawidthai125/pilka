@@ -19,6 +19,9 @@ import {
   canReadVideos,
   canReadContent,
   canReadCommunication,
+  canReadAttendance,
+  canReadCrm,
+  canAccessCrmPortal,
   canReadWebsite,
 } from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
@@ -37,6 +40,8 @@ const PARENT_ONLY_HREFS = [
   "/academy",
   "/academy/development",
   "/communication",
+  "/attendance",
+  "/crm/parents",
 ];
 const PLAYER_ONLY_HREFS = [
   "/dashboard",
@@ -50,6 +55,7 @@ const PLAYER_ONLY_HREFS = [
   "/academy",
   "/academy/development",
   "/communication",
+  "/attendance",
 ];
 const WEBSITE_ADMIN_HREFS = ["/dashboard", "/profile", "/website", "/content"];
 
@@ -110,6 +116,15 @@ export function DashboardNav({
           if ("audience" in item && item.audience === "communication_staff") {
             return canReadCommunication(roles);
           }
+          if ("audience" in item && item.audience === "attendance_staff") {
+            return canReadAttendance(roles);
+          }
+          if ("audience" in item && item.audience === "crm_staff") {
+            return canReadCrm(roles);
+          }
+          if ("audience" in item && item.audience === "crm_parent") {
+            return canAccessCrmPortal(roles);
+          }
           return true;
         })
     : dashboardNav;
@@ -139,6 +154,8 @@ export function DashboardNav({
                     ? pathname.startsWith("/league")
                   : item.href === "/communication"
                     ? pathname.startsWith("/communication")
+                  : item.href === "/attendance"
+                    ? pathname.startsWith("/attendance")
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (

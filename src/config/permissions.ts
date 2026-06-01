@@ -35,6 +35,11 @@ const communicationFull: Permission[] = [
   "communication:manage",
   "communication:publish",
 ];
+const attendanceRead: Permission[] = ["attendance:read"];
+const attendanceReport: Permission[] = ["attendance:read", "attendance:report"];
+const crmFull: Permission[] = ["crm:read", "crm:manage"];
+const crmReadOnly: Permission[] = ["crm:read"];
+const crmPortal: Permission[] = ["crm:portal"];
 const leagueRead: Permission[] = ["league:read"];
 const leagueManage: Permission[] = ["league:manage", "league:sync"];
 
@@ -75,6 +80,8 @@ const leadership: Permission[] = [
   ...integrationRead,
   ...leagueRead,
   ...communicationFull,
+  ...attendanceReport,
+  ...crmFull,
   ...academyRead,
 ];
 
@@ -127,6 +134,7 @@ const coachingStaff: Permission[] = [
   "integration:read",
   ...leagueRead,
   ...communicationCreate,
+  ...attendanceReport,
   ...academyRead,
   ...academyManage,
 ];
@@ -144,9 +152,9 @@ const websiteStaff: Permission[] = [
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
-  owner: [...leadershipFull, ...integrationManage, ...leagueManage, ...websiteFull, ...contentFull, ...communicationFull, "sponsor:read", "sponsor:manage", ...videoManage],
-  president: [...leadership, ...leagueManage, ...websiteFull, ...contentFull, ...communicationFull, "sponsor:read", "sponsor:manage", ...videoReadOnly],
-  sports_director: [...leadershipFull, ...integrationManage, ...leagueManage, ...communicationFull, "sponsor:read"],
+  owner: [...leadershipFull, ...integrationManage, ...leagueManage, ...websiteFull, ...contentFull, ...communicationFull, "sponsor:read", "sponsor:manage", ...videoManage, ...crmFull],
+  president: [...leadership, ...leagueManage, ...websiteFull, ...contentFull, ...communicationFull, "sponsor:read", "sponsor:manage", ...videoReadOnly, ...crmFull],
+  sports_director: [...leadershipFull, ...integrationManage, ...leagueManage, ...communicationFull, "sponsor:read", ...crmFull],
   treasurer: [
     "club:read",
     "team:read",
@@ -161,11 +169,12 @@ export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
     "ai:chat",
     "ai:reports",
     ...communicationRead,
+    ...crmFull,
   ],
-  coach: [...coachingStaff, ...videoManage, ...contentCreate, ...communicationCreate],
+  coach: [...coachingStaff, ...videoManage, ...contentCreate, ...communicationCreate, ...crmReadOnly],
   scout: [...scoutingManage, "club:read", "team:read", "profile:read", "ai:read", "ai:chat", "ai:reports_sports", "video:read", "video:manage", "video:share"],
-  player: [...parentPortal.filter((p) => p !== "finance:portal"), "inventory:portal", ...academyOwn, ...leagueRead, ...communicationRead],
-  parent: [...parentPortal, ...academyOwn, ...communicationRead],
+  player: [...parentPortal.filter((p) => p !== "finance:portal"), "inventory:portal", ...academyOwn, ...leagueRead, ...communicationRead, ...attendanceRead],
+  parent: [...parentPortal, ...academyOwn, ...communicationRead, ...attendanceRead, ...crmPortal],
   sponsor: ["club:read", "team:read", "match:read", "profile:read", "sponsor:portal", "content:read", ...communicationRead],
   website_admin: [...websiteStaff, ...contentFull],
 };
@@ -235,6 +244,11 @@ export const ALL_PERMISSIONS = [
   "communication:create",
   "communication:manage",
   "communication:publish",
+  "attendance:read",
+  "attendance:report",
+  "crm:read",
+  "crm:manage",
+  "crm:portal",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -572,4 +586,36 @@ export function canManageCommunication(roles: ClubRole[]): boolean {
 
 export function canPublishCommunication(roles: ClubRole[]): boolean {
   return roles.some((role) => (["owner", "president"] as ClubRole[]).includes(role));
+}
+
+export function canReadAttendance(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (
+      ["owner", "president", "sports_director", "coach", "player", "parent"] as ClubRole[]
+    ).includes(role),
+  );
+}
+
+export function canViewAttendanceReports(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canReadCrm(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (
+      ["owner", "president", "sports_director", "treasurer", "coach"] as ClubRole[]
+    ).includes(role),
+  );
+}
+
+export function canManageCrm(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "treasurer"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canAccessCrmPortal(roles: ClubRole[]): boolean {
+  return roles.some((role) => (["parent"] as ClubRole[]).includes(role));
 }

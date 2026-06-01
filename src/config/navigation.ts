@@ -21,6 +21,8 @@ import {
   Users,
   Video,
   Wallet,
+  UserCheck,
+  Contact,
 } from "lucide-react";
 
 export const dashboardNav = [
@@ -58,6 +60,24 @@ export const dashboardNav = [
     title: "Treningi",
     href: "/training",
     icon: CalendarDays,
+  },
+  {
+    title: "Frekwencja",
+    href: "/attendance",
+    icon: UserCheck,
+    audience: "attendance_staff" as const,
+  },
+  {
+    title: "Club CRM",
+    href: "/crm",
+    icon: Contact,
+    audience: "crm_staff" as const,
+  },
+  {
+    title: "Relacje klubu",
+    href: "/crm/parents",
+    icon: Contact,
+    audience: "crm_parent" as const,
   },
   {
     title: "Mecze",

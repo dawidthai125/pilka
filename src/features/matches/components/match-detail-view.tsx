@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import {
@@ -80,8 +81,18 @@ function SquadPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Kadra meczowa</CardTitle>
-        <CardDescription>Frekwencja treningowa, kontuzje, zawieszenia i ostatnia aktywność.</CardDescription>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle>Kadra meczowa</CardTitle>
+            <CardDescription>Frekwencja treningowa, kontuzje, zawieszenia i ostatnia aktywność.</CardDescription>
+          </div>
+          <Link
+            href={`/attendance/matches/${data.match.id}`}
+            className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center rounded-md border px-3 text-sm font-medium shadow-xs"
+          >
+            Powołania i RSVP
+          </Link>
+        </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
         <table className="w-full min-w-[640px] text-sm">
