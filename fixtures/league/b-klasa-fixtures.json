@@ -1,0 +1,55 @@
+{
+  "matches": [
+    {
+      "externalId": "fix-2025-r1-mietkow-dolina",
+      "roundNumber": 1,
+      "matchDate": "2025-08-17",
+      "matchTime": "15:00",
+      "homeTeamName": "GLKS Mietków",
+      "awayTeamName": "KS Dolina",
+      "homeScore": 2,
+      "awayScore": 2,
+      "status": "completed"
+    },
+    {
+      "externalId": "fix-2025-r2-orzel-mietkow",
+      "roundNumber": 2,
+      "matchDate": "2025-08-24",
+      "matchTime": "15:00",
+      "homeTeamName": "LKS Orzeł",
+      "awayTeamName": "GLKS Mietków",
+      "homeScore": 1,
+      "awayScore": 3,
+      "status": "completed"
+    },
+    {
+      "externalId": "fix-2025-r3-mietkow-wiry",
+      "roundNumber": 3,
+      "matchDate": "2025-08-31",
+      "matchTime": "15:00",
+      "homeTeamName": "GLKS Mietków",
+      "awayTeamName": "UKH Wiry",
+      "homeScore": 2,
+      "awayScore": 0,
+      "status": "completed"
+    },
+    {
+      "externalId": "fix-2025-r4-dolina-mietkow",
+      "roundNumber": 4,
+      "matchDate": "2026-06-14",
+      "matchTime": "15:00",
+      "homeTeamName": "KS Dolina",
+      "awayTeamName": "GLKS Mietków",
+      "status": "scheduled"
+    },
+    {
+      "externalId": "fix-2025-r5-mietkow-orzel",
+      "roundNumber": 5,
+      "matchDate": "2026-06-21",
+      "matchTime": "15:00",
+      "homeTeamName": "GLKS Mietków",
+      "awayTeamName": "LKS Orzeł",
+      "status": "scheduled"
+    }
+  ]
+}

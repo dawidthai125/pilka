@@ -16,9 +16,15 @@ export default async function LeagueTablePublicPage() {
     <div className="pb-10">
       <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-6">
         <h1 className="text-3xl font-bold">Tabela ligowa</h1>
-        <p className="mt-2 text-muted-foreground">Aktualna tabela rozgrywek — dane z Football Club OS.</p>
+        <p className="mt-2 text-muted-foreground">
+          {league.competition} · Sezon {league.season} — dane zsynchronizowane z League Hub.
+        </p>
       </div>
-      <PublicLeagueTableSection entries={league.entries} ownTeamName={league.ownTeamName} />
+      <PublicLeagueTableSection
+        entries={league.entries}
+        ownTeamName={league.ownTeamName}
+        showFullLink={false}
+      />
     </div>
   );
 }

@@ -165,18 +165,49 @@ export const getPublicMatchById = cache(
 export const getPublicLeagueTable = cache(
   async (
     clubId: string = DEFAULT_CLUB_ID,
-    competition: string = DEFAULT_COMPETITION,
-    season: string = DEFAULT_SEASON,
-  ): Promise<{ entries: LeagueTableEntry[]; ownTeamName: string }> => {
+    competition?: string,
+    season?: string,
+  ): Promise<{ entries: LeagueTableEntry[]; ownTeamName: string; competition: string; season: string }> => {
     const supabase = await createClient();
+
+    let resolvedCompetition = competition;
+    let resolvedSeason = season;
+
+    if (!resolvedCompetition || !resolvedSeason) {
+      const { data: activeSeason } = await supabase
+        .from("league_seasons")
+        .select("name")
+        .eq("club_id", clubId)
+        .eq("is_active", true)
+        .order("name", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const { data: activeCompetition } = await supabase
+        .from("league_competitions")
+        .select("name, season:league_seasons(name)")
+        .eq("club_id", clubId)
+        .eq("is_active", true)
+        .order("name")
+        .limit(1)
+        .maybeSingle();
+
+      resolvedSeason =
+        resolvedSeason ??
+        (activeSeason?.name ? String(activeSeason.name) : DEFAULT_SEASON);
+      resolvedCompetition =
+        resolvedCompetition ??
+        (activeCompetition?.name ? String(activeCompetition.name) : DEFAULT_COMPETITION);
+    }
+
     const clubRes = await supabase.from("clubs").select("public_name, official_name").eq("id", clubId).maybeSingle();
     const ownTeamName = clubRes.data
       ? getClubBrandingName({ publicName: String(clubRes.data.public_name) })
       : "Klub";
 
     let query = supabase.from("league_table_entries").select("*").eq("club_id", clubId);
-    if (competition) query = query.eq("competition", competition);
-    if (season) query = query.eq("season", season);
+    if (resolvedCompetition) query = query.eq("competition", resolvedCompetition);
+    if (resolvedSeason) query = query.eq("season", resolvedSeason);
 
     const { data, error } = await query.order("points", { ascending: false });
     if (error) throw new Error(error.message);
@@ -188,7 +219,12 @@ export const getPublicLeagueTable = cache(
           b.points - a.points || b.goalDifference - a.goalDifference || b.goalsFor - a.goalsFor,
       );
 
-    return { entries, ownTeamName };
+    return {
+      entries,
+      ownTeamName,
+      competition: resolvedCompetition ?? DEFAULT_COMPETITION,
+      season: resolvedSeason ?? DEFAULT_SEASON,
+    };
   },
 );
 

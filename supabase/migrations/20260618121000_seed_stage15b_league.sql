@@ -1,4 +1,5 @@
 -- ETAP 15B seed: League Hub — Piorun Wawrzeńczyce / GLKS Mietków
+-- Rozgrywki: B Klasa — Powiat Wrocławski, Grupa VII — sezon 2025/2026
 
 DO $$
 DECLARE
@@ -32,36 +33,57 @@ BEGIN
     (v_season_2627, v_club_id, '2026/2027', FALSE, '2026-07-01', '2027-06-30');
 
   INSERT INTO public.league_competitions (id, club_id, season_id, name, category_label, provider, notes, is_active)
-  VALUES
-    (v_comp_b, v_club_id, v_season_2526, 'B Klasa', 'Seniorzy', 'DZPN',
-      'Rozgrywki amatorskie — import CSV/JSON, bez nieautoryzowanego pobierania PZPN/DZPN.', TRUE);
+  VALUES (
+    v_comp_b, v_club_id, v_season_2526,
+    'B Klasa — Powiat Wrocławski, Grupa VII',
+    'Seniorzy — B Klasa',
+    'DZPN',
+    'DZPN / Extranet → mPZPN / ŁNP. Mirror dev: 90minut liga14526, regionalnyfutbol Wrocław VII. Dokumentacja: docs/research/pzpn-data-ecosystem.md',
+    TRUE
+  );
 
   INSERT INTO public.league_sources (id, club_id, competition_id, name, adapter, provider_label, is_active, config)
   VALUES
-    (v_src_csv, v_club_id, v_comp_b, 'Tabela B Klasy — CSV', 'csv', 'DZPN', TRUE,
-      '{"note":"Import ręczny tabeli z portalu DZPN (eksport CSV)."}'::jsonb),
-    (v_src_json, v_club_id, v_comp_b, 'Terminarz — JSON lokalny', 'json', 'DZPN', TRUE,
-      '{"note":"Terminarz przygotowany lokalnie przez administratora."}'::jsonb),
-    (v_src_api, v_club_id, v_comp_b, 'FutureApiAdapter — PZPN', 'api', 'PZPN', FALSE,
-      '{"note":"Placeholder pod oficjalne API — obecnie niedostępne."}'::jsonb);
+    (v_src_csv, v_club_id, v_comp_b, 'Tabela — CSV (import)', 'csv', 'DZPN', TRUE,
+      '{"note":"Import CSV; źródło oficjalne docelowo: competition-api-pro po credentials PZPN."}'::jsonb),
+    (v_src_json, v_club_id, v_comp_b, 'Terminarz — JSON (import)', 'json', 'DZPN', TRUE,
+      '{"note":"Import JSON; mirror referencyjny: fixtures/league/live/."}'::jsonb),
+    (v_src_api, v_club_id, v_comp_b, 'FutureApiAdapter — competition-api-pro', 'api', 'PZPN', FALSE,
+      '{"note":"Placeholder — competition-api-pro.laczynaspilka.pl (401 bez umowy)."}'::jsonb);
 
   INSERT INTO public.league_teams (club_id, competition_id, team_id, display_name, league_name, external_id, is_own_club, provider, notes)
   VALUES
     (v_club_id, v_comp_b, v_team_senior, 'Piorun Wawrzeńczyce', 'GLKS Mietków', 'DZPN-CLUB-4821', TRUE, 'DZPN',
-      'Nazwa brandingowa vs nazwa ligowa w rozgrywkach.'),
-    (v_club_id, v_comp_b, NULL, 'KS Dolina', 'KS Dolina', 'DZPN-T-101', FALSE, 'DZPN', NULL),
-    (v_club_id, v_comp_b, NULL, 'LKS Orzeł', 'LKS Orzeł', 'DZPN-T-102', FALSE, 'DZPN', NULL),
-    (v_club_id, v_comp_b, NULL, 'UKH Wiry', 'UKH Wiry', 'DZPN-T-103', FALSE, 'DZPN', NULL);
+      'FC OS: Piorun Wawrzeńczyce. Extranet/mPZPN/ŁNP: GLKS Mietków. B Klasa, Powiat Wrocławski, Grupa VII, sezon 2025/2026.'),
+    (v_club_id, v_comp_b, NULL, 'MKS Magnice', 'MKS Magnice', NULL, FALSE, 'DZPN', 'Liga referencyjna — Grupa VII'),
+    (v_club_id, v_comp_b, NULL, 'Orzeł Sadowice', 'Orzeł Sadowice', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'LKS Sadków', 'LKS Sadków', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'KP II Kąty Wrocławskie', 'KP II Kąty Wrocławskie', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'Tarant Krzyżowice', 'Tarant Krzyżowice', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'KS Piotrowice', 'KS Piotrowice', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'Polonia Jaksonów', 'Polonia Jaksonów', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'Zachód Sobótka', 'Zachód Sobótka', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'Sparta Pustków Żurawski', 'Sparta Pustków Żurawski', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'KP II Kobierzyce', 'KP II Kobierzyce', NULL, FALSE, 'DZPN', NULL),
+    (v_club_id, v_comp_b, NULL, 'Wicher Domasław', 'Wicher Domasław', NULL, FALSE, 'DZPN', 'Wycofanie po rundzie jesiennej');
 
   INSERT INTO public.league_tables (
     club_id, competition_id, season_id, source_id, snapshot_at,
     team_name, position, played, won, drawn, lost, goals_for, goals_against, goal_difference, points, is_own_club
   )
   VALUES
-    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'KS Dolina', 1, 8, 6, 1, 1, 18, 8, 10, 19, FALSE),
-    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'GLKS Mietków', 2, 8, 5, 2, 1, 15, 9, 6, 17, TRUE),
-    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'LKS Orzeł', 3, 8, 4, 2, 2, 12, 11, 1, 14, FALSE),
-    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'UKH Wiry', 4, 8, 2, 1, 5, 9, 16, -7, 7, FALSE);
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'MKS Magnice', 1, 20, 14, 5, 1, 69, 32, 37, 47, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'Orzeł Sadowice', 2, 20, 14, 1, 5, 80, 40, 40, 43, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'LKS Sadków', 3, 20, 13, 1, 6, 50, 37, 13, 40, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'KP II Kąty Wrocławskie', 4, 20, 11, 2, 7, 79, 63, 16, 35, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'Tarant Krzyżowice', 5, 20, 10, 4, 6, 62, 43, 19, 34, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'KS Piotrowice', 6, 20, 8, 6, 6, 58, 56, 2, 30, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'Polonia Jaksonów', 7, 20, 8, 3, 9, 62, 57, 5, 27, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'Zachód Sobótka', 8, 20, 8, 1, 11, 38, 60, -22, 25, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'Sparta Pustków Żurawski', 9, 20, 7, 2, 11, 51, 66, -15, 23, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'KP II Kobierzyce', 10, 20, 5, 2, 13, 42, 63, -21, 17, FALSE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'GLKS Mietków', 11, 20, 4, 2, 14, 24, 63, -39, 14, TRUE),
+    (v_club_id, v_comp_b, v_season_2526, v_src_csv, v_snapshot, 'Wicher Domasław', 12, 20, 2, 3, 15, 23, 58, -35, 9, FALSE);
 
   INSERT INTO public.league_matches (
     club_id, competition_id, season_id, source_id, external_key,
@@ -69,16 +91,16 @@ BEGIN
     home_score, away_score, status, sync_status
   )
   VALUES
-    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2025-r1-mietkow-dolina',
-      1, CURRENT_DATE - 21, '15:00', 'GLKS Mietków', 'KS Dolina', 2, 2, 'completed', 'pending'),
-    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2025-r2-orzel-mietkow',
-      2, CURRENT_DATE - 14, '15:00', 'LKS Orzeł', 'GLKS Mietków', 1, 3, 'completed', 'pending'),
-    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2025-r3-mietkow-wiry',
-      3, CURRENT_DATE - 7, '15:00', 'GLKS Mietków', 'UKH Wiry', 2, 0, 'completed', 'pending'),
-    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2025-r4-dolina-mietkow',
-      4, CURRENT_DATE + 7, '15:00', 'KS Dolina', 'GLKS Mietków', NULL, NULL, 'scheduled', 'pending'),
-    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2025-r5-mietkow-orzel',
-      5, CURRENT_DATE + 14, '15:00', 'GLKS Mietków', 'LKS Orzeł', NULL, NULL, 'scheduled', 'pending');
+    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2526-r01-jaksonow-mietkow',
+      1, '2025-08-24', '11:00', 'Polonia Jaksonów', 'GLKS Mietków', 2, 3, 'completed', 'pending'),
+    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2526-r02-kobierzyce-mietkow',
+      2, '2025-08-31', '14:30', 'KP II Kobierzyce', 'GLKS Mietków', 5, 0, 'completed', 'pending'),
+    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2526-r03-mietkow-piotrowice',
+      3, '2025-09-07', '11:00', 'GLKS Mietków', 'KS Piotrowice', 0, 4, 'completed', 'pending'),
+    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2526-r20-sparta-mietkow',
+      20, '2026-05-30', '16:00', 'Sparta Pustków Żurawski', 'GLKS Mietków', 3, 5, 'completed', 'pending'),
+    (v_club_id, v_comp_b, v_season_2526, v_src_json, 'fix-2526-r21-mietkow-sobotka',
+      21, '2026-06-07', '11:00', 'GLKS Mietków', 'Zachód Sobótka', NULL, NULL, 'scheduled', 'pending');
 
   INSERT INTO public.league_sync_jobs (
     id, club_id, source_id, competition_id, import_type, status,
@@ -86,14 +108,14 @@ BEGIN
   )
   VALUES (
     v_job_ok, v_club_id, v_src_csv, v_comp_b, 'league_table', 'completed',
-    4, 0, 0, v_snapshot, v_snapshot + INTERVAL '2 minutes',
-    '{"note":"Seed ETAP 15B — przykładowa synchronizacja tabeli."}'::jsonb
+    12, 0, 0, v_snapshot, v_snapshot + INTERVAL '2 minutes',
+    '{"note":"Seed ETAP 15B — tabela referencyjna B Klasa Powiat Wrocławski Grupa VII 2025/2026."}'::jsonb
   );
 
   INSERT INTO public.league_sync_logs (job_id, club_id, level, message)
   VALUES
-    (v_job_ok, v_club_id, 'info', 'Zaimportowano tabelę: 4 drużyny.'),
-    (v_job_ok, v_club_id, 'info', 'Gotowe do synchronizacji z modułem Mecze.');
+    (v_job_ok, v_club_id, 'info', 'Zaimportowano tabelę referencyjną: 12 drużyn (Grupa VII).'),
+    (v_job_ok, v_club_id, 'info', 'GLKS Mietków ↔ Piorun Wawrzeńczyce — mapowanie własnej drużyny.');
 
   INSERT INTO public.league_player_registry (club_id, competition_id, season_id, league_player_name, league_team_name, jersey_number, notes)
   VALUES

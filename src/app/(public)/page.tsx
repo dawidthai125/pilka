@@ -35,7 +35,7 @@ export default async function ClubHomePage() {
 
       <NewsCardsSection news={news} />
       <SponsorsStrip sponsors={sponsors} />
-      <PublicLeagueTableSection entries={league.entries} ownTeamName={league.ownTeamName} />
+      <PublicLeagueTableSection entries={league.entries} ownTeamName={league.ownTeamName} limit={8} />
       <TeamStatsSection stats={stats} />
       <GalleryPreviewSection albums={albums.map((a) => ({ slug: a.slug, title: a.title, category: a.category }))} />
 

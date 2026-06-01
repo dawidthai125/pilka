@@ -283,9 +283,11 @@ BEGIN
       RAISE EXCEPTION 'season_id does not belong to club_id';
     END IF;
   END IF;
-  IF TG_TABLE_NAME = 'league_matches' AND NEW.match_id IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.matches m WHERE m.id = NEW.match_id AND m.club_id = NEW.club_id) THEN
-      RAISE EXCEPTION 'match_id does not belong to club_id';
+  IF TG_TABLE_NAME = 'league_matches' THEN
+    IF NEW.match_id IS NOT NULL THEN
+      IF NOT EXISTS (SELECT 1 FROM public.matches m WHERE m.id = NEW.match_id AND m.club_id = NEW.club_id) THEN
+        RAISE EXCEPTION 'match_id does not belong to club_id';
+      END IF;
     END IF;
   END IF;
   RETURN NEW;

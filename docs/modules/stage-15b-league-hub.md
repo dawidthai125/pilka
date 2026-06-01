@@ -94,3 +94,22 @@ Pliki:
 ## Dane testowe
 
 Klub: **Piorun Wawrzeńczyce** — nazwa ligowa **GLKS Mietków**, rozgrywki **B Klasa** sezon **2025/2026**.
+
+### Import fixture (dev, bez DZPN)
+
+Publiczne pliki DZPN nie zawierają terminarzy ligowych. Do testów lokalnych:
+
+```bash
+npm run setup:stage15b          # seed w bazie
+npm run import:league-fixture   # CSV + JSON z fixtures/league/
+```
+
+Pliki: `fixtures/league/b-klasa-table.csv`, `fixtures/league/b-klasa-fixtures.json`.
+
+Opcjonalnie własny URL (np. plik na dysku klubu):
+
+```bash
+npm run import:league-fixture -- --url https://example.com/tabela.csv --type league_table
+```
+
+Ten sam format co UI `/league/import`. Wymaga `SUPABASE_SERVICE_ROLE_KEY` w `.env.local`.

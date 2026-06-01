@@ -12,4 +12,7 @@ function run(cmd, args) {
 
 console.log("ETAP 15B — setup League Hub\n");
 run("npm", ["run", "db:migrate:stage15b"]);
-console.log("\n✓ Migracja i seed League Hub zakończone.");
+run("npm", ["run", "db:migrate:stage15b-audit"]);
+run("npm", ["run", "db:migrate:stage15b-trigger-fix"]);
+run("npm", ["run", "db:migrate:stage15b-cleanup"]);
+console.log("\n✓ Migracje League Hub (schema, seed, audit, trigger-fix, cleanup) zakończone.");

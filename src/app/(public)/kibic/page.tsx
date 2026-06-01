@@ -31,7 +31,7 @@ export default async function FanPanelPage() {
         {[
           { label: "Nadchodzące mecze", value: upcoming.length },
           { label: "Ostatnie wyniki", value: results.length },
-          { label: "Pozycja w tabeli", value: league.entries.findIndex((e) => e.teamName === league.ownTeamName) + 1 || "—" },
+          { label: "Pozycja w tabeli", value: league.entries.findIndex((e) => e.isOwnClub) + 1 || "—" },
           { label: "Gole drużyny", value: stats?.goals ?? 0 },
         ].map((item) => (
           <div key={item.label} className="rounded-xl border bg-card p-5 text-center">

@@ -34,6 +34,8 @@
 | [audit/stage-15.5-consolidation-audit.md](./audit/stage-15.5-consolidation-audit.md) | Konsolidacja ETAP 15.5 (ETAPY 1–15A) |
 | [stage-15.5-report.md](./stage-15.5-report.md) | Raport ETAP 15.5 (konsolidacja) |
 | [audit/stage-15.5-audit.md](./audit/stage-15.5-audit.md) | Audyt ETAP 15.5 — weryfikacja regresji (post-fix) |
+| [audit/stage-15b2-league-data-research.md](./audit/stage-15b2-league-data-research.md) | ETAP 15B.2 — research automatycznego pobierania danych ligowych |
+| [research/pzpn-data-ecosystem.md](./research/pzpn-data-ecosystem.md) | Ekosystem danych PZPN/DZPN — mPZPN, API, mirror, integracja |
 | [audit/stage-11.6-security-audit-post-fix.md](./audit/stage-11.6-security-audit-post-fix.md) | Audyt bezpieczeństwa po poprawkach 11.6 |
 | [deployment/production-checklist.md](./deployment/production-checklist.md) | Checklist wdrożenia produkcyjnego |
 | [modules/](./modules/README.md) | Dokumentacja modułów (tworzona etapami) |

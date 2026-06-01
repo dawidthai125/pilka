@@ -121,15 +121,23 @@ export function NewsCardsSection({ news }: { news: WebsiteNews[] }) {
 export function PublicLeagueTableSection({
   entries,
   ownTeamName,
+  limit,
+  showFullLink = true,
 }: {
   entries: LeagueTableEntry[];
   ownTeamName: string;
+  limit?: number;
+  showFullLink?: boolean;
 }) {
+  const visible = limit ? entries.slice(0, limit) : entries;
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <div className="mb-6 flex items-end justify-between">
         <h2 className="text-2xl font-bold">Tabela ligi</h2>
-        <Link href="/tabela" className="text-sm font-medium text-primary underline">Pełna tabela</Link>
+        {showFullLink ? (
+          <Link href="/tabela" className="text-sm font-medium text-primary underline">Pełna tabela</Link>
+        ) : null}
       </div>
       <div className="overflow-x-auto rounded-xl border">
         <table className="w-full min-w-[640px] text-sm">
@@ -143,13 +151,18 @@ export function PublicLeagueTableSection({
             </tr>
           </thead>
           <tbody>
-            {entries.slice(0, 8).map((row, index) => (
+            {visible.map((row, index) => (
               <tr
                 key={row.id}
-                className={`border-b last:border-0 ${row.teamName === ownTeamName ? "bg-[var(--club-secondary)]/20 font-medium" : ""}`}
+                className={`border-b last:border-0 ${row.isOwnClub ? "bg-[var(--club-secondary)]/20 font-medium" : ""}`}
               >
                 <td className="px-4 py-3">{index + 1}</td>
-                <td className="px-4 py-3">{row.teamName}</td>
+                <td className="px-4 py-3">
+                  {row.teamName}
+                  {row.isOwnClub ? (
+                    <span className="sr-only"> ({ownTeamName})</span>
+                  ) : null}
+                </td>
                 <td className="px-4 py-3">{row.played}</td>
                 <td className="px-4 py-3 font-semibold">{row.points}</td>
                 <td className="px-4 py-3">{row.goalsFor}:{row.goalsAgainst}</td>

@@ -1,0 +1,22 @@
+{
+  "fetchedAt": "2026-06-01T17:12:31.986Z",
+  "source": "regionalnyfutbol.pl",
+  "sourceUrl": "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html",
+  "note": "Dane lustrzane mPZPN/ŁNP — NIE z pliku DZPN. Oficjalny kanał: wniosek API PZPN.",
+  "dzpnPublicFiles": [
+    "https://dzpn.pl/wp-content/uploads/2026/04/Kalkulator-wymiaru-ekwiwalentu.xlsx"
+  ],
+  "tableTeams": 12,
+  "fixtures": 131,
+  "glksMietkow": {
+    "position": 11,
+    "teamName": "GLKS Mietków",
+    "played": 20,
+    "points": 14,
+    "won": 4,
+    "drawn": 2,
+    "lost": 14,
+    "goalsFor": 24,
+    "goalsAgainst": 63
+  }
+}

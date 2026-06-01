@@ -52,21 +52,25 @@ BEGIN
     END IF;
   END IF;
 
-  IF TG_TABLE_NAME = 'league_matches' AND NEW.match_id IS NOT NULL THEN
-    IF NOT EXISTS (
-      SELECT 1 FROM public.matches m
-      WHERE m.id = NEW.match_id AND m.club_id = NEW.club_id
-    ) THEN
-      RAISE EXCEPTION 'match_id does not belong to club_id';
+  IF TG_TABLE_NAME = 'league_matches' THEN
+    IF NEW.match_id IS NOT NULL THEN
+      IF NOT EXISTS (
+        SELECT 1 FROM public.matches m
+        WHERE m.id = NEW.match_id AND m.club_id = NEW.club_id
+      ) THEN
+        RAISE EXCEPTION 'match_id does not belong to club_id';
+      END IF;
     END IF;
   END IF;
 
-  IF TG_TABLE_NAME = 'league_player_registry' AND NEW.player_id IS NOT NULL THEN
-    IF NOT EXISTS (
-      SELECT 1 FROM public.players p
-      WHERE p.id = NEW.player_id AND p.club_id = NEW.club_id
-    ) THEN
-      RAISE EXCEPTION 'player_id does not belong to club_id';
+  IF TG_TABLE_NAME = 'league_player_registry' THEN
+    IF NEW.player_id IS NOT NULL THEN
+      IF NOT EXISTS (
+        SELECT 1 FROM public.players p
+        WHERE p.id = NEW.player_id AND p.club_id = NEW.club_id
+      ) THEN
+        RAISE EXCEPTION 'player_id does not belong to club_id';
+      END IF;
     END IF;
 
     IF NEW.competition_id IS NOT NULL AND NOT EXISTS (
