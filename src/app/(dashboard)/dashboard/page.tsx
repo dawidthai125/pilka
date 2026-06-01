@@ -1,8 +1,15 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Users, Building2, Shield, User } from "lucide-react";
 
-import { DocumentAlertsPanel } from "@/features/players/components/document-alerts-panel";
-import { getDashboardContext, getDocumentAlerts, getPlayerCounts } from "@/lib/auth/session";
+import {
+  DashboardDocumentAlertsSection,
+  DashboardPlayerSection,
+  DashboardPlayerSectionFallback,
+} from "@/features/dashboard/components/dashboard-player-section";
+import { MobileQuickActions, MobileRoleHeader } from "@/features/pwa/components/mobile-home";
+import { OfflineCachedSummary } from "@/features/pwa/components/offline-cached-summary";
+import { getDashboardContext } from "@/lib/auth/session";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { formatClubOfficialSubtitle, getClubBrandingName } from "@/lib/club/names";
 import { ROLE_LABELS } from "@/config/permissions";
@@ -20,12 +27,13 @@ import { cn } from "@/lib/utils";
 export default async function DashboardPage() {
   const { profile, access, club, teams } = await getDashboardContext();
   const canReadPlayers = hasPermission(access, "player:read");
-  const [playerCounts, documentAlerts] = canReadPlayers
-    ? await Promise.all([getPlayerCounts(), getDocumentAlerts()])
-    : [{ total: 0, active: 0 }, []];
 
   return (
     <div className="space-y-8">
+      <OfflineCachedSummary />
+      <MobileRoleHeader roles={access.roles} />
+      <MobileQuickActions roles={access.roles} />
+
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
@@ -56,17 +64,9 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
         {canReadPlayers ? (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Zawodnicy</CardDescription>
-              <CardTitle className="text-lg">{playerCounts.total}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {playerCounts.active} aktywnych
-              </p>
-            </CardContent>
-          </Card>
+          <Suspense fallback={<DashboardPlayerSectionFallback />}>
+            <DashboardPlayerSection />
+          </Suspense>
         ) : null}
         <Card>
           <CardHeader className="pb-2">
@@ -92,8 +92,10 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {canReadPlayers && documentAlerts.length > 0 ? (
-        <DocumentAlertsPanel alerts={documentAlerts} />
+      {canReadPlayers ? (
+        <Suspense fallback={null}>
+          <DashboardDocumentAlertsSection />
+        </Suspense>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">

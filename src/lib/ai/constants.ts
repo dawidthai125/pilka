@@ -52,6 +52,8 @@ export const AI_SPORTS_CATEGORIES: AiReportCategory[] = [
 
 export const AI_ASSISTANT_NAME = "Club AI Assistant";
 
+export const AI_MANAGER_NAME = "AI Club Manager";
+
 export const OPENAI_DEFAULT_MODEL = "gpt-4o-mini";
 
 export const AI_MAX_MESSAGE_LENGTH = 4000;

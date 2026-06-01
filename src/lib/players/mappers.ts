@@ -39,6 +39,43 @@ type PlayerRow = {
   teams?: { name: string } | { name: string }[] | null;
 };
 
+export function mapPlayerListEntry(row: {
+  id: string;
+  club_id: string;
+  team_id: string | null;
+  first_name: string;
+  last_name: string;
+  jersey_number: number | null;
+  primary_position: PlayerRow["primary_position"];
+  dominant_foot: PlayerRow["dominant_foot"];
+  status: PlayerRow["status"];
+}): Player {
+  return {
+    id: row.id,
+    clubId: row.club_id,
+    teamId: row.team_id,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    photoUrl: null,
+    dateOfBirth: "",
+    phone: null,
+    email: null,
+    address: null,
+    city: null,
+    postalCode: null,
+    jerseyNumber: row.jersey_number,
+    primaryPosition: row.primary_position,
+    secondaryPosition: null,
+    dominantFoot: row.dominant_foot,
+    heightCm: null,
+    weightKg: null,
+    status: row.status,
+    joinedAt: null,
+    leftAt: null,
+    teamName: null,
+  };
+}
+
 export function mapPlayer(row: PlayerRow): Player {
   const team = Array.isArray(row.teams) ? row.teams[0] : row.teams;
 

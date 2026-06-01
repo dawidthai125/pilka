@@ -1,7 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { ThemeProvider } from "@/components/pwa/theme-provider";
+import { SwRegister } from "@/components/pwa/sw-register";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { PWA_DEFAULT_THEME } from "@/lib/pwa/branding";
 import { siteConfig } from "@/config/site";
 
 import "./globals.css";
@@ -25,6 +28,23 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.shortName}`,
   },
   description: siteConfig.description,
+  applicationName: PWA_DEFAULT_THEME.name,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: PWA_DEFAULT_THEME.shortName,
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: PWA_DEFAULT_THEME.themeColor,
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -37,7 +57,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen antialiased`}
       >
-        <TooltipProvider>{children}</TooltipProvider>
+        <ThemeProvider>
+          <SwRegister />
+          <TooltipProvider>{children}</TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

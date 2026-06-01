@@ -1,0 +1,523 @@
+{
+  "measuredAt": "2026-06-01T08:15:58.998Z",
+  "environment": {
+    "baseUrl": "https://pilka-mu.vercel.app",
+    "runs": 5,
+    "user": "wlasciciel@piorun.test",
+    "mode": "vercel production (fra1)"
+  },
+  "authLogin": {
+    "page": {
+      "path": "/login",
+      "status": 200,
+      "ttfbMs": 188.4,
+      "totalMs": 190.5,
+      "transferKb": 15.5,
+      "runs": 5
+    },
+    "supabaseAuthApi": {
+      "ttfbMs": 150.9,
+      "totalMs": 151.8,
+      "transferKb": 1.9,
+      "status": 200
+    }
+  },
+  "routes": {
+    "login": {
+      "path": "/login",
+      "ttfbMs": 188.4,
+      "ssrEstimateMs": 188.4,
+      "dbMs": 0,
+      "queryCount": 0,
+      "transferKb": 15.5,
+      "dbTransferKb": 0,
+      "latency": {
+        "supabaseMs": 0,
+        "nextJsReactMs": 173.4,
+        "middlewareMs": 15,
+        "networkMs": 3.8,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 188.4
+      }
+    },
+    "dashboard": {
+      "path": "/dashboard",
+      "ttfbMs": 576.2,
+      "ssrEstimateMs": 576.2,
+      "dbMs": 421.9,
+      "queryCount": 9,
+      "transferKb": 106.9,
+      "dbTransferKb": 2,
+      "latency": {
+        "supabaseMs": 421.9,
+        "nextJsReactMs": 139.3,
+        "middlewareMs": 15,
+        "networkMs": 11.5,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 576.2
+      }
+    },
+    "matches": {
+      "path": "/matches",
+      "ttfbMs": 366.9,
+      "ssrEstimateMs": 366.9,
+      "dbMs": 370.7,
+      "queryCount": 8,
+      "transferKb": 59.8,
+      "dbTransferKb": 2.1,
+      "latency": {
+        "supabaseMs": 370.7,
+        "nextJsReactMs": 0,
+        "middlewareMs": 15,
+        "networkMs": 7.3,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 366.9
+      }
+    },
+    "training": {
+      "path": "/training",
+      "ttfbMs": 316.7,
+      "ssrEstimateMs": 316.7,
+      "dbMs": 431.9,
+      "queryCount": 9,
+      "transferKb": 68.8,
+      "dbTransferKb": 9.3,
+      "latency": {
+        "supabaseMs": 431.9,
+        "nextJsReactMs": 0,
+        "middlewareMs": 15,
+        "networkMs": 6.3,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 316.7
+      }
+    },
+    "players": {
+      "path": "/players",
+      "ttfbMs": 438.8,
+      "ssrEstimateMs": 438.8,
+      "dbMs": 328.1,
+      "queryCount": 7,
+      "transferKb": 142.6,
+      "dbTransferKb": 8,
+      "latency": {
+        "supabaseMs": 328.1,
+        "nextJsReactMs": 95.7,
+        "middlewareMs": 15,
+        "networkMs": 8.8,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 438.8
+      }
+    },
+    "sponsors": {
+      "path": "/sponsors",
+      "ttfbMs": 554.4,
+      "ssrEstimateMs": 554.4,
+      "dbMs": 514.3,
+      "queryCount": 11,
+      "transferKb": 70,
+      "dbTransferKb": 4.7,
+      "latency": {
+        "supabaseMs": 514.3,
+        "nextJsReactMs": 25.1,
+        "middlewareMs": 15,
+        "networkMs": 11.1,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 554.4
+      }
+    },
+    "finance": {
+      "path": "/finance",
+      "ttfbMs": 352.3,
+      "ssrEstimateMs": 352.3,
+      "dbMs": 279.8,
+      "queryCount": 11,
+      "transferKb": 63.8,
+      "dbTransferKb": 1.2,
+      "latency": {
+        "supabaseMs": 279.8,
+        "nextJsReactMs": 57.5,
+        "middlewareMs": 15,
+        "networkMs": 7,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 352.3
+      }
+    },
+    "aiManager": {
+      "path": "/ai/manager",
+      "ttfbMs": 397.1,
+      "ssrEstimateMs": 397.1,
+      "dbMs": 371.7,
+      "queryCount": 8,
+      "transferKb": 61.6,
+      "dbTransferKb": 1.2,
+      "latency": {
+        "supabaseMs": 371.7,
+        "nextJsReactMs": 10.4,
+        "middlewareMs": 15,
+        "networkMs": 7.9,
+        "openaiMs": 0,
+        "pwaMs": 0,
+        "totalTtfbMs": 397.1
+      }
+    }
+  },
+  "pwa": {
+    "api": {
+      "path": "/api/pwa/offline-data",
+      "status": 200,
+      "ttfbMs": 1403.6,
+      "totalMs": 1405,
+      "transferKb": 4.9
+    },
+    "db": {
+      "page": "pwaOffline",
+      "queries": 4,
+      "pageDbMs": 188.2,
+      "pageDbBytes": 4833,
+      "totalQueries": 10,
+      "totalDbMs": 468,
+      "totalDbBytes": 5428
+    }
+  },
+  "extraScreens": {
+    "/notifications": {
+      "path": "/notifications",
+      "status": 200,
+      "ttfbMs": 672.7,
+      "totalMs": 711.2,
+      "transferKb": 53.7,
+      "runs": 5
+    },
+    "/ai/chat": {
+      "path": "/ai/chat",
+      "status": 200,
+      "ttfbMs": 300.9,
+      "totalMs": 336.6,
+      "transferKb": 48.5,
+      "runs": 5
+    },
+    "/ai/reports": {
+      "path": "/ai/reports",
+      "status": 200,
+      "ttfbMs": 302,
+      "totalMs": 365,
+      "transferKb": 59.7,
+      "runs": 5
+    },
+    "/matches/league-table": {
+      "path": "/matches/league-table",
+      "status": 200,
+      "ttfbMs": 358.5,
+      "totalMs": 389.6,
+      "transferKb": 63.6,
+      "runs": 5
+    },
+    "/training/ranking": {
+      "path": "/training/ranking",
+      "status": 200,
+      "ttfbMs": 308.2,
+      "totalMs": 573.4,
+      "transferKb": 61.5,
+      "runs": 5
+    },
+    "/": {
+      "path": "/",
+      "status": 200,
+      "ttfbMs": 325.3,
+      "totalMs": 358.2,
+      "transferKb": 49.6,
+      "runs": 5
+    },
+    "/aktualnosci": {
+      "path": "/aktualnosci",
+      "status": 200,
+      "ttfbMs": 262.4,
+      "totalMs": 266.8,
+      "transferKb": 31.4,
+      "runs": 5
+    },
+    "/players/new": {
+      "path": "/players/new",
+      "status": 200,
+      "ttfbMs": 303,
+      "totalMs": 322.6,
+      "transferKb": 66.4,
+      "runs": 5
+    },
+    "/settings": {
+      "path": "/settings",
+      "status": 200,
+      "ttfbMs": 408.2,
+      "totalMs": 432.4,
+      "transferKb": 53.7,
+      "runs": 5
+    }
+  },
+  "dbProfile": {
+    "layout": {
+      "queries": 6,
+      "dbMs": 279.8,
+      "dbBytes": 595,
+      "items": [
+        {
+          "name": "profiles",
+          "ms": 47.9,
+          "rows": 1,
+          "bytes": 111
+        },
+        {
+          "name": "club_memberships",
+          "ms": 45.5,
+          "rows": 1,
+          "bytes": 100
+        },
+        {
+          "name": "clubs",
+          "ms": 45.8,
+          "rows": 1,
+          "bytes": 145
+        },
+        {
+          "name": "teams",
+          "ms": 47,
+          "rows": 1,
+          "bytes": 173
+        },
+        {
+          "name": "club_notifications_count",
+          "ms": 45.7,
+          "rows": 1,
+          "bytes": 9
+        },
+        {
+          "name": "website_settings",
+          "ms": 47.9,
+          "rows": 1,
+          "bytes": 57
+        }
+      ]
+    },
+    "pages": {
+      "dashboard": {
+        "page": "dashboard",
+        "queries": 3,
+        "pageDbMs": 142.1,
+        "pageDbBytes": 833,
+        "totalQueries": 9,
+        "totalDbMs": 421.9,
+        "totalDbBytes": 1428
+      },
+      "matches": {
+        "page": "matches",
+        "queries": 2,
+        "pageDbMs": 90.9,
+        "pageDbBytes": 988,
+        "totalQueries": 8,
+        "totalDbMs": 370.7,
+        "totalDbBytes": 1583
+      },
+      "training": {
+        "page": "training",
+        "queries": 3,
+        "pageDbMs": 152.1,
+        "pageDbBytes": 8352,
+        "totalQueries": 9,
+        "totalDbMs": 431.9,
+        "totalDbBytes": 8947
+      },
+      "players": {
+        "page": "players",
+        "queries": 1,
+        "pageDbMs": 48.3,
+        "pageDbBytes": 7032,
+        "totalQueries": 7,
+        "totalDbMs": 328.1,
+        "totalDbBytes": 7627
+      },
+      "sponsors": {
+        "page": "sponsors",
+        "queries": 5,
+        "pageDbMs": 234.5,
+        "pageDbBytes": 3604,
+        "totalQueries": 11,
+        "totalDbMs": 514.3,
+        "totalDbBytes": 4199
+      },
+      "finance": {
+        "page": "finance",
+        "queries": 5,
+        "pageDbMs": 0,
+        "pageDbBytes": 0,
+        "totalQueries": 11,
+        "totalDbMs": 279.8,
+        "totalDbBytes": 595
+      },
+      "aiManager": {
+        "page": "aiManager",
+        "queries": 2,
+        "pageDbMs": 91.9,
+        "pageDbBytes": 0,
+        "totalQueries": 8,
+        "totalDbMs": 371.7,
+        "totalDbBytes": 595
+      }
+    },
+    "pwaOffline": {
+      "page": "pwaOffline",
+      "queries": 4,
+      "pageDbMs": 188.2,
+      "pageDbBytes": 4833,
+      "totalQueries": 10,
+      "totalDbMs": 468,
+      "totalDbBytes": 5428
+    },
+    "authLogin": {
+      "queries": 0,
+      "dbMs": 0,
+      "dbBytes": 0,
+      "note": "static RSC shell, middleware auth check only"
+    }
+  },
+  "top20Slowest": [
+    {
+      "rank": 1,
+      "screen": "/api/pwa/offline-data",
+      "ttfbMs": 1403.6,
+      "transferKb": 4.9,
+      "category": "pwa"
+    },
+    {
+      "rank": 2,
+      "screen": "/notifications",
+      "ttfbMs": 672.7,
+      "transferKb": 53.7,
+      "category": "extra"
+    },
+    {
+      "rank": 3,
+      "screen": "/dashboard",
+      "ttfbMs": 576.2,
+      "transferKb": 106.9,
+      "category": "core"
+    },
+    {
+      "rank": 4,
+      "screen": "/sponsors",
+      "ttfbMs": 554.4,
+      "transferKb": 70,
+      "category": "core"
+    },
+    {
+      "rank": 5,
+      "screen": "/players",
+      "ttfbMs": 438.8,
+      "transferKb": 142.6,
+      "category": "core"
+    },
+    {
+      "rank": 6,
+      "screen": "/settings",
+      "ttfbMs": 408.2,
+      "transferKb": 53.7,
+      "category": "extra"
+    },
+    {
+      "rank": 7,
+      "screen": "/ai/manager",
+      "ttfbMs": 397.1,
+      "transferKb": 61.6,
+      "category": "core"
+    },
+    {
+      "rank": 8,
+      "screen": "/matches",
+      "ttfbMs": 366.9,
+      "transferKb": 59.8,
+      "category": "core"
+    },
+    {
+      "rank": 9,
+      "screen": "/matches/league-table",
+      "ttfbMs": 358.5,
+      "transferKb": 63.6,
+      "category": "extra"
+    },
+    {
+      "rank": 10,
+      "screen": "/finance",
+      "ttfbMs": 352.3,
+      "transferKb": 63.8,
+      "category": "core"
+    },
+    {
+      "rank": 11,
+      "screen": "/",
+      "ttfbMs": 325.3,
+      "transferKb": 49.6,
+      "category": "extra"
+    },
+    {
+      "rank": 12,
+      "screen": "/training",
+      "ttfbMs": 316.7,
+      "transferKb": 68.8,
+      "category": "core"
+    },
+    {
+      "rank": 13,
+      "screen": "/training/ranking",
+      "ttfbMs": 308.2,
+      "transferKb": 61.5,
+      "category": "extra"
+    },
+    {
+      "rank": 14,
+      "screen": "/players/new",
+      "ttfbMs": 303,
+      "transferKb": 66.4,
+      "category": "extra"
+    },
+    {
+      "rank": 15,
+      "screen": "/ai/reports",
+      "ttfbMs": 302,
+      "transferKb": 59.7,
+      "category": "extra"
+    },
+    {
+      "rank": 16,
+      "screen": "/ai/chat",
+      "ttfbMs": 300.9,
+      "transferKb": 48.5,
+      "category": "extra"
+    },
+    {
+      "rank": 17,
+      "screen": "/aktualnosci",
+      "ttfbMs": 262.4,
+      "transferKb": 31.4,
+      "category": "extra"
+    },
+    {
+      "rank": 18,
+      "screen": "/login",
+      "ttfbMs": 188.4,
+      "transferKb": 15.5,
+      "category": "core"
+    },
+    {
+      "rank": 19,
+      "screen": "Supabase auth (login API)",
+      "ttfbMs": 150.9,
+      "transferKb": 1.9,
+      "category": "auth"
+    }
+  ]
+}

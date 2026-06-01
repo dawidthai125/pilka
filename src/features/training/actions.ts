@@ -7,7 +7,7 @@ import {
   canMarkTrainingAttendance,
   canSetTrainingAvailability,
 } from "@/config/permissions";
-import { DEFAULT_CLUB_ID, requireAccessContext } from "@/lib/auth/session";
+import { requireAccessContext } from "@/lib/auth/session";
 import { buildReminderCopy, reminderScheduledAt } from "@/lib/training/notifications";
 import { TRAINING_REMINDER_TYPES } from "@/types/trainings";
 import {
@@ -40,26 +40,26 @@ function revalidateTrainingPaths(trainingId?: string) {
   }
 }
 
-async function verifyTeamInClub(teamId: string) {
+async function verifyTeamInClub(teamId: string, clubId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("teams")
     .select("id")
     .eq("id", teamId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .maybeSingle();
 
   return !error && !!data;
 }
 
-async function verifyCoachInClub(coachUserId: string | null) {
+async function verifyCoachInClub(coachUserId: string | null, clubId: string) {
   if (!coachUserId) return true;
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("club_memberships")
     .select("id")
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("user_id", coachUserId)
     .eq("status", "active")
     .in("role", ["owner", "president", "sports_director", "coach"])
@@ -68,21 +68,25 @@ async function verifyCoachInClub(coachUserId: string | null) {
   return !error && !!data;
 }
 
-async function verifyTrainingInClub(trainingId: string) {
+async function verifyTrainingInClub(trainingId: string, clubId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("trainings")
     .select("id, team_id, status")
     .eq("id", trainingId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .maybeSingle();
 
   if (error || !data) return null;
   return data;
 }
 
-async function verifyPlayerOnTrainingTeam(trainingId: string, playerId: string) {
-  const training = await verifyTrainingInClub(trainingId);
+async function verifyPlayerOnTrainingTeam(
+  trainingId: string,
+  playerId: string,
+  clubId: string,
+) {
+  const training = await verifyTrainingInClub(trainingId, clubId);
   if (!training) return false;
 
   const supabase = await createClient();
@@ -90,7 +94,7 @@ async function verifyPlayerOnTrainingTeam(trainingId: string, playerId: string) 
     .from("players")
     .select("id")
     .eq("id", playerId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("team_id", training.team_id)
     .maybeSingle();
 
@@ -150,6 +154,7 @@ export async function createTraining(
   formData: FormData,
 ): Promise<TrainingActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageTrainings(access.roles)) {
     return { error: "Brak uprawnień do tworzenia treningów." };
   }
@@ -173,10 +178,10 @@ export async function createTraining(
   if (!isEndTimeAfterStart(startTime, endTime)) {
     return { error: "Godzina zakończenia musi być późniejsza niż rozpoczęcia." };
   }
-  if (!(await verifyTeamInClub(teamId))) {
+  if (!(await verifyTeamInClub(teamId, clubId))) {
     return { error: "Wybrana drużyna nie należy do klubu." };
   }
-  if (!(await verifyCoachInClub(coachUserId))) {
+  if (!(await verifyCoachInClub(coachUserId, clubId))) {
     return { error: "Wybrany trener nie jest członkiem sztabu klubu." };
   }
 
@@ -184,7 +189,7 @@ export async function createTraining(
   const { data, error } = await supabase
     .from("trainings")
     .insert({
-      club_id: DEFAULT_CLUB_ID,
+      club_id: clubId,
       team_id: teamId,
       name,
       training_date: trainingDate,
@@ -203,13 +208,7 @@ export async function createTraining(
   }
 
   if (statusParsed.data === "planned") {
-    await syncRemindersForTraining(
-      DEFAULT_CLUB_ID,
-      data.id,
-      name,
-      trainingDate,
-      startTime,
-    );
+    await syncRemindersForTraining(clubId, data.id, name, trainingDate, startTime);
   }
 
   revalidateTrainingPaths(data.id);
@@ -222,6 +221,7 @@ export async function updateTraining(
   formData: FormData,
 ): Promise<TrainingActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageTrainings(access.roles)) {
     return { error: "Brak uprawnień do edycji treningów." };
   }
@@ -245,13 +245,13 @@ export async function updateTraining(
   if (!isEndTimeAfterStart(startTime, endTime)) {
     return { error: "Godzina zakończenia musi być późniejsza niż rozpoczęcia." };
   }
-  if (!(await verifyTeamInClub(teamId))) {
+  if (!(await verifyTeamInClub(teamId, clubId))) {
     return { error: "Wybrana drużyna nie należy do klubu." };
   }
-  if (!(await verifyCoachInClub(coachUserId))) {
+  if (!(await verifyCoachInClub(coachUserId, clubId))) {
     return { error: "Wybrany trener nie jest członkiem sztabu klubu." };
   }
-  if (!(await verifyTrainingInClub(trainingId))) {
+  if (!(await verifyTrainingInClub(trainingId, clubId))) {
     return { error: "Trening nie istnieje w tym klubie." };
   }
 
@@ -269,7 +269,7 @@ export async function updateTraining(
       coach_user_id: coachUserId,
       status: statusParsed.data,
     })
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("id", trainingId);
 
   if (error) {
@@ -277,13 +277,7 @@ export async function updateTraining(
   }
 
   if (statusParsed.data === "planned") {
-    await syncRemindersForTraining(
-      DEFAULT_CLUB_ID,
-      trainingId,
-      name,
-      trainingDate,
-      startTime,
-    );
+    await syncRemindersForTraining(clubId, trainingId, name, trainingDate, startTime);
   }
 
   revalidateTrainingPaths(trainingId);
@@ -296,6 +290,7 @@ export async function setTrainingAvailability(
   formData: FormData,
 ): Promise<TrainingActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canSetTrainingAvailability(access.roles)) {
     return { error: "Brak uprawnień do potwierdzania obecności." };
   }
@@ -320,7 +315,7 @@ export async function setTrainingAvailability(
     absenceReason = reasonParsed.data;
   }
 
-  const training = await verifyTrainingInClub(trainingId);
+  const training = await verifyTrainingInClub(trainingId, clubId);
   if (!training) {
     return { error: "Trening nie istnieje w tym klubie." };
   }
@@ -339,7 +334,7 @@ export async function setTrainingAvailability(
     ? await supabase
         .from("players")
         .select("id")
-        .eq("club_id", DEFAULT_CLUB_ID)
+        .eq("club_id", clubId)
         .ilike("email", profile.email)
         .maybeSingle()
     : { data: null };
@@ -347,13 +342,13 @@ export async function setTrainingAvailability(
   if (!player) {
     return { error: "Nie znaleziono profilu zawodnika powiązanego z kontem." };
   }
-  if (!(await verifyPlayerOnTrainingTeam(trainingId, player.id))) {
+  if (!(await verifyPlayerOnTrainingTeam(trainingId, player.id, clubId))) {
     return { error: "Zawodnik nie należy do drużyny tego treningu." };
   }
 
   const { error } = await supabase.from("training_availability").upsert(
     {
-      club_id: DEFAULT_CLUB_ID,
+      club_id: clubId,
       training_id: trainingId,
       player_id: player.id,
       status: statusParsed.data,
@@ -378,6 +373,7 @@ export async function setTrainingAttendance(
   formData: FormData,
 ): Promise<TrainingActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canMarkTrainingAttendance(access.roles)) {
     return { error: "Brak uprawnień do listy obecności." };
   }
@@ -389,14 +385,14 @@ export async function setTrainingAttendance(
   if (!playerId || !statusParsed.success) {
     return { error: "Wybierz zawodnika i status obecności." };
   }
-  if (!(await verifyPlayerOnTrainingTeam(trainingId, playerId))) {
+  if (!(await verifyPlayerOnTrainingTeam(trainingId, playerId, clubId))) {
     return { error: "Zawodnik nie należy do drużyny tego treningu." };
   }
 
   const supabase = await createClient();
   const { error } = await supabase.from("training_attendance").upsert(
     {
-      club_id: DEFAULT_CLUB_ID,
+      club_id: clubId,
       training_id: trainingId,
       player_id: playerId,
       status: statusParsed.data,
@@ -419,10 +415,11 @@ export async function completeTraining(
   trainingId: string,
 ): Promise<TrainingActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageTrainings(access.roles)) {
     return { error: "Brak uprawnień." };
   }
-  if (!(await verifyTrainingInClub(trainingId))) {
+  if (!(await verifyTrainingInClub(trainingId, clubId))) {
     return { error: "Trening nie istnieje w tym klubie." };
   }
 
@@ -430,7 +427,7 @@ export async function completeTraining(
   const { error } = await supabase
     .from("trainings")
     .update({ status: "completed" })
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("id", trainingId);
 
   if (error) {
@@ -443,10 +440,11 @@ export async function completeTraining(
 
 export async function cancelTraining(trainingId: string): Promise<TrainingActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageTrainings(access.roles)) {
     return { error: "Brak uprawnień." };
   }
-  if (!(await verifyTrainingInClub(trainingId))) {
+  if (!(await verifyTrainingInClub(trainingId, clubId))) {
     return { error: "Trening nie istnieje w tym klubie." };
   }
 
@@ -454,7 +452,7 @@ export async function cancelTraining(trainingId: string): Promise<TrainingAction
   const { error } = await supabase
     .from("trainings")
     .update({ status: "cancelled" })
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("id", trainingId);
 
   if (error) {
@@ -471,6 +469,7 @@ export async function addTrainingSessionNote(
   formData: FormData,
 ): Promise<TrainingActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageTrainings(access.roles)) {
     return { error: "Brak uprawnień do dodawania notatek." };
   }
@@ -481,16 +480,16 @@ export async function addTrainingSessionNote(
   if (!content) {
     return { error: "Treść notatki jest wymagana." };
   }
-  if (!(await verifyTrainingInClub(trainingId))) {
+  if (!(await verifyTrainingInClub(trainingId, clubId))) {
     return { error: "Trening nie istnieje w tym klubie." };
   }
-  if (playerId && !(await verifyPlayerOnTrainingTeam(trainingId, playerId))) {
+  if (playerId && !(await verifyPlayerOnTrainingTeam(trainingId, playerId, clubId))) {
     return { error: "Zawodnik nie należy do drużyny tego treningu." };
   }
 
   const supabase = await createClient();
   const { error } = await supabase.from("training_session_notes").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: clubId,
     training_id: trainingId,
     author_id: access.userId,
     player_id: playerId,
@@ -507,25 +506,27 @@ export async function addTrainingSessionNote(
 
 export async function markNotificationRead(notificationId: string): Promise<void> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   const supabase = await createClient();
   await supabase
     .from("club_notifications")
     .update({ read_at: new Date().toISOString() })
     .eq("id", notificationId)
     .eq("user_id", access.userId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", clubId);
   revalidatePath("/notifications");
   revalidatePath("/dashboard");
 }
 
 export async function markAllNotificationsRead(): Promise<void> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   const supabase = await createClient();
   await supabase
     .from("club_notifications")
     .update({ read_at: new Date().toISOString() })
     .eq("user_id", access.userId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .is("read_at", null);
   revalidatePath("/notifications");
   revalidatePath("/dashboard");

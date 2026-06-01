@@ -65,6 +65,7 @@ export function DashboardNav({
           ? dashboardNav.filter((item) => PLAYER_ONLY_HREFS.includes(item.href))
           : dashboardNav.filter((item) => {
           if (item.href === "/ai") return canReadAi(roles);
+          if (item.href.startsWith("/ai")) return canReadAi(roles);
           if ("audience" in item && item.audience === "staff") return canReadSponsors(roles);
           if ("audience" in item && item.audience === "sponsor") {
             return canAccessSponsorPortal(roles);

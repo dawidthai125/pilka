@@ -544,6 +544,94 @@ export type Database = {
         };
         Relationships: [];
       };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent?: string | null;
+        };
+        Update: {
+          p256dh?: string;
+          auth?: string;
+          user_agent?: string | null;
+        };
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          event_type: Database["public"]["Enums"]["notification_event_type"];
+          push_enabled: boolean;
+          in_app_enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          event_type: Database["public"]["Enums"]["notification_event_type"];
+          push_enabled?: boolean;
+          in_app_enabled?: boolean;
+        };
+        Update: {
+          push_enabled?: boolean;
+          in_app_enabled?: boolean;
+        };
+        Relationships: [];
+      };
+      notification_queue: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          event_type: Database["public"]["Enums"]["notification_event_type"];
+          title: string;
+          body: string;
+          href: string | null;
+          payload: Json;
+          status: Database["public"]["Enums"]["notification_delivery_status"];
+          scheduled_at: string;
+          sent_at: string | null;
+          error_message: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          event_type?: Database["public"]["Enums"]["notification_event_type"];
+          title: string;
+          body: string;
+          href?: string | null;
+          payload?: Json;
+          status?: Database["public"]["Enums"]["notification_delivery_status"];
+          scheduled_at?: string;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["notification_delivery_status"];
+          sent_at?: string | null;
+          error_message?: string | null;
+        };
+        Relationships: [];
+      };
       matches: {
         Row: {
           id: string;
@@ -2001,6 +2089,160 @@ export type Database = {
         };
         Relationships: [];
       };
+      ai_tasks: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          conversation_id: string | null;
+          title: string;
+          command: string;
+          status: Database["public"]["Enums"]["ai_task_status"];
+          result_summary: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          conversation_id?: string | null;
+          title: string;
+          command: string;
+          status?: Database["public"]["Enums"]["ai_task_status"];
+          result_summary?: string | null;
+          metadata?: Json;
+          completed_at?: string | null;
+        };
+        Update: {
+          title?: string;
+          status?: Database["public"]["Enums"]["ai_task_status"];
+          result_summary?: string | null;
+          metadata?: Json;
+          completed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      ai_task_logs: {
+        Row: {
+          id: string;
+          club_id: string;
+          task_id: string;
+          user_id: string;
+          action: string;
+          details: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          task_id: string;
+          user_id: string;
+          action: string;
+          details?: Json;
+        };
+        Update: {
+          action?: string;
+          details?: Json;
+        };
+        Relationships: [];
+      };
+      ai_tool_calls: {
+        Row: {
+          id: string;
+          club_id: string;
+          task_id: string;
+          user_id: string;
+          tool_name: string;
+          tool_input: Json;
+          tool_output: Json | null;
+          risk_level: Database["public"]["Enums"]["ai_risk_level"];
+          status: Database["public"]["Enums"]["ai_tool_call_status"];
+          error_message: string | null;
+          created_at: string;
+          executed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          task_id: string;
+          user_id: string;
+          tool_name: string;
+          tool_input?: Json;
+          tool_output?: Json | null;
+          risk_level?: Database["public"]["Enums"]["ai_risk_level"];
+          status?: Database["public"]["Enums"]["ai_tool_call_status"];
+          error_message?: string | null;
+          executed_at?: string | null;
+        };
+        Update: {
+          tool_output?: Json | null;
+          status?: Database["public"]["Enums"]["ai_tool_call_status"];
+          error_message?: string | null;
+          executed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      ai_action_approvals: {
+        Row: {
+          id: string;
+          club_id: string;
+          task_id: string;
+          tool_call_id: string;
+          user_id: string;
+          risk_level: Database["public"]["Enums"]["ai_risk_level"];
+          status: Database["public"]["Enums"]["ai_approval_status"];
+          preview: Json;
+          decided_at: string | null;
+          decided_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          task_id: string;
+          tool_call_id: string;
+          user_id: string;
+          risk_level: Database["public"]["Enums"]["ai_risk_level"];
+          status?: Database["public"]["Enums"]["ai_approval_status"];
+          preview?: Json;
+          decided_at?: string | null;
+          decided_by?: string | null;
+        };
+        Update: {
+          status?: Database["public"]["Enums"]["ai_approval_status"];
+          decided_at?: string | null;
+          decided_by?: string | null;
+        };
+        Relationships: [];
+      };
+      ai_memory: {
+        Row: {
+          id: string;
+          club_id: string;
+          user_id: string;
+          conversation_id: string | null;
+          summary: string;
+          message_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          club_id: string;
+          user_id: string;
+          conversation_id?: string | null;
+          summary?: string;
+          message_count?: number;
+        };
+        Update: {
+          summary?: string;
+          message_count?: number;
+        };
+        Relationships: [];
+      };
       website_settings: {
         Row: {
           club_id: string;
@@ -2317,6 +2559,30 @@ export type Database = {
         Args: { p_club_slug: string };
         Returns: Json;
       };
+      get_app_layout_context: {
+        Args: { p_club_id: string };
+        Returns: Json;
+      };
+      get_pwa_offline_context: {
+        Args: { p_club_id: string };
+        Returns: Json;
+      };
+      get_home_dashboard_stats: {
+        Args: { p_club_id: string };
+        Returns: Json;
+      };
+      get_sponsor_dashboard_stats: {
+        Args: { p_club_id: string };
+        Returns: Json;
+      };
+      get_finance_dashboard_page: {
+        Args: { p_club_id: string };
+        Returns: Json;
+      };
+      get_ai_manager_snapshot: {
+        Args: { p_club_id: string };
+        Returns: Json;
+      };
     };
     Enums: {
       club_role:
@@ -2385,6 +2651,16 @@ export type Database = {
         | "expiring_documents"
         | "high_injuries";
       ai_suggestion_status: "open" | "dismissed" | "resolved";
+      ai_task_status:
+        | "pending"
+        | "running"
+        | "awaiting_approval"
+        | "completed"
+        | "cancelled"
+        | "failed";
+      ai_risk_level: "low" | "medium" | "high";
+      ai_approval_status: "pending" | "approved" | "rejected" | "expired";
+      ai_tool_call_status: "pending" | "success" | "failed" | "skipped";
       sponsor_cooperation_status: "active" | "expiring" | "ended" | "potential";
       sponsor_contract_status: "active" | "expiring" | "expired";
       sponsor_lead_status:
@@ -2455,6 +2731,15 @@ export type Database = {
       website_gallery_category: "matches" | "trainings" | "club" | "events";
       website_sponsor_tier: "main" | "supporting" | "partner";
       website_social_platform: "facebook" | "instagram" | "tiktok" | "youtube";
+      notification_event_type:
+        | "training_tomorrow"
+        | "match_tomorrow"
+        | "schedule_change"
+        | "document_expiring"
+        | "fee_overdue"
+        | "ai_report_new"
+        | "general";
+      notification_delivery_status: "pending" | "sent" | "failed" | "cancelled";
     };
     CompositeTypes: Record<string, never>;
   };

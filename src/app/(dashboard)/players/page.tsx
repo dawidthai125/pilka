@@ -14,7 +14,7 @@ export default async function PlayersPage() {
   const { access } = await getDashboardContext();
   requirePlayerReadAccess(access);
 
-  const players = await getPlayers();
+  const players = await getPlayers(access.clubId, { slim: true });
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { ROLE_LABELS } from "@/config/permissions";
@@ -33,6 +34,7 @@ import { getDocumentAlertLevel, sortDocumentAlerts } from "@/lib/players/documen
 import {
   mapCoachNote,
   mapPlayer,
+  mapPlayerListEntry,
   mapPlayerDocument,
   mapPlayerHistory,
   mapPlayerInjury,
@@ -379,18 +381,108 @@ export const getClubMembers = cache(
 
 export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
   const user = await requireUser();
-  const [profile, access, club, teams] = await Promise.all([
-    getProfile(user.id),
-    getAccessContext(user.id, clubId),
-    getClub(clubId),
-    getTeams(clubId),
-  ]);
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_app_layout_context", { p_club_id: clubId });
 
-  if (!access || !club) {
+  if (error || !data) {
     redirect("/login?error=no_membership");
   }
 
-  const unreadNotifications = await getUnreadNotificationCount(clubId);
+  const payload = data as {
+    profile: {
+      id: string;
+      email: string;
+      full_name: string | null;
+      avatar_url: string | null;
+      phone: string | null;
+      locale: string | null;
+    } | null;
+    memberships: Array<{
+      id: string;
+      club_id: string;
+      user_id: string;
+      role: string;
+      status: string;
+      team_id: string | null;
+    }>;
+    club: {
+      id: string;
+      slug: string;
+      public_name: string;
+      official_name: string;
+      association: string | null;
+      competition_level: string | null;
+      country: string | null;
+      voivodeship: string | null;
+      status: string;
+    } | null;
+    teams: Array<{
+      id: string;
+      club_id: string;
+      name: string;
+      category: string;
+      season: string;
+      is_active: boolean;
+    }>;
+    unread_notifications: number;
+    website_settings: Record<string, unknown> | null;
+  };
+
+  if (!payload.club) {
+    redirect("/login?error=no_membership");
+  }
+
+  const roles: ClubRole[] = [];
+  for (const membership of payload.memberships ?? []) {
+    const parsed = parseClubRole(membership.role);
+    if (parsed.success) roles.push(parsed.data);
+  }
+  if (roles.length === 0) {
+    redirect("/login?error=no_membership");
+  }
+
+  const access = buildAccessContext({
+    userId: user.id,
+    clubId,
+    roles,
+  });
+
+  const profileRow = payload.profile;
+  const profile: Profile | null = profileRow
+    ? {
+        id: profileRow.id,
+        email: profileRow.email,
+        fullName: profileRow.full_name,
+        avatarUrl: profileRow.avatar_url,
+        phone: profileRow.phone,
+        locale: profileRow.locale ?? "pl",
+      }
+    : null;
+
+  const club: Club = {
+    id: payload.club.id,
+    slug: payload.club.slug,
+    publicName: payload.club.public_name,
+    officialName: payload.club.official_name,
+    association: payload.club.association,
+    competitionLevel: payload.club.competition_level,
+    country: payload.club.country ?? "",
+    voivodeship: payload.club.voivodeship,
+    status: payload.club.status,
+  };
+
+  const teams: Team[] = (payload.teams ?? []).map((team) => ({
+    id: team.id,
+    clubId: team.club_id,
+    name: team.name,
+    category: team.category as Team["category"],
+    season: team.season,
+    isActive: team.is_active,
+  }));
+
+  const websiteSettings = payload.website_settings
+    ? mapWebsiteSettings(payload.website_settings)
+    : null;
 
   return {
     user,
@@ -399,7 +491,8 @@ export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID
     club,
     teams,
     siteName: siteConfig.name,
-    unreadNotifications,
+    unreadNotifications: payload.unread_notifications ?? 0,
+    websiteSettings,
   };
 });
 
@@ -458,10 +551,12 @@ const TRAINING_SELECT =
 const PLAYER_SELECT =
   "id, club_id, team_id, first_name, last_name, photo_url, date_of_birth, phone, email, address, city, postal_code, jersey_number, primary_position, secondary_position, dominant_foot, height_cm, weight_kg, status, joined_at, left_at";
 
+const PLAYER_LIST_SELECT =
+  "id, club_id, team_id, first_name, last_name, jersey_number, primary_position, dominant_foot, status";
+
 async function loadTeamNameMap(clubId: string) {
-  const supabase = await createClient();
-  const { data } = await supabase.from("teams").select("id, name").eq("club_id", clubId);
-  return new Map(data?.map((team) => [team.id, team.name]) ?? []);
+  const teams = await getTeams(clubId);
+  return new Map(teams.map((team) => [team.id, team.name]));
 }
 
 const loadTeamNameMapCached = cache(loadTeamNameMap);
@@ -494,44 +589,84 @@ export const getPlayersByTeam = cache(
   },
 );
 
-export const getPlayers = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<Player[]> => {
-  const supabase = await createClient();
-  const [teamMap, playersRes] = await Promise.all([
-    loadTeamNameMapCached(clubId),
-    supabase
+export const getPlayers = cache(
+  async (clubId: string = DEFAULT_CLUB_ID, options?: { slim?: boolean }): Promise<Player[]> => {
+    const supabase = await createClient();
+    const teamMap = await loadTeamNameMapCached(clubId);
+
+    if (options?.slim) {
+      const { data, error } = await supabase
+        .from("players")
+        .select(PLAYER_LIST_SELECT)
+        .eq("club_id", clubId)
+        .order("last_name")
+        .order("first_name");
+      if (error) throw new Error(error.message);
+      return (data ?? []).map((row) => attachTeamName(mapPlayerListEntry(row), teamMap));
+    }
+
+    const { data, error } = await supabase
       .from("players")
       .select(PLAYER_SELECT)
       .eq("club_id", clubId)
       .order("last_name")
-      .order("first_name"),
-  ]);
-
-  if (playersRes.error) throw new Error(playersRes.error.message);
-  return (playersRes.data ?? []).map((row) =>
-    attachTeamName(mapPlayer(row), teamMap),
-  );
-});
+      .order("first_name");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => attachTeamName(mapPlayer(row), teamMap));
+  },
+);
 
 export const getPlayerCounts = cache(
   async (clubId: string = DEFAULT_CLUB_ID): Promise<{ total: number; active: number }> => {
+    const stats = await getHomeDashboardStats(clubId);
+    return stats.playerCounts;
+  },
+);
+
+export const getHomeDashboardStats = cache(
+  async (
+    clubId: string = DEFAULT_CLUB_ID,
+  ): Promise<{ playerCounts: { total: number; active: number }; documentAlerts: DocumentAlert[] }> => {
     const supabase = await createClient();
-    const [{ count: total, error: totalError }, { count: active, error: activeError }] =
-      await Promise.all([
-        supabase
-          .from("players")
-          .select("*", { count: "exact", head: true })
-          .eq("club_id", clubId),
-        supabase
-          .from("players")
-          .select("*", { count: "exact", head: true })
-          .eq("club_id", clubId)
-          .eq("status", "active"),
-      ]);
+    const { data, error } = await supabase.rpc("get_home_dashboard_stats", { p_club_id: clubId });
+    if (error || !data) {
+      return { playerCounts: { total: 0, active: 0 }, documentAlerts: [] };
+    }
 
-    if (totalError) throw new Error(totalError.message);
-    if (activeError) throw new Error(activeError.message);
+    const payload = data as {
+      player_counts: { total: number; active: number };
+      document_alerts: Array<{
+        document_id: string;
+        player_id: string;
+        player_name: string;
+        document_title: string;
+        document_type: string;
+        expires_at: string;
+      }>;
+    };
 
-    return { total: total ?? 0, active: active ?? 0 };
+    const alerts: DocumentAlert[] = [];
+    for (const row of payload.document_alerts ?? []) {
+      const alertLevel = getDocumentAlertLevel(row.expires_at);
+      if (!alertLevel) continue;
+      alerts.push({
+        documentId: row.document_id,
+        playerId: row.player_id,
+        playerName: row.player_name,
+        documentTitle: row.document_title,
+        documentType: row.document_type as DocumentAlert["documentType"],
+        expiresAt: row.expires_at,
+        alertLevel,
+      });
+    }
+
+    return {
+      playerCounts: {
+        total: payload.player_counts?.total ?? 0,
+        active: payload.player_counts?.active ?? 0,
+      },
+      documentAlerts: sortDocumentAlerts(alerts),
+    };
   },
 );
 
@@ -1106,14 +1241,42 @@ export const getUnreadNotificationCount = cache(
 );
 
 export const getCoaches = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
-  const members = await getClubMembers(clubId);
-  return members.filter(
-    (member) =>
-      member.role === "coach" ||
-      member.role === "owner" ||
-      member.role === "president" ||
-      member.role === "sports_director",
-  );
+  const supabase = await createClient();
+  const { data: memberships, error } = await supabase
+    .from("club_memberships")
+    .select("id, role, status, team_id, user_id")
+    .eq("club_id", clubId)
+    .eq("status", "active")
+    .in("role", ["coach", "owner", "president", "sports_director"]);
+
+  if (error) throw new Error(error.message);
+  if (!memberships?.length) return [];
+
+  const userIds = [...new Set(memberships.map((m) => m.user_id))];
+  const [{ data: profiles }, teams] = await Promise.all([
+    supabase.from("profiles").select("id, email, full_name").in("id", userIds),
+    getTeams(clubId),
+  ]);
+
+  const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
+  const teamMap = new Map(teams.map((t) => [t.id, { id: t.id, name: t.name }]));
+
+  return memberships.flatMap((membership) => {
+    const parsedRole = parseClubRole(membership.role);
+    if (!parsedRole.success) return [];
+
+    return [
+      {
+        id: membership.id,
+        role: parsedRole.data,
+        status: membership.status,
+        team_id: membership.team_id,
+        user_id: membership.user_id,
+        profile: profileMap.get(membership.user_id) ?? null,
+        team: membership.team_id ? teamMap.get(membership.team_id) ?? null : null,
+      },
+    ];
+  });
 });
 
 export { DEFAULT_COMPETITION as MATCH_DEFAULT_COMPETITION, DEFAULT_SEASON as MATCH_DEFAULT_SEASON };
@@ -1393,7 +1556,7 @@ export const getPlayerFormStats = cache(
   },
 );
 
-export const getMatchFilterOptions = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+async function fetchMatchFilterOptions(clubId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("matches")
@@ -1403,6 +1566,14 @@ export const getMatchFilterOptions = cache(async (clubId: string = DEFAULT_CLUB_
   const seasons = [...new Set((data ?? []).map((r) => r.season))].sort();
   const competitions = [...new Set((data ?? []).map((r) => r.competition))].sort();
   return { seasons, competitions };
+}
+
+export const getMatchFilterOptions = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+  return unstable_cache(
+    () => fetchMatchFilterOptions(clubId),
+    ["match-filter-options", clubId],
+    { revalidate: 300, tags: [`match-filters-${clubId}`] },
+  )();
 });
 
 export const getAiConversations = cache(
@@ -1625,12 +1796,15 @@ export const syncSponsorContractReminders = cache(async (clubId: string = DEFAUL
   }
 });
 
+const SPONSOR_LIST_SELECT =
+  "id, club_id, company_name, city, contact_email, email, cooperation_status, created_at, updated_at";
+
 export const getSponsors = cache(
   async (clubId: string = DEFAULT_CLUB_ID, search?: string): Promise<Sponsor[]> => {
     const supabase = await createClient();
     let query = supabase
       .from("sponsors")
-      .select("*")
+      .select(SPONSOR_LIST_SELECT)
       .eq("club_id", clubId)
       .order("company_name");
 
@@ -1796,38 +1970,29 @@ export const getSponsorPublications = cache(
 export const getSponsorDashboardStats = cache(
   async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorDashboardStats> => {
     const supabase = await createClient();
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    const monthStartStr = monthStart.toISOString().slice(0, 10);
+    const { data, error } = await supabase.rpc("get_sponsor_dashboard_stats", {
+      p_club_id: clubId,
+    });
 
-    const [sponsors, contracts, leads, publications] = await Promise.all([
-      supabase.from("sponsors").select("id", { count: "exact", head: true }).eq("club_id", clubId),
-      supabase
-        .from("sponsor_contracts")
-        .select("value, status")
-        .eq("club_id", clubId)
-        .in("status", ["active", "expiring"])
-        .limit(200),
-      supabase
-        .from("sponsor_leads")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", clubId)
-        .not("status", "in", '("won","rejected")'),
-      supabase
-        .from("sponsor_publications")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", clubId)
-        .gte("published_at", monthStartStr),
-    ]);
+    if (error || !data) {
+      return {
+        totalSponsors: 0,
+        activeContracts: 0,
+        expiringContracts: 0,
+        activeContractValue: 0,
+        openLeads: 0,
+        publicationsThisMonth: 0,
+      };
+    }
 
-    const contractRows = contracts.data ?? [];
+    const row = data as Record<string, unknown>;
     return {
-      totalSponsors: sponsors.count ?? 0,
-      activeContracts: contractRows.filter((c) => c.status === "active").length,
-      expiringContracts: contractRows.filter((c) => c.status === "expiring").length,
-      activeContractValue: contractRows.reduce((sum, c) => sum + Number(c.value), 0),
-      openLeads: leads.count ?? 0,
-      publicationsThisMonth: publications.count ?? 0,
+      totalSponsors: Number(row.total_sponsors ?? 0),
+      activeContracts: Number(row.active_contracts ?? 0),
+      expiringContracts: Number(row.expiring_contracts ?? 0),
+      activeContractValue: Number(row.active_contract_value ?? 0),
+      openLeads: Number(row.open_leads ?? 0),
+      publicationsThisMonth: Number(row.publications_this_month ?? 0),
     };
   },
 );
@@ -2107,44 +2272,51 @@ export const getFinanceReport = cache(
 export const getFinanceDashboardStats = cache(
   async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceDashboardStats> => {
     const supabase = await createClient();
-    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase.rpc("get_finance_dashboard_page", {
+      p_club_id: clubId,
+    });
 
-    const [totalsRes, fees, recentIncome, recentExpenses] = await Promise.all([
-      supabase.rpc("get_finance_dashboard_totals", { p_club_id: clubId }),
-      supabase
-        .from("finance_player_fees")
-        .select("*, player:player_id(first_name, last_name)")
-        .eq("club_id", clubId)
-        .in("status", ["partial", "overdue"])
-        .lt("due_date", today)
-        .order("due_date", { ascending: true })
-        .limit(20),
-      supabase
-        .from("finance_income")
-        .select("*, author:created_by(full_name)")
-        .eq("club_id", clubId)
-        .order("transaction_date", { ascending: false })
-        .limit(5),
-      supabase
-        .from("finance_expenses")
-        .select("*, author:created_by(full_name)")
-        .eq("club_id", clubId)
-        .order("transaction_date", { ascending: false })
-        .limit(5),
-    ]);
+    if (error || !data) {
+      return {
+        balance: 0,
+        totalIncome: 0,
+        totalExpenses: 0,
+        totalFeesDue: 0,
+        totalFeesPaid: 0,
+        overdueFeesCount: 0,
+        sponsorIncomeTotal: 0,
+        recentIncome: [],
+        recentExpenses: [],
+        overdueFees: [],
+      };
+    }
 
-    const totals = totalsRes.data as {
-      total_income?: number;
-      total_expenses?: number;
-      sponsor_income?: number;
-      total_fees_due?: number;
-      total_fees_paid?: number;
-      overdue_fees_count?: number;
-    } | null;
+    const payload = data as {
+      totals: {
+        total_income?: number;
+        total_expenses?: number;
+        sponsor_income?: number;
+        total_fees_due?: number;
+        total_fees_paid?: number;
+        overdue_fees_count?: number;
+      } | null;
+      overdue_fees: Record<string, unknown>[];
+      recent_income: Record<string, unknown>[];
+      recent_expenses: Record<string, unknown>[];
+    };
 
+    const totals = payload.totals;
     const totalIncome = Number(totals?.total_income ?? 0);
     const totalExpenses = Number(totals?.total_expenses ?? 0);
-    const feeRows = (fees.data ?? []).map(mapFinancePlayerFee);
+    const feeRows = (payload.overdue_fees ?? []).map((row) =>
+      mapFinancePlayerFee({
+        ...row,
+        club_id: clubId,
+        player: row.first_name
+          ? { first_name: row.first_name, last_name: row.last_name }
+          : null,
+      }),
+    );
 
     return {
       balance: totalIncome - totalExpenses,
@@ -2154,8 +2326,12 @@ export const getFinanceDashboardStats = cache(
       totalFeesPaid: Number(totals?.total_fees_paid ?? 0),
       overdueFeesCount: Number(totals?.overdue_fees_count ?? feeRows.length),
       sponsorIncomeTotal: Number(totals?.sponsor_income ?? 0),
-      recentIncome: (recentIncome.data ?? []).map(mapFinanceIncome),
-      recentExpenses: (recentExpenses.data ?? []).map(mapFinanceExpense),
+      recentIncome: (payload.recent_income ?? []).map((row) =>
+        mapFinanceIncome({ ...row, club_id: clubId }),
+      ),
+      recentExpenses: (payload.recent_expenses ?? []).map((row) =>
+        mapFinanceExpense({ ...row, club_id: clubId }),
+      ),
       overdueFees: feeRows,
     };
   },

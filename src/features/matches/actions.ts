@@ -7,7 +7,7 @@ import {
   canManageMatches,
   canManageMatchSquad,
 } from "@/config/permissions";
-import { DEFAULT_CLUB_ID, requireAccessContext } from "@/lib/auth/session";
+import { requireAccessContext } from "@/lib/auth/session";
 import {
   parseFormationCode,
   parseMatchEventType,
@@ -39,37 +39,37 @@ function revalidateMatchPaths(matchId?: string) {
   }
 }
 
-async function verifyTeamInClub(teamId: string) {
+async function verifyTeamInClub(teamId: string, clubId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("teams")
     .select("id")
     .eq("id", teamId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .maybeSingle();
   return !!data;
 }
 
-async function verifyMatchInClub(matchId: string) {
+async function verifyMatchInClub(matchId: string, clubId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("matches")
     .select("id, team_id, status")
     .eq("id", matchId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .maybeSingle();
   return data;
 }
 
-async function verifyPlayerOnMatchTeam(matchId: string, playerId: string) {
-  const match = await verifyMatchInClub(matchId);
+async function verifyPlayerOnMatchTeam(matchId: string, playerId: string, clubId: string) {
+  const match = await verifyMatchInClub(matchId, clubId);
   if (!match) return false;
   const supabase = await createClient();
   const { data } = await supabase
     .from("players")
     .select("id")
     .eq("id", playerId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("team_id", match.team_id)
     .maybeSingle();
   return !!data;
@@ -78,6 +78,7 @@ async function verifyPlayerOnMatchTeam(matchId: string, playerId: string) {
 type StatField = "goals" | "assists" | "yellow_cards" | "red_cards";
 
 async function incrementMatchPlayerStat(
+  clubId: string,
   matchId: string,
   playerId: string,
   field: StatField,
@@ -86,13 +87,13 @@ async function incrementMatchPlayerStat(
   const { data: existing } = await supabase
     .from("match_player_stats")
     .select("minutes_played, goals, assists, yellow_cards, red_cards, is_starter")
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .eq("match_id", matchId)
     .eq("player_id", playerId)
     .maybeSingle();
 
   const payload = {
-    club_id: DEFAULT_CLUB_ID,
+    club_id: clubId,
     match_id: matchId,
     player_id: playerId,
     minutes_played: existing?.minutes_played ?? 0,
@@ -111,6 +112,7 @@ export async function createMatch(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatches(access.roles)) return { error: "Brak uprawnień." };
 
   const teamId = String(formData.get("teamId") ?? "").trim();
@@ -126,13 +128,13 @@ export async function createMatch(
     return { error: "Wypełnij wymagane pola meczu." };
   }
   if (!statusParsed.success) return { error: "Nieprawidłowy status." };
-  if (!(await verifyTeamInClub(teamId))) return { error: "Drużyna nie należy do klubu." };
+  if (!(await verifyTeamInClub(teamId, clubId))) return { error: "Drużyna nie należy do klubu." };
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("matches")
     .insert({
-      club_id: DEFAULT_CLUB_ID,
+      club_id: clubId,
       team_id: teamId,
       competition,
       season,
@@ -160,11 +162,12 @@ export async function updateMatch(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatches(access.roles)) return { error: "Brak uprawnień." };
-  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
+  if (!(await verifyMatchInClub(matchId, clubId))) return { error: "Mecz nie istnieje." };
 
   const teamId = String(formData.get("teamId") ?? "").trim();
-  if (!teamId || !(await verifyTeamInClub(teamId))) {
+  if (!teamId || !(await verifyTeamInClub(teamId, clubId))) {
     return { error: "Drużyna nie należy do klubu." };
   }
 
@@ -198,7 +201,7 @@ export async function updateMatch(
       coach_notes: nullableString(formData.get("coachNotes")),
     })
     .eq("id", matchId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", clubId);
 
   if (error) return { error: error.message };
   revalidateMatchPaths(matchId);
@@ -211,20 +214,21 @@ export async function setMatchSquadRole(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatchSquad(access.roles)) return { error: "Brak uprawnień." };
-  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
+  if (!(await verifyMatchInClub(matchId, clubId))) return { error: "Mecz nie istnieje." };
 
   const playerId = String(formData.get("playerId") ?? "").trim();
   const roleParsed = parseMatchSquadRole(String(formData.get("squadRole") ?? ""));
   if (!playerId || !roleParsed.success) return { error: "Wybierz zawodnika i rolę." };
-  if (!(await verifyPlayerOnMatchTeam(matchId, playerId))) {
+  if (!(await verifyPlayerOnMatchTeam(matchId, playerId, clubId))) {
     return { error: "Zawodnik nie należy do drużyny meczu." };
   }
 
   const supabase = await createClient();
   const { error } = await supabase.from("match_squad").upsert(
     {
-      club_id: DEFAULT_CLUB_ID,
+      club_id: clubId,
       match_id: matchId,
       player_id: playerId,
       squad_role: roleParsed.data,
@@ -243,8 +247,9 @@ export async function saveMatchFormation(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatchSquad(access.roles)) return { error: "Brak uprawnień." };
-  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
+  if (!(await verifyMatchInClub(matchId, clubId))) return { error: "Mecz nie istnieje." };
 
   const formation = String(formData.get("formation") ?? "").trim();
   const formationParsed = parseFormationCode(formation);
@@ -255,7 +260,7 @@ export async function saveMatchFormation(
     .from("matches")
     .update({ formation: formationParsed.data })
     .eq("id", matchId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", clubId);
 
   if (error) return { error: error.message };
   revalidateMatchPaths(matchId);
@@ -268,8 +273,9 @@ export async function saveLineupPosition(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatchSquad(access.roles)) return { error: "Brak uprawnień." };
-  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
+  if (!(await verifyMatchInClub(matchId, clubId))) return { error: "Mecz nie istnieje." };
 
   const playerId = String(formData.get("playerId") ?? "").trim();
   const slotCode = String(formData.get("slotCode") ?? "").trim();
@@ -279,14 +285,14 @@ export async function saveLineupPosition(
   if (!playerId || !slotCode || Number.isNaN(posX) || Number.isNaN(posY)) {
     return { error: "Nieprawidłowe dane pozycji." };
   }
-  if (!(await verifyPlayerOnMatchTeam(matchId, playerId))) {
+  if (!(await verifyPlayerOnMatchTeam(matchId, playerId, clubId))) {
     return { error: "Zawodnik nie należy do drużyny meczu." };
   }
 
   const supabase = await createClient();
   const { error } = await supabase.from("match_lineup_positions").upsert(
     {
-      club_id: DEFAULT_CLUB_ID,
+      club_id: clubId,
       match_id: matchId,
       player_id: playerId,
       slot_code: slotCode,
@@ -307,8 +313,9 @@ export async function addMatchEvent(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatchEvents(access.roles)) return { error: "Brak uprawnień." };
-  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
+  if (!(await verifyMatchInClub(matchId, clubId))) return { error: "Mecz nie istnieje." };
 
   const eventParsed = parseMatchEventType(String(formData.get("eventType") ?? ""));
   const minute = parseOptionalInt(formData.get("minute"));
@@ -322,16 +329,16 @@ export async function addMatchEvent(
   if (minute < 0 || minute > 130) {
     return { error: "Minuta musi być w zakresie 0–130." };
   }
-  if (playerId && !(await verifyPlayerOnMatchTeam(matchId, playerId))) {
+  if (playerId && !(await verifyPlayerOnMatchTeam(matchId, playerId, clubId))) {
     return { error: "Zawodnik nie należy do drużyny meczu." };
   }
-  if (relatedPlayerId && !(await verifyPlayerOnMatchTeam(matchId, relatedPlayerId))) {
+  if (relatedPlayerId && !(await verifyPlayerOnMatchTeam(matchId, relatedPlayerId, clubId))) {
     return { error: "Powiązany zawodnik nie należy do drużyny meczu." };
   }
 
   const supabase = await createClient();
   const { error } = await supabase.from("match_events").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: clubId,
     match_id: matchId,
     event_type: eventParsed.data,
     minute,
@@ -352,7 +359,7 @@ export async function addMatchEvent(
     };
     const field = statField[eventParsed.data];
     if (field) {
-      await incrementMatchPlayerStat(matchId, playerId, field);
+      await incrementMatchPlayerStat(clubId, matchId, playerId, field);
     }
   }
 
@@ -366,11 +373,12 @@ export async function setMatchMvp(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatches(access.roles)) return { error: "Brak uprawnień." };
-  if (!(await verifyMatchInClub(matchId))) return { error: "Mecz nie istnieje." };
+  if (!(await verifyMatchInClub(matchId, clubId))) return { error: "Mecz nie istnieje." };
 
   const playerId = String(formData.get("playerId") ?? "").trim();
-  if (!playerId || !(await verifyPlayerOnMatchTeam(matchId, playerId))) {
+  if (!playerId || !(await verifyPlayerOnMatchTeam(matchId, playerId, clubId))) {
     return { error: "Wybierz zawodnika z kadry meczu." };
   }
 
@@ -379,13 +387,13 @@ export async function setMatchMvp(
     .from("matches")
     .update({ mvp_player_id: playerId })
     .eq("id", matchId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", clubId);
 
   if (matchError) return { error: matchError.message };
 
   const { error: mvpError } = await supabase.from("match_mvp_history").upsert(
     {
-      club_id: DEFAULT_CLUB_ID,
+      club_id: clubId,
       match_id: matchId,
       player_id: playerId,
       selected_by: access.userId,
@@ -403,6 +411,7 @@ export async function upsertLeagueTableEntry(
   formData: FormData,
 ): Promise<MatchActionState> {
   const access = await requireAccessContext();
+  const clubId = access.clubId;
   if (!canManageMatches(access.roles)) return { error: "Brak uprawnień." };
 
   const competition = String(formData.get("competition") ?? "").trim();
@@ -433,7 +442,7 @@ export async function upsertLeagueTableEntry(
   }
 
   const insertPayload = {
-    club_id: DEFAULT_CLUB_ID,
+    club_id: clubId,
     competition,
     season,
     team_name: teamName,
@@ -446,7 +455,7 @@ export async function upsertLeagueTableEntry(
         .from("league_table_entries")
         .update(updatePayload)
         .eq("id", entryId)
-        .eq("club_id", DEFAULT_CLUB_ID)
+        .eq("club_id", clubId)
     : await supabase.from("league_table_entries").upsert(insertPayload, {
         onConflict: "club_id,competition,season,team_name",
       });

@@ -1,0 +1,132 @@
+{
+  "measuredAt": "2026-06-01T08:48:30.616Z",
+  "endpoint": "/api/pwa/offline-data",
+  "environment": {
+    "baseUrl": "https://pilka-mu.vercel.app"
+  },
+  "optimizations": [
+    "middleware skip auth dla /api/pwa/offline-data",
+    "get_pwa_offline_context — jeden RPC zamiast layout + 4 REST",
+    "usunięcie requireUser/getUser z route",
+    "cienki import route (bez session.ts)"
+  ],
+  "response": {
+    "transferKb": 4.9,
+    "cacheControl": "private, no-store"
+  },
+  "httpSamples": [
+    {
+      "label": "request_1",
+      "status": 200,
+      "ttfbMs": 360.1,
+      "totalMs": 361,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::9jzks-1780303704074-138efaf12a99"
+    },
+    {
+      "label": "request_2",
+      "status": 200,
+      "ttfbMs": 209.8,
+      "totalMs": 223.1,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::wgnbl-1780303705138-4c717918a52c"
+    },
+    {
+      "label": "request_3",
+      "status": 200,
+      "ttfbMs": 234.2,
+      "totalMs": 234.7,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::766wk-1780303705617-70689735bd64"
+    },
+    {
+      "label": "request_4",
+      "status": 200,
+      "ttfbMs": 250.2,
+      "totalMs": 250.5,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::jhbrb-1780303706089-e407b636cf36"
+    },
+    {
+      "label": "request_5",
+      "status": 200,
+      "ttfbMs": 266,
+      "totalMs": 266.4,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::j66fs-1780303706606-726618456e22"
+    },
+    {
+      "label": "request_6",
+      "status": 200,
+      "ttfbMs": 182.5,
+      "totalMs": 182.8,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::jhbrb-1780303707137-d1ea4451e03c"
+    },
+    {
+      "label": "request_7",
+      "status": 200,
+      "ttfbMs": 320.3,
+      "totalMs": 325.9,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::j66fs-1780303707579-9c4a6501a7e8"
+    },
+    {
+      "label": "request_8",
+      "status": 200,
+      "ttfbMs": 242.2,
+      "totalMs": 242.8,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::jhbrb-1780303708169-b12edbb91114"
+    }
+  ],
+  "rpcProbe": {
+    "ttfbMs": 68.5,
+    "status": 200,
+    "note": "Jeden round-trip PostgREST RPC (bez getUser)"
+  },
+  "dbProfile": {
+    "queries": 1,
+    "timings": {
+      "rpc_get_pwa_offline_context": 52.6
+    },
+    "rpcMs": 52.6
+  },
+  "breakdown": {
+    "middlewareAuthMs": 0,
+    "routeAuthMs": 0,
+    "dbRpcMs": 52.6,
+    "rpcRoundTripProbeMs": 68.5,
+    "serializationMs": 2,
+    "coldStartAndRuntimeFirstMs": 305.5,
+    "networkAndRuntimeWarmMs": 189,
+    "totalTtfbFirstMs": 360.1,
+    "totalTtfbWarmAvgMs": 243.6,
+    "totalTtfbWarmMinMs": 182.5,
+    "supabaseHttpCalls": 1
+  }
+}

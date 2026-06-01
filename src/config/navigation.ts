@@ -8,6 +8,7 @@ import {
   Handshake,
   LayoutDashboard,
   Package,
+  Settings,
   Shield,
   Link2,
   ListOrdered,
@@ -28,6 +29,11 @@ export const dashboardNav = [
     title: "Profil użytkownika",
     href: "/profile",
     icon: User,
+  },
+  {
+    title: "Ustawienia aplikacji",
+    href: "/settings",
+    icon: Settings,
   },
   {
     title: "Profil klubu",
@@ -75,6 +81,16 @@ export const dashboardNav = [
     title: "Panel trenera",
     href: "/training/coach",
     icon: ClipboardList,
+  },
+  {
+    title: "AI Club Manager",
+    href: "/ai/manager",
+    icon: Bot,
+  },
+  {
+    title: "Zadania AI",
+    href: "/ai/tasks",
+    icon: Bot,
   },
   {
     title: "Club AI Assistant",

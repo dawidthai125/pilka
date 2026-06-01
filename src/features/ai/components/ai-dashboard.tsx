@@ -32,6 +32,24 @@ export function AiDashboard({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="sm:col-span-2 lg:col-span-3 border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Bot className="size-4" /> AI Club Manager
+            </CardTitle>
+            <CardDescription>
+              Agent wykonujący działania w systemie — nie tylko chatbot. Ctrl+K w aplikacji.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Link href="/ai/manager" className={cn(buttonVariants({ size: "sm" }))}>
+              Otwórz agenta
+            </Link>
+            <Link href="/ai/tasks" className={cn(buttonVariants({ size: "sm", variant: "outline" }))}>
+              Centrum zadań
+            </Link>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">

@@ -7,13 +7,14 @@ import {
   canReadInventory,
   canReadSponsors,
 } from "@/config/permissions";
-import { DEFAULT_CLUB_ID, getClub, getPlayers, getTeams } from "@/lib/auth/session";
+import { DEFAULT_CLUB_ID, getClub, getTeams } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { computeTeamForm, aggregateTeamStats } from "@/lib/matches/mappers";
 import { DEFAULT_SEASON } from "@/lib/matches/constants";
 import { formatIsoDate, startOfWeek } from "@/lib/training/calendar";
 import { createClient } from "@/lib/supabase/server";
 import type { AiClubContext } from "@/types/ai";
+import type { Player } from "@/types/players";
 import type { ClubRole, UserAccessContext } from "@/types/rbac";
 import { mapMatch } from "@/lib/matches/mappers";
 import { buildSponsorAiContext } from "@/lib/sponsors/insights";
@@ -26,7 +27,7 @@ const MATCH_SELECT =
   "id, club_id, team_id, competition, season, round_number, match_date, match_time, home_team_name, away_team_name, stadium, stadium_address, status, home_score, away_score, formation, mvp_player_id, teams(name), mvp:mvp_player_id(first_name, last_name)";
 
 const MAX_MATCHES_FOR_CONTEXT = 15;
-const MAX_ATTENDANCE_ROWS = 2000;
+const MAX_ATTENDANCE_ROWS = 800;
 
 export type AiContextScope = Pick<UserAccessContext, "userId" | "clubId" | "roles">;
 
@@ -99,11 +100,40 @@ export async function buildAiClubContext(
 
 async function buildAiClubContextUncached(access: AiContextScope): Promise<AiClubContext> {
   const clubId = access.clubId;
-  const [club, players, teams] = await Promise.all([
+  const supabase = await createClient();
+  const [club, teams, playersRes] = await Promise.all([
     getClub(clubId),
-    getPlayers(clubId),
     getTeams(clubId),
+    supabase
+      .from("players")
+      .select("id, team_id, first_name, last_name, status")
+      .eq("club_id", clubId),
   ]);
+
+  const players = (playersRes.data ?? []).map((row) => ({
+    id: row.id,
+    clubId,
+    teamId: row.team_id,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    status: row.status as Player["status"],
+    photoUrl: null,
+    dateOfBirth: null,
+    phone: null,
+    email: null,
+    address: null,
+    city: null,
+    postalCode: null,
+    jerseyNumber: null,
+    primaryPosition: null,
+    secondaryPosition: null,
+    dominantFoot: null,
+    heightCm: null,
+    weightKg: null,
+    joinedAt: null,
+    leftAt: null,
+    teamName: null,
+  }));
 
   const clubName = club ? getClubBrandingName(club) : "Klub";
   const seniorTeam = teams.find((t) => t.category === "seniors") ?? teams[0];
@@ -112,7 +142,6 @@ async function buildAiClubContextUncached(access: AiContextScope): Promise<AiClu
     .filter((p) => (teamId ? p.teamId === teamId : true))
     .map((p) => p.id);
 
-  const supabase = await createClient();
   const now = new Date();
   const weekStart = formatIsoDate(startOfWeek(now));
   const weekEnd = formatIsoDate(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7));

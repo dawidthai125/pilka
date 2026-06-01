@@ -1,4 +1,4 @@
-import { NotificationsCenter } from "@/features/training/components/notifications-center";
+import { NotificationsCenterEnhanced } from "@/features/pwa/components/notifications-center-enhanced";
 import { canManageSponsors, canManageTrainings } from "@/config/permissions";
 import {
   getDashboardContext,
@@ -29,7 +29,7 @@ export default async function NotificationsPage() {
           Przypomnienia o treningach (48 h, 24 h, 3 h). Architektura gotowa pod email, SMS i push.
         </p>
       </div>
-      <NotificationsCenter notifications={notifications} />
+      <NotificationsCenterEnhanced notifications={notifications} />
     </div>
   );
 }

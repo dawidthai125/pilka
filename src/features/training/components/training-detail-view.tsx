@@ -1,13 +1,12 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 
 import {
   addTrainingSessionNote,
   cancelTraining,
   completeTraining,
   setTrainingAttendance,
-  setTrainingAvailability,
   type TrainingActionState,
 } from "@/features/training/actions";
 import { TrainingStatusBadge } from "@/features/training/components/training-status-badge";
@@ -17,6 +16,7 @@ import {
   AVAILABILITY_STATUS_LABELS,
 } from "@/lib/training/constants";
 import type { TrainingDetailData } from "@/lib/auth/session";
+import { setTrainingAvailabilityOfflineAware } from "@/lib/pwa/offline-actions";
 import type { Player } from "@/types/players";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,8 +126,32 @@ function AvailabilityForm({
   trainingId: string;
   current: TrainingDetailData["availability"][number] | null;
 }) {
-  const action = setTrainingAvailability.bind(null, trainingId);
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const [pending, setPending] = useState(false);
+  const [feedback, setFeedback] = useState<{ error?: string; success?: string }>({});
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setFeedback({});
+
+    const formData = new FormData(event.currentTarget);
+    const result = await setTrainingAvailabilityOfflineAware(trainingId, {
+      status: String(formData.get("status") ?? ""),
+      absenceReason: String(formData.get("absenceReason") ?? "") || undefined,
+      notes: String(formData.get("notes") ?? "") || undefined,
+    });
+
+    if (result.error) {
+      setFeedback({ error: result.error });
+    } else if (result.queued) {
+      setFeedback({
+        success: "Zapisano offline — synchronizacja po odzyskaniu sieci.",
+      });
+    } else {
+      setFeedback({ success: "Zapisano dostępność." });
+    }
+    setPending(false);
+  }
 
   return (
     <Card>
@@ -136,15 +160,15 @@ function AvailabilityForm({
         <CardDescription>Potwierdź obecność na treningu.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="grid gap-4 md:grid-cols-2">
-          {state.error ? (
+        <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
+          {feedback.error ? (
             <p className="md:col-span-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {state.error}
+              {feedback.error}
             </p>
           ) : null}
-          {state.success ? (
+          {feedback.success ? (
             <p className="md:col-span-2 rounded-md bg-primary/10 px-3 py-2 text-sm">
-              {state.success}
+              {feedback.success}
             </p>
           ) : null}
           <div className="space-y-2">

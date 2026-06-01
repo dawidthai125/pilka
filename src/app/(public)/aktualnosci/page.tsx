@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function NewsListPage() {
   const clubId = await getPublicClubId();
-  const news = await getPublicNews(clubId);
+  const news = await getPublicNews(clubId, { limit: 50 });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">

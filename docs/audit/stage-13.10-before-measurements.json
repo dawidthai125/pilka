@@ -1,0 +1,214 @@
+{
+  "measuredAt": "2026-06-01T08:34:49.529Z",
+  "endpoint": "/api/pwa/offline-data",
+  "environment": {
+    "baseUrl": "https://pilka-mu.vercel.app"
+  },
+  "response": {
+    "transferKb": 4.9,
+    "cacheControl": "private, no-store",
+    "serviceWorkerPolicy": "NetworkOnly — /api/* never cached in SW"
+  },
+  "httpSamples": [
+    {
+      "label": "request_1",
+      "status": 200,
+      "ttfbMs": 783,
+      "totalMs": 783.6,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::7sqlk-1780302881404-21638bbbae7f"
+    },
+    {
+      "label": "request_2",
+      "status": 200,
+      "ttfbMs": 457.9,
+      "totalMs": 458.4,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::qhkh8-1780302882905-6b6d735f43db"
+    },
+    {
+      "label": "request_3",
+      "status": 200,
+      "ttfbMs": 558.4,
+      "totalMs": 558.8,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::qhkh8-1780302883619-3a586c7ecd15"
+    },
+    {
+      "label": "request_4",
+      "status": 200,
+      "ttfbMs": 387,
+      "totalMs": 390.5,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::qhkh8-1780302884419-fa9a6443b7d8"
+    },
+    {
+      "label": "request_5",
+      "status": 200,
+      "ttfbMs": 436.2,
+      "totalMs": 436.9,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::x869f-1780302885061-ce50825cec4d"
+    },
+    {
+      "label": "request_6",
+      "status": 200,
+      "ttfbMs": 360.9,
+      "totalMs": 361.4,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::qk4pc-1780302885766-2fdb43bf0ad7"
+    },
+    {
+      "label": "request_7",
+      "status": 200,
+      "ttfbMs": 357.7,
+      "totalMs": 360.8,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::txrhj-1780302886382-d3fddeafc500"
+    },
+    {
+      "label": "request_8",
+      "status": 200,
+      "ttfbMs": 340.9,
+      "totalMs": 341.2,
+      "bytes": 5055,
+      "transferKb": 4.9,
+      "cacheControl": "private, no-store",
+      "xVercelCache": "MISS",
+      "xVercelId": "arn1::fra1::x869f-1780302886992-dbf26e420566"
+    }
+  ],
+  "authProbe": {
+    "ttfbMs": 140.7,
+    "status": 200,
+    "note": "Supabase Auth getUser — middleware i route wykonują ten sam typ pracy"
+  },
+  "dbProfile": {
+    "queries": 5,
+    "timings": {
+      "rpc_get_app_layout_context": 93.5,
+      "q_matches": 83.2,
+      "q_trainings": 61.6,
+      "q_settings": 48.8,
+      "q_news": 56.7
+    },
+    "sequentialMs": 343.8,
+    "parallelEstimateMs": 176.7
+  },
+  "breakdown": {
+    "middlewareAuthMs": 140.7,
+    "routeAuthMs": 140.7,
+    "dbParallelMs": 176.7,
+    "dbSequentialProfileMs": 343.8,
+    "serializationMs": 2,
+    "coldStartAndRuntimeFirstMs": 322.9,
+    "networkAndAuthWarmMs": 235.4,
+    "totalTtfbFirstMs": 783,
+    "totalTtfbWarmAvgMs": 414.1,
+    "totalTtfbWarmMinMs": 340.9
+  },
+  "invocationAnalysis": {
+    "trigger": "PwaProvider useEffect — setTimeout 2500ms po mount layoutu dashboard",
+    "onEveryPageEntry": false,
+    "onClientNavigationBetweenScreens": false,
+    "onFullBrowserRefresh": true,
+    "onDashboardLayoutRemount": true,
+    "ttlSessionStorageMs": 300000,
+    "ttlKey": "fcos:pwa-offline-refreshed-at",
+    "onReconnect": "force=true po flush sync queue",
+    "deferMs": 2500
+  },
+  "codePath": {
+    "middleware": "matcher obejmuje /api/* — supabase.auth.getUser()",
+    "route": "getDashboardContext() + 4× Promise.all Supabase REST",
+    "duplicateWork": [
+      "middleware getUser + route requireUser",
+      "website_settings w RPC layout i w query page",
+      "teams/club/profile z RPC layout — częściowo redundantne dla PWA payload"
+    ],
+    "supabaseHttpCalls": "2× auth + 1 RPC + 4 REST ≈ 7 round-tripów"
+  },
+  "top10Causes": [
+    {
+      "rank": 1,
+      "cause": "Serverless cold start (pierwsze wywołanie funkcji)",
+      "evidence": "request_1 783 ms vs warm avg 414.1 ms",
+      "category": "cold_start"
+    },
+    {
+      "rank": 2,
+      "cause": "Duplikacja Supabase Auth (middleware + route)",
+      "evidence": "~140.7 ms × 2 ≈ 281.4 ms",
+      "category": "auth"
+    },
+    {
+      "rank": 3,
+      "cause": "Pełny get_app_layout_context RPC zamiast slim PWA query",
+      "evidence": "93.5 ms RPC",
+      "category": "rpc"
+    },
+    {
+      "rank": 4,
+      "cause": "4 równoległe zapytania page (matches, trainings, settings, news)",
+      "evidence": "parallel page max 83.2 ms",
+      "category": "sql"
+    },
+    {
+      "rank": 5,
+      "cause": "Brak cache — Cache-Control: no-store + SW NetworkOnly",
+      "evidence": "Każde wywołanie idzie na origin",
+      "category": "cache"
+    },
+    {
+      "rank": 6,
+      "cause": "Redundantne website_settings (RPC + query)",
+      "evidence": "q_settings 48.8 ms + w RPC layout",
+      "category": "sql"
+    },
+    {
+      "rank": 7,
+      "cause": "7+ HTTP round-tripów do Supabase na request",
+      "evidence": "2 auth + 5 data calls przez PostgREST",
+      "category": "network"
+    },
+    {
+      "rank": 8,
+      "cause": "RTT klient → Vercel fra1 + function overhead (warm)",
+      "evidence": "warm min 340.9 ms > DB parallel 176.7 ms",
+      "category": "network"
+    },
+    {
+      "rank": 9,
+      "cause": "Duży serverless bundle (~1.18 MB) — wolniejszy bootstrap",
+      "evidence": "vercel inspect λ [fra1] ~1.18MB",
+      "category": "cold_start"
+    },
+    {
+      "rank": 10,
+      "cause": "Serializacja JSON (~5 KB) — marginalna",
+      "evidence": "~2 ms, 4.9 KB",
+      "category": "serialization"
+    }
+  ]
+}
