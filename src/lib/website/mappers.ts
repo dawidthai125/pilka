@@ -1,3 +1,4 @@
+import { slugifyTitle } from "@/lib/strings";
 import type {
   PublicMatchSummary,
   PublicPlayer,
@@ -160,12 +161,4 @@ export function mapPublicSponsorFromRpc(row: Record<string, unknown>): PublicSpo
   };
 }
 
-export function slugifyNewsTitle(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80);
-}
+export const slugifyNewsTitle = slugifyTitle;

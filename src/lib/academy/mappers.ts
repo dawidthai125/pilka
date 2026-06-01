@@ -13,20 +13,7 @@ import type {
   ScoutingReport,
   TalentRankingEntry,
 } from "@/types/academy";
-import type { PlayerPosition } from "@/types/players";
-
-function str(row: Record<string, unknown>, key: string): string {
-  return String(row[key] ?? "");
-}
-
-function num(row: Record<string, unknown>, key: string): number {
-  return Number(row[key] ?? 0);
-}
-
-function optStr(row: Record<string, unknown>, key: string): string | null {
-  const v = row[key];
-  return v == null ? null : String(v);
-}
+import { mapNum as num, mapNullableStr as optStr, mapStr as str } from "@/lib/mappers/row-helpers";
 
 export function mapAcademyGroup(row: Record<string, unknown>): AcademyGroup {
   const team = row.team as Record<string, unknown> | null | undefined;
@@ -175,10 +162,6 @@ export function mapScoutingPlayer(row: Record<string, unknown>): ScoutingPlayer 
   };
 }
 
-export function scoutingPlayerFullName(player: Pick<ScoutingPlayer, "firstName" | "lastName">): string {
-  return `${player.firstName} ${player.lastName}`.trim();
-}
-
 export function mapScoutingClub(row: Record<string, unknown>): ScoutingClub {
   return {
     id: str(row, "id"),
@@ -281,9 +264,4 @@ export function filterByChartRange<T extends { recordedAt?: string; assessedAt?:
     if (!raw) return false;
     return new Date(raw) >= cutoff;
   });
-}
-
-export function parsePlayerPosition(value: string): PlayerPosition {
-  const allowed = ["goalkeeper", "defender", "midfielder", "forward"] as const;
-  return allowed.includes(value as PlayerPosition) ? (value as PlayerPosition) : "midfielder";
 }

@@ -27,6 +27,8 @@ const videoManage: Permission[] = ["video:read", "video:manage", "video:share", 
 const videoReadOnly: Permission[] = ["video:read"];
 const contentFull: Permission[] = ["content:read", "content:create", "content:manage", "content:publish"];
 const contentCreate: Permission[] = ["content:read", "content:create"];
+const leagueRead: Permission[] = ["league:read"];
+const leagueManage: Permission[] = ["league:manage", "league:sync"];
 
 const leadership: Permission[] = [
   "club:read",
@@ -63,6 +65,7 @@ const leadership: Permission[] = [
   "inventory:read",
   "inventory:manage",
   ...integrationRead,
+  ...leagueRead,
   ...academyRead,
 ];
 
@@ -113,6 +116,7 @@ const coachingStaff: Permission[] = [
   "website:read",
   "website:create",
   "integration:read",
+  ...leagueRead,
   ...academyRead,
   ...academyManage,
 ];
@@ -130,9 +134,9 @@ const websiteStaff: Permission[] = [
 ];
 
 export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
-  owner: [...leadershipFull, ...integrationManage, ...websiteFull, ...contentFull, "sponsor:read", "sponsor:manage", ...videoManage],
-  president: [...leadership, ...websiteFull, ...contentFull, "sponsor:read", "sponsor:manage", ...videoReadOnly],
-  sports_director: [...leadershipFull, ...integrationManage, "sponsor:read"],
+  owner: [...leadershipFull, ...integrationManage, ...leagueManage, ...websiteFull, ...contentFull, "sponsor:read", "sponsor:manage", ...videoManage],
+  president: [...leadership, ...leagueManage, ...websiteFull, ...contentFull, "sponsor:read", "sponsor:manage", ...videoReadOnly],
+  sports_director: [...leadershipFull, ...integrationManage, ...leagueManage, "sponsor:read"],
   treasurer: [
     "club:read",
     "team:read",
@@ -149,7 +153,7 @@ export const ROLE_PERMISSIONS: Record<ClubRole, readonly Permission[]> = {
   ],
   coach: [...coachingStaff, ...videoManage, ...contentCreate],
   scout: [...scoutingManage, "club:read", "team:read", "profile:read", "ai:read", "ai:chat", "ai:reports_sports", "video:read", "video:manage", "video:share"],
-  player: [...parentPortal.filter((p) => p !== "finance:portal"), "inventory:portal", ...academyOwn],
+  player: [...parentPortal.filter((p) => p !== "finance:portal"), "inventory:portal", ...academyOwn, ...leagueRead],
   parent: [...parentPortal, ...academyOwn],
   sponsor: ["club:read", "team:read", "match:read", "profile:read", "sponsor:portal", "content:read"],
   website_admin: [...websiteStaff, ...contentFull],
@@ -213,6 +217,9 @@ export const ALL_PERMISSIONS = [
   "content:create",
   "content:manage",
   "content:publish",
+  "league:read",
+  "league:manage",
+  "league:sync",
 ] as const satisfies readonly Permission[];
 
 export const LEADERSHIP_ROLES: ClubRole[] = ["owner", "president", "sports_director"];
@@ -429,6 +436,22 @@ export function canManageIntegrations(roles: ClubRole[]): boolean {
 
 export function canSyncIntegrations(roles: ClubRole[]): boolean {
   return canManageIntegrations(roles);
+}
+
+export function canReadLeague(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director", "coach", "player"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canManageLeague(roles: ClubRole[]): boolean {
+  return roles.some((role) =>
+    (["owner", "president", "sports_director"] as ClubRole[]).includes(role),
+  );
+}
+
+export function canSyncLeague(roles: ClubRole[]): boolean {
+  return canManageLeague(roles);
 }
 
 export function canReadAcademy(roles: ClubRole[]): boolean {

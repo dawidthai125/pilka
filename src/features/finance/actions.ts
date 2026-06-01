@@ -7,6 +7,7 @@ import { getClub, requireAccessContext } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { buildFinanceDocumentPath, validateFinanceAttachment } from "@/lib/finance/uploads";
 import { buildFinanceReportContent } from "@/lib/finance/insights";
+import { readString } from "@/lib/form-data";
 import { createClient } from "@/lib/supabase/server";
 import type {
   FinanceBudgetType,
@@ -30,10 +31,6 @@ function revalidateFinancePaths() {
   revalidatePath("/finance/documents");
   revalidatePath("/finance/reports");
   revalidatePath("/finance/portal");
-}
-
-function readString(formData: FormData, key: string): string {
-  return String(formData.get(key) ?? "").trim();
 }
 
 function readAmount(formData: FormData, key: string): number | null {

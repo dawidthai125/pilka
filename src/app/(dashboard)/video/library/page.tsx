@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
 import { VideoLibraryList } from "@/features/video/components/video-library-list";
 import { canManageVideos } from "@/config/permissions";

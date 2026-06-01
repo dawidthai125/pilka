@@ -88,16 +88,3 @@ export async function buildAcademyAiContext(clubId: string = DEFAULT_CLUB_ID) {
     },
   };
 }
-
-export async function buildScoutingAiContext(clubId: string = DEFAULT_CLUB_ID) {
-  const ctx = await buildAcademyAiContext(clubId);
-  return {
-    scoutingProspects: ctx.scoutingProspects,
-    scoutingReports: ctx.scoutingReports,
-    recommended: ctx.scoutingProspects.filter((p) => p.status === "recommended"),
-    summary: {
-      total: ctx.scoutingProspects.length,
-      recommended: ctx.summary.recommendedProspects,
-    },
-  };
-}

@@ -8,6 +8,7 @@ const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"
 const protectedPrefixes = [
   "/dashboard",
   "/profile",
+  "/settings",
   "/club",
   "/teams",
   "/players",
@@ -24,6 +25,7 @@ const protectedPrefixes = [
   "/academy",
   "/video",
   "/content",
+  "/league",
 ];
 
 function isAuthRoute(pathname: string) {

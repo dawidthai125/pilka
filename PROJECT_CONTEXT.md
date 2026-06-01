@@ -47,6 +47,21 @@ Hosting:
 - GitHub
 - Vercel
 
+## Moduły (ETAPY 1–15A)
+
+- Core: klub, zespoły, członkowie, ustawienia
+- Zawodnicy, treningi, mecze
+- AI Assistant + AI Club Manager (agent)
+- PWA (offline, push, sync)
+- Sponsorzy, finanse, magazyn
+- Strona publiczna (CMS)
+- Integracje (PZPN, DZPN, Extranet)
+- Akademia, skauting, rozwój zawodników
+- Video Center (ETAP 14)
+- Content Hub (ETAP 15A)
+
+Konsolidacja architektury: ETAP 15.5 — patrz `docs/stage-15.5-report.md`.
+
 ## Architektura
 
 System musi być przygotowany jako SaaS Multi-Tenant.

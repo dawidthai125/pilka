@@ -9,6 +9,7 @@ import {
 import { requireAccessContext } from "@/lib/auth/session";
 import { computeAssessmentAverage } from "@/lib/academy/mappers";
 import { FITNESS_TEST_UNITS } from "@/lib/academy/constants";
+import { readString } from "@/lib/form-data";
 import { createClient } from "@/lib/supabase/server";
 import type { FitnessTestType, PlayerGoalStatus, ScoutingPlayerStatus } from "@/types/academy";
 
@@ -26,10 +27,6 @@ const PATHS = [
 
 function revalidateAcademy() {
   for (const p of PATHS) revalidatePath(p);
-}
-
-function readString(formData: FormData, key: string): string {
-  return String(formData.get(key) ?? "").trim();
 }
 
 function readInt(formData: FormData, key: string, min: number, max: number): number | null {

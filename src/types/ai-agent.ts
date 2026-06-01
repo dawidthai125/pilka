@@ -32,7 +32,8 @@ export type AiToolName =
   | "generateVideoSummary"
   | "getContentPosts"
   | "generateContentPost"
-  | "proposeContentPublication";
+  | "proposeContentPublication"
+  | "getLeagueInsights";
 
 export type AiToolDefinition = {
   name: AiToolName;

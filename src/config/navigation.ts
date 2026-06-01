@@ -7,6 +7,7 @@ import {
   GraduationCap,
   Handshake,
   LayoutDashboard,
+  Medal,
   Package,
   Settings,
   Shield,
@@ -84,6 +85,12 @@ export const dashboardNav = [
     href: "/integrations",
     icon: Link2,
     audience: "integration_staff" as const,
+  },
+  {
+    title: "League Hub",
+    href: "/league",
+    icon: Medal,
+    audience: "league_staff" as const,
   },
   {
     title: "Akademia",

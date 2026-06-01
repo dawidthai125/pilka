@@ -36,6 +36,7 @@ import {
   stableFixtureExternalId,
 } from "@/lib/integrations/validation";
 import { DEFAULT_COMPETITION, DEFAULT_SEASON } from "@/lib/matches/constants";
+import { readString } from "@/lib/form-data";
 import { createClient } from "@/lib/supabase/server";
 import type { IntegrationClubMapping, QualityIssue } from "@/types/integrations";
 
@@ -56,10 +57,6 @@ const REVALIDATE_PATHS = [
 
 function revalidateIntegrationPaths() {
   for (const path of REVALIDATE_PATHS) revalidatePath(path);
-}
-
-function readString(formData: FormData, key: string): string {
-  return String(formData.get(key) ?? "").trim();
 }
 
 async function loadClubMappings(clubId: string): Promise<IntegrationClubMapping[]> {

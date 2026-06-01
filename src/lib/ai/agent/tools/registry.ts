@@ -128,6 +128,13 @@ export const AI_TOOL_REGISTRY: Record<AiToolName, AiToolDefinition> = {
     permissions: ["content:publish"],
     requiresApproval: true,
   },
+  getLeagueInsights: {
+    name: "getLeagueInsights",
+    description: "Analiza tabeli ligowej, serii wyników i terminarza (League Hub)",
+    riskLevel: "low",
+    permissions: ["league:read"],
+    requiresApproval: false,
+  },
 };
 
 export function getToolDefinition(name: string): AiToolDefinition | null {

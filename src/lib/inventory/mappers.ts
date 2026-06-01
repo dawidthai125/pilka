@@ -11,24 +11,7 @@ import type {
   InventorySupplier,
   InventoryTransaction,
 } from "@/types/inventory";
-
-function str(row: Record<string, unknown>, key: string): string {
-  return String(row[key] ?? "");
-}
-
-function optStr(row: Record<string, unknown>, key: string): string | null {
-  const v = row[key];
-  return v == null || v === "" ? null : String(v);
-}
-
-function num(row: Record<string, unknown>, key: string): number {
-  return Number(row[key] ?? 0);
-}
-
-function optNum(row: Record<string, unknown>, key: string): number | null {
-  const v = row[key];
-  return v == null ? null : Number(v);
-}
+import { mapNum as num, mapOptNum as optNum, mapOptStr as optStr, mapStr as str } from "@/lib/mappers/row-helpers";
 
 function nestedName(
   row: Record<string, unknown>,

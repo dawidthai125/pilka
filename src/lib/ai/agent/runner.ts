@@ -32,6 +32,7 @@ const READ_TOOLS: AiToolName[] = [
   "getInventory",
   "getVideos",
   "getContentPosts",
+  "getLeagueInsights",
 ];
 
 function isReadTool(name: AiToolName): boolean {

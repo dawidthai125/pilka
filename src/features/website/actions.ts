@@ -10,6 +10,7 @@ import {
 import { getClub, requireAccessContext } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { buildWebsiteAiNewsDraft } from "@/lib/website/insights";
+import { readString } from "@/lib/form-data";
 import { slugifyNewsTitle } from "@/lib/website/mappers";
 import { WEBSITE_GALLERY_CATEGORIES, WEBSITE_NEWS_CATEGORIES } from "@/lib/website/constants";
 import {
@@ -42,10 +43,6 @@ function revalidateWebsitePaths() {
     "/kibic",
   ];
   for (const path of paths) revalidatePath(path);
-}
-
-function readString(formData: FormData, key: string): string {
-  return String(formData.get(key) ?? "").trim();
 }
 
 function isValidHttpUrl(value: string): boolean {

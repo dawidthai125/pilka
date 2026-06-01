@@ -6,6 +6,7 @@ import { canManageSponsors } from "@/config/permissions";
 import { getClub, requireAccessContext } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { buildSponsorReportContent } from "@/lib/sponsors/insights";
+import { readString } from "@/lib/form-data";
 import { generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -22,10 +23,6 @@ function revalidateSponsorPaths() {
   revalidatePath("/sponsors/leads");
   revalidatePath("/sponsors/publications");
   revalidatePath("/sponsors/portal");
-}
-
-function readString(formData: FormData, key: string): string {
-  return String(formData.get(key) ?? "").trim();
 }
 
 export async function createSponsor(

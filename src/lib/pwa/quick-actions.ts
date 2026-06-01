@@ -9,6 +9,7 @@ import {
   Bot,
   Users,
   Video,
+  Medal,
   Newspaper,
 } from "lucide-react";
 
@@ -17,6 +18,7 @@ import {
   canManageTrainings,
   canManageVideos,
   canManageContent,
+  canReadLeague,
   canMarkTrainingAttendance,
   canSetTrainingAvailability,
   canManagePlayers,
@@ -107,6 +109,14 @@ export function getQuickActionsForRoles(roles: ClubRole[]): QuickAction[] {
       label: "Video Center",
       href: "/video",
       icon: Video,
+    });
+  }
+  if (canReadLeague(roles) && actions.length < 6) {
+    actions.push({
+      id: "league-hub",
+      label: "League Hub",
+      href: "/league",
+      icon: Medal,
     });
   }
   if (canManageContent(roles)) {

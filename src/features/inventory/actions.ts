@@ -11,6 +11,7 @@ import { getClub, requireAccessContext } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { buildInventoryReportContent } from "@/lib/inventory/insights";
 import { buildInventoryPhotoPath, validateInventoryPhoto } from "@/lib/inventory/uploads";
+import { readString } from "@/lib/form-data";
 import { createClient } from "@/lib/supabase/server";
 import type {
   InventoryDamageStatus,
@@ -38,10 +39,6 @@ function revalidateInventoryPaths() {
     "/inventory/portal",
   ];
   for (const path of paths) revalidatePath(path);
-}
-
-function readString(formData: FormData, key: string): string {
-  return String(formData.get(key) ?? "").trim();
 }
 
 function readInt(formData: FormData, key: string): number | null {

@@ -1,7 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_CLUB_ID } from "@/lib/auth/session";
-import { generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
-import type { IntegrationImportType } from "@/types/integrations";
 
 export async function buildIntegrationsAiContext(clubId: string = DEFAULT_CLUB_ID) {
   const supabase = await createClient();
@@ -46,33 +44,4 @@ export async function buildIntegrationsAiContext(clubId: string = DEFAULT_CLUB_I
       pendingConflicts: (conflictsRes.data ?? []).length,
     },
   };
-}
-
-export async function buildIntegrationsSyncReport(
-  clubId: string,
-  clubName: string,
-): Promise<{ title: string; content: string } | null> {
-  if (!isOpenAiConfigured()) return null;
-  const ctx = await buildIntegrationsAiContext(clubId);
-  const prompt = `Przygotuj raport synchronizacji integracji dla klubu ${clubName}.
-Integracje: ${JSON.stringify(ctx.integrations)}
-Ostatnie logi: ${JSON.stringify(ctx.recentSyncLogs.slice(0, 8))}
-Importy: ${JSON.stringify(ctx.recentImports.slice(0, 5))}
-Konflikty oczekujące: ${JSON.stringify(ctx.pendingConflicts)}
-Podsumowanie błędów i rekomendacje dla administratora.`;
-
-  const content = await generateAiReportContent(
-    prompt,
-    clubName,
-    JSON.stringify(ctx, null, 2),
-  );
-  return {
-    title: `Raport synchronizacji — ${clubName}`,
-    content,
-  };
-}
-
-export function formatImportTypeLabel(type: IntegrationImportType): string {
-  const labels = { league_table: "Tabela", fixtures: "Terminarz", results: "Wyniki" };
-  return labels[type];
 }

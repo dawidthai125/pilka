@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatsGrid } from "@/components/ui/stats-grid";
 import type { ContentDashboardStats } from "@/types/content";
 
 export function ContentDashboardStats({ stats }: { stats: ContentDashboardStats }) {
@@ -10,18 +10,5 @@ export function ContentDashboardStats({ stats }: { stats: ContentDashboardStats 
     { label: "Kolejka social", value: stats.queuedSocial },
   ];
 
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-      {items.map((item) => (
-        <Card key={item.label}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{item.label}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{item.value}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  return <StatsGrid items={items} columns="5" variant="card" />;
 }

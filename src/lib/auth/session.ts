@@ -84,7 +84,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -2903,3 +2903,11 @@ export const getIntegrationByProvider = cache(
     return data ? mapIntegration(data as Record<string, unknown>) : null;
   },
 );
+
+export function requireLeagueReadAccess(access: UserAccessContext) {
+  if (!canReadLeague(access.roles)) redirect("/dashboard");
+}
+
+export function requireLeagueManageAccess(access: UserAccessContext) {
+  if (!canManageLeague(access.roles)) redirect("/league");
+}

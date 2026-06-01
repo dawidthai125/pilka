@@ -11,6 +11,7 @@ import {
   canReadAi,
   canReadFinance,
   canReadIntegrations,
+  canReadLeague,
   canReadInventory,
   canReadOwnDevelopment,
   canReadScouting,
@@ -42,6 +43,7 @@ const PLAYER_ONLY_HREFS = [
   "/inventory/portal",
   "/training",
   "/matches",
+  "/league",
   "/players",
   "/academy",
   "/academy/development",
@@ -90,6 +92,9 @@ export function DashboardNav({
           if ("audience" in item && item.audience === "integration_staff") {
             return canReadIntegrations(roles);
           }
+          if ("audience" in item && item.audience === "league_staff") {
+            return canReadLeague(roles);
+          }
           if ("audience" in item && item.audience === "academy_staff") {
             return canReadAcademy(roles) || canReadOwnDevelopment(roles) || canReadScouting(roles);
           }
@@ -124,6 +129,8 @@ export function DashboardNav({
                   ? pathname.startsWith("/video")
                   : item.href === "/content"
                     ? pathname.startsWith("/content")
+                  : item.href === "/league"
+                    ? pathname.startsWith("/league")
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (

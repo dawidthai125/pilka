@@ -1,3 +1,11 @@
+import {
+  mapBool as bool,
+  mapJsonObj as jsonObj,
+  mapNullableStr as nullableStr,
+  mapNum as num,
+  mapStr as str,
+} from "@/lib/mappers/row-helpers";
+import { slugifyTitle } from "@/lib/strings";
 import type {
   ContentApproval,
   ContentAsset,
@@ -7,30 +15,6 @@ import type {
   ContentAiGeneration,
   ContentPost,
 } from "@/types/content";
-
-function str(row: Record<string, unknown>, key: string): string {
-  return String(row[key] ?? "");
-}
-
-function nullableStr(row: Record<string, unknown>, key: string): string | null {
-  const value = row[key];
-  return value == null ? null : String(value);
-}
-
-function num(row: Record<string, unknown>, key: string): number {
-  return Number(row[key] ?? 0);
-}
-
-function bool(row: Record<string, unknown>, key: string): boolean {
-  return Boolean(row[key]);
-}
-
-function jsonObj(row: Record<string, unknown>, key: string): Record<string, unknown> {
-  const value = row[key];
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-}
 
 function jsonTags(row: Record<string, unknown>, key: string): string[] {
   const value = row[key];
@@ -158,12 +142,4 @@ export function mapContentAiGeneration(row: Record<string, unknown>): ContentAiG
   };
 }
 
-export function slugifyContentTitle(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
+export const slugifyContentTitle = slugifyTitle;

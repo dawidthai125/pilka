@@ -1,30 +1,18 @@
 import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatsGrid } from "@/components/ui/stats-grid";
 import type { VideoDashboardStats } from "@/types/video";
 
 export function VideoDashboardStats({ stats }: { stats: VideoDashboardStats }) {
-  const cards = [
+  const items = [
     { label: "Nagrania w bibliotece", value: stats.recentCount },
     { label: "Oczekujące analizy", value: stats.pendingJobs },
     { label: "Raporty AI", value: stats.readyReports },
     { label: "Szkice do zatwierdzenia", value: stats.pendingNewsDrafts },
   ];
 
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {cards.map((card) => (
-        <Card key={card.label}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{card.label}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{card.value}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
+  return <StatsGrid items={items} columns="4" variant="card" valueClassName="text-3xl" />;
 }
 
 export function VideoTopViewedList({ items }: { items: VideoDashboardStats["topViewed"] }) {

@@ -1,5 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_CLUB_ID } from "@/lib/auth/session";
 import { generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
 import type { WebsiteNewsCategory } from "@/types/website";
 import { getPublicMatches, getPublicLeagueTable, getPublicNews } from "@/lib/website/public-data";
@@ -61,27 +59,4 @@ export async function buildWebsiteAiNewsDraft(
   } catch {
     return null;
   }
-}
-
-export async function buildWebsiteAiContext(clubId: string = DEFAULT_CLUB_ID) {
-  const supabase = await createClient();
-  const [newsRes, albumsRes] = await Promise.all([
-    supabase
-      .from("website_news")
-      .select("title, status, category")
-      .eq("club_id", clubId)
-      .order("updated_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("website_gallery_albums")
-      .select("title, is_published, category")
-      .eq("club_id", clubId)
-      .limit(10),
-  ]);
-
-  return {
-    draftNews: (newsRes.data ?? []).filter((n) => n.status === "draft").length,
-    publishedNews: (newsRes.data ?? []).filter((n) => n.status === "published").length,
-    galleryAlbums: (albumsRes.data ?? []).filter((a) => a.is_published).length,
-  };
 }

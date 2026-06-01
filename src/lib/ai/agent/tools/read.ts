@@ -2,9 +2,11 @@ import {
   canReadContent,
   canReadFinance,
   canReadInventory,
+  canReadLeague,
   canReadSponsors,
 } from "@/config/permissions";
 import { buildAiClubContext } from "@/lib/ai/context";
+import { buildLeagueAiInsights, formatLeagueInsightsSummary } from "@/lib/league/insights";
 import { getPlayers, getTeams } from "@/lib/auth/session";
 import type { AiClubContext } from "@/types/ai";
 import { DEFAULT_SEASON } from "@/lib/matches/constants";
@@ -157,6 +159,18 @@ export async function executeReadTool(
           type: p.content_type,
           status: p.status,
         })),
+      };
+    }
+    case "getLeagueInsights": {
+      if (!canReadLeague(access.roles)) {
+        throw new Error("Brak dostępu do League Hub.");
+      }
+      const competitionId = input.competitionId ? String(input.competitionId) : undefined;
+      const insights = await buildLeagueAiInsights(clubId, competitionId);
+      if (!insights) return { message: "Brak danych ligowych — skonfiguruj League Hub." };
+      return {
+        summary: formatLeagueInsightsSummary(insights),
+        ...insights,
       };
     }
     default:

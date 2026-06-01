@@ -30,6 +30,9 @@ const PROTECTED_PREFIXES = [
   "/integrations",
   "/website",
   "/academy",
+  "/video",
+  "/content",
+  "/league",
 ];
 
 function isProtectedAppPath(pathname: string): boolean {
