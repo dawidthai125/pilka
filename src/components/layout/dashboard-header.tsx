@@ -5,12 +5,13 @@ import { MobileDashboardNav } from "@/components/layout/mobile-dashboard-nav";
 import { getRoleLabels } from "@/lib/auth/session";
 import type { Profile } from "@/types/rbac";
 import type { ClubRole } from "@/types/rbac";
-import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { SignOutMenuItem } from "@/features/auth/components/sign-out-button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -88,18 +89,18 @@ export function DashboardHeader({
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Moje konto</DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Moje konto</DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Link href="/profile">Profil użytkownika</Link>
+            <DropdownMenuItem render={<Link href="/profile" />}>
+              Profil użytkownika
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link href="/notifications">Powiadomienia</Link>
+            <DropdownMenuItem render={<Link href="/notifications" />}>
+              Powiadomienia
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="p-0">
-              <SignOutButton />
-            </DropdownMenuItem>
+            <SignOutMenuItem />
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
