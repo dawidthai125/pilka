@@ -1,4 +1,5 @@
 import {
+  canReadContent,
   canReadFinance,
   canReadInventory,
   canReadSponsors,
@@ -117,6 +118,46 @@ export async function executeReadTool(
         throw new Error("Brak dostępu do magazynu.");
       }
       return ctx.inventory;
+    }
+    case "getVideos": {
+      const { data } = await supabase
+        .from("videos")
+        .select("id, title, category, job_status, view_count, created_at")
+        .eq("club_id", clubId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return {
+        total: data?.length ?? 0,
+        pending: (data ?? []).filter((v) => v.job_status === "pending" || v.job_status === "processing").length,
+        videos: (data ?? []).map((v) => ({
+          id: v.id,
+          title: v.title,
+          category: v.category,
+          status: v.job_status,
+          views: v.view_count,
+        })),
+      };
+    }
+    case "getContentPosts": {
+      if (!canReadContent(access.roles)) {
+        throw new Error("Brak dostępu do Content Hub.");
+      }
+      const { data } = await supabase
+        .from("content_posts")
+        .select("id, title, content_type, status, scheduled_at, published_at, created_at")
+        .eq("club_id", clubId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      return {
+        total: data?.length ?? 0,
+        pendingApproval: (data ?? []).filter((p) => p.status === "pending_approval").length,
+        posts: (data ?? []).map((p) => ({
+          id: p.id,
+          title: p.title,
+          type: p.content_type,
+          status: p.status,
+        })),
+      };
     }
     default:
       throw new Error(`Narzędzie ${toolName} nie jest narzędziem odczytu.`);

@@ -25,6 +25,12 @@
 | [audit/stage-13.8-production-infrastructure.md](./audit/stage-13.8-production-infrastructure.md) | Infrastruktura produkcyjna ETAP 13.8 (regiony) |
 | [audit/stage-13.9-pwa-api-diagnosis.md](./audit/stage-13.9-pwa-api-diagnosis.md) | Diagnoza TTFB `/api/pwa/offline-data` ETAP 13.9 |
 | [audit/stage-13.10-pwa-api-optimization.md](./audit/stage-13.10-pwa-api-optimization.md) | Optymalizacja TTFB PWA API ETAP 13.10 (PRZED/PO) |
+| [modules/stage-14-video-center.md](./modules/stage-14-video-center.md) | ETAP 14 — Video Center / AI Video Analysis |
+| [stage-14-report.md](./stage-14-report.md) | Raport ETAP 14 (Video Center) |
+| [audit/stage-14-audit.md](./audit/stage-14-audit.md) | Audyt ETAP 14 Video Center (post-fix) |
+| [modules/stage-15a-content-hub.md](./modules/stage-15a-content-hub.md) | ETAP 15A — Content Hub |
+| [stage-15a-report.md](./stage-15a-report.md) | Raport ETAP 15A (Content Hub) |
+| [audit/stage-15a-audit.md](./audit/stage-15a-audit.md) | Audyt ETAP 15A Content Hub (post-fix) |
 | [audit/stage-11.6-security-audit-post-fix.md](./audit/stage-11.6-security-audit-post-fix.md) | Audyt bezpieczeństwa po poprawkach 11.6 |
 | [deployment/production-checklist.md](./deployment/production-checklist.md) | Checklist wdrożenia produkcyjnego |
 | [modules/](./modules/README.md) | Dokumentacja modułów (tworzona etapami) |

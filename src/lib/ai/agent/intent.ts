@@ -88,8 +88,25 @@ export function parseCommandToTools(command: string): ParsedToolCall[] {
     return [{ toolName: "getInventory", input: {} }];
   }
 
-  if (includesAny(text, ["aktualno", "news", "post"])) {
+  if (includesAny(text, ["content hub", "content", "facebook", "instagram", "zapowied", "relacj", "komunikat", "kolejk", "post sponsor"])) {
+    if (includesAny(text, ["publik", "zatwierd", "akcept", "zaplanuj"])) {
+      return [{ toolName: "proposeContentPublication", input: { prompt: command } }];
+    }
+    return [{ toolName: "generateContentPost", input: { prompt: command } }];
+  }
+
+  if (includesAny(text, ["aktualno", "news", "post"]) && !includesAny(text, ["wideo", "video", "nagran", "content"])) {
     return [{ toolName: "generateNews", input: { topic: command } }];
+  }
+
+  if (includesAny(text, ["wideo", "video", "nagran", "film"])) {
+    if (includesAny(text, ["analiz", "raport"])) {
+      return [{ toolName: "analyzeVideo", input: {} }];
+    }
+    if (includesAny(text, ["podsumow", "zawodnik", "materiał"])) {
+      return [{ toolName: "generateVideoSummary", input: {} }];
+    }
+    return [{ toolName: "getVideos", input: {} }];
   }
 
   return [];
@@ -121,6 +138,18 @@ export function summarizeToolResult(toolName: AiToolName, result: unknown): stri
       return "Operacja wykonana pomyślnie.";
     case "createNotification":
       return `Wysłano powiadomienie do ${(data as { recipients?: number }).recipients ?? 0} użytkowników.`;
+    case "getVideos":
+      return `Nagrania w Video Center: ${data.total ?? 0} (oczekujące analizy: ${data.pending ?? 0}).`;
+    case "analyzeVideo":
+      return "Analiza wideo zakończona — raport zapisany w Video Center.";
+    case "generateVideoSummary":
+      return "Przygotowano podsumowanie materiału wideo dla zawodników.";
+    case "getContentPosts":
+      return `Materiały Content Hub: ${data.total ?? 0} (do akceptacji: ${data.pendingApproval ?? 0}).`;
+    case "generateContentPost":
+      return "Materiał Content Hub wygenerowany — oczekuje zatwierdzenia przed publikacją.";
+    case "proposeContentPublication":
+      return "Propozycja publikacji zapisana — wymaga zatwierdzenia przez człowieka.";
     default:
       return "Zadanie wykonane.";
   }

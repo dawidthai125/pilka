@@ -12,10 +12,12 @@ import {
   Shield,
   Link2,
   ListOrdered,
+  Newspaper,
   Trophy,
   User,
   UserRound,
   Users,
+  Video,
   Wallet,
 } from "lucide-react";
 
@@ -59,6 +61,18 @@ export const dashboardNav = [
     title: "Mecze",
     href: "/matches",
     icon: Trophy,
+  },
+  {
+    title: "Video Center",
+    href: "/video",
+    icon: Video,
+    audience: "video_staff" as const,
+  },
+  {
+    title: "Content Hub",
+    href: "/content",
+    icon: Newspaper,
+    audience: "content_staff" as const,
   },
   {
     title: "Tabela ligowa",

@@ -82,6 +82,14 @@ export const PERMISSIONS = [
   "academy:read_own",
   "scouting:read",
   "scouting:manage",
+  "video:read",
+  "video:manage",
+  "video:share",
+  "video:publish_news",
+  "content:read",
+  "content:create",
+  "content:manage",
+  "content:publish",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];

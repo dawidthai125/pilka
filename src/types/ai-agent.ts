@@ -26,7 +26,13 @@ export type AiToolName =
   | "createMatch"
   | "createNotification"
   | "generateReport"
-  | "generateNews";
+  | "generateNews"
+  | "getVideos"
+  | "analyzeVideo"
+  | "generateVideoSummary"
+  | "getContentPosts"
+  | "generateContentPost"
+  | "proposeContentPublication";
 
 export type AiToolDefinition = {
   name: AiToolName;

@@ -84,7 +84,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -532,6 +532,34 @@ export function requireAiReadAccess(access: UserAccessContext) {
 
 export function requireSponsorReadAccess(access: UserAccessContext) {
   if (!canReadSponsors(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireVideoReadAccess(access: UserAccessContext) {
+  if (!canReadVideos(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireContentReadAccess(access: UserAccessContext) {
+  if (!canReadContent(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export async function requireVideoDetailAccess(access: UserAccessContext, videoId: string) {
+  if (canReadVideos(access.roles)) return;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("video_shares")
+    .select("id")
+    .eq("video_id", videoId)
+    .eq("shared_with_user_id", access.userId)
+    .maybeSingle();
+
+  if (!data) {
     redirect("/dashboard");
   }
 }

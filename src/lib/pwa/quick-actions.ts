@@ -8,11 +8,15 @@ import {
   Handshake,
   Bot,
   Users,
+  Video,
+  Newspaper,
 } from "lucide-react";
 
 import {
   canManageMatches,
   canManageTrainings,
+  canManageVideos,
+  canManageContent,
   canMarkTrainingAttendance,
   canSetTrainingAvailability,
   canManagePlayers,
@@ -95,6 +99,22 @@ export function getQuickActionsForRoles(roles: ClubRole[]): QuickAction[] {
       label: "Panel sponsora",
       href: "/sponsors/portal",
       icon: Handshake,
+    });
+  }
+  if (canManageVideos(roles)) {
+    actions.push({
+      id: "video-upload",
+      label: "Video Center",
+      href: "/video",
+      icon: Video,
+    });
+  }
+  if (canManageContent(roles)) {
+    actions.push({
+      id: "content-hub",
+      label: "Content Hub",
+      href: "/content",
+      icon: Newspaper,
     });
   }
   if (canUseAiChat(roles)) {

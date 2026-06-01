@@ -86,6 +86,48 @@ export const AI_TOOL_REGISTRY: Record<AiToolName, AiToolDefinition> = {
     permissions: ["website:create"],
     requiresApproval: true,
   },
+  getVideos: {
+    name: "getVideos",
+    description: "Lista nagrań Video Center i status analiz",
+    riskLevel: "low",
+    permissions: ["video:read"],
+    requiresApproval: false,
+  },
+  analyzeVideo: {
+    name: "analyzeVideo",
+    description: "Uruchom analizę AI nagrania wideo",
+    riskLevel: "medium",
+    permissions: ["video:manage"],
+    requiresApproval: true,
+  },
+  generateVideoSummary: {
+    name: "generateVideoSummary",
+    description: "Przygotuj podsumowanie meczu/treningu dla zawodników",
+    riskLevel: "medium",
+    permissions: ["video:manage"],
+    requiresApproval: true,
+  },
+  getContentPosts: {
+    name: "getContentPosts",
+    description: "Lista materiałów Content Hub i statusy publikacji",
+    riskLevel: "low",
+    permissions: ["content:read"],
+    requiresApproval: false,
+  },
+  generateContentPost: {
+    name: "generateContentPost",
+    description: "Wygeneruj materiał Content Hub (strona, Facebook, Instagram)",
+    riskLevel: "medium",
+    permissions: ["content:create"],
+    requiresApproval: true,
+  },
+  proposeContentPublication: {
+    name: "proposeContentPublication",
+    description: "Zaproponuj publikację materiału (wymaga zatwierdzenia przez człowieka)",
+    riskLevel: "medium",
+    permissions: ["content:publish"],
+    requiresApproval: true,
+  },
 };
 
 export function getToolDefinition(name: string): AiToolDefinition | null {
