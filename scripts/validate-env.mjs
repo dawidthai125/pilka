@@ -27,4 +27,26 @@ if (!result.success) {
   process.exit(1);
 }
 
+if (process.env.NODE_ENV === "production" && !process.env.OPENAI_API_KEY?.trim()) {
+  console.warn(
+    "Warning: OPENAI_API_KEY is not set — moduł AI będzie niedostępny w produkcji.",
+  );
+}
+
+for (const key of Object.keys(process.env)) {
+  if (
+    key.startsWith("NEXT_PUBLIC_") &&
+    process.env[key]?.includes("service_role")
+  ) {
+    console.error(`Invalid environment: ${key} must not contain service_role key material.`);
+    process.exit(1);
+  }
+}
+
+if (process.env.ALLOW_PUBLIC_REGISTRATION !== "false") {
+  console.warn(
+    "Warning: ALLOW_PUBLIC_REGISTRATION is not false — otwarta rejestracja włączona.",
+  );
+}
+
 console.log("Environment validation passed.");

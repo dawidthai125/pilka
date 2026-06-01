@@ -58,6 +58,10 @@ export const AI_MAX_MESSAGE_LENGTH = 4000;
 
 export const AI_MAX_HISTORY_MESSAGES = 20;
 
+export const AI_MAX_MESSAGES_PER_HOUR = 30;
+
+export const OPENAI_MAX_OUTPUT_TOKENS = 1024;
+
 export function buildAiSystemPrompt(clubName: string): string {
   return `Jesteś Club AI Assistant — asystentem klubu piłkarskiego ${clubName}.
 Odpowiadaj WYŁĄCZNIE na podstawie danych klubu przekazanych w kontekście JSON.

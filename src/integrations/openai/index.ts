@@ -1,4 +1,8 @@
-import { buildAiSystemPrompt, OPENAI_DEFAULT_MODEL } from "@/lib/ai/constants";
+import {
+  buildAiSystemPrompt,
+  OPENAI_DEFAULT_MODEL,
+  OPENAI_MAX_OUTPUT_TOKENS,
+} from "@/lib/ai/constants";
 
 export function getOpenAiApiKey(): string | null {
   const key = process.env.OPENAI_API_KEY?.trim();
@@ -29,6 +33,7 @@ export async function callOpenAiChat(
     body: JSON.stringify({
       model: options?.model ?? process.env.OPENAI_MODEL ?? OPENAI_DEFAULT_MODEL,
       temperature: options?.temperature ?? 0.3,
+      max_tokens: OPENAI_MAX_OUTPUT_TOKENS,
       messages,
     }),
   });

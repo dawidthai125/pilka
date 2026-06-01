@@ -404,6 +404,15 @@ export async function getFinanceDocumentSignedUrl(storagePath: string): Promise<
   if (!storagePath.startsWith(`${access.clubId}/finance/`)) return null;
 
   const supabase = await createClient();
+  const { data: document } = await supabase
+    .from("finance_documents")
+    .select("id")
+    .eq("club_id", access.clubId)
+    .eq("storage_path", storagePath)
+    .maybeSingle();
+
+  if (!document) return null;
+
   const { data } = await supabase.storage.from("club-assets").createSignedUrl(storagePath, 3600);
   return data?.signedUrl ?? null;
 }

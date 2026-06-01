@@ -1,5 +1,6 @@
 import { InventoryOrdersPanel } from "@/features/inventory/components/inventory-orders-panel";
 import { canManageInventory } from "@/config/permissions";
+import { todayIsoDate } from "@/lib/dates";
 import {
   getDashboardContext,
   getInventoryPurchaseOrders,
@@ -26,6 +27,7 @@ export default async function InventoryOrdersPage() {
         orders={orders}
         suppliers={suppliers}
         canManage={canManageInventory(access.roles)}
+        defaultDate={todayIsoDate()}
       />
     </div>
   );

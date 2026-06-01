@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ETAP 9 setup: Website module migrations + seed.
+ * ETAP 11.6 setup: Production hardening migration (RLS, storage, anon grants).
  */
 
 import { join, dirname } from "node:path";
@@ -14,15 +14,14 @@ const root = join(__dirname, "..");
 
 dotenv.config({ path: join(root, ".env.local") });
 
-const STAGE9_MIGRATIONS = [
-  "supabase/migrations/20260603100000_website_module.sql",
-  "supabase/migrations/20260603101000_seed_website.sql",
-  "supabase/migrations/20260603102000_website_audit_hardening.sql",
+const STAGE116_MIGRATIONS = [
+  "supabase/migrations/20260606120000_stage116_production_hardening.sql",
+  "supabase/migrations/20260606140000_stage116_p2_security_completion.sql",
 ];
 
 async function main() {
-  await applyMigrationFiles(root, STAGE9_MIGRATIONS);
-  console.log("ETAP 9 setup complete.");
+  await applyMigrationFiles(root, STAGE116_MIGRATIONS);
+  console.log("ETAP 11.6 (stage116) production hardening complete.");
 }
 
 main().catch((err) => {

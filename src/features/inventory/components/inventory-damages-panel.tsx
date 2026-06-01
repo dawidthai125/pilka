@@ -14,10 +14,12 @@ export function InventoryDamagesPanel({
   items,
   damages,
   canIssue,
+  defaultDate,
 }: {
   items: InventoryItem[];
   damages: InventoryDamage[];
   canIssue: boolean;
+  defaultDate: string;
 }) {
   const [state, action, pending] = useActionState(registerInventoryDamage, {});
 
@@ -33,7 +35,7 @@ export function InventoryDamagesPanel({
                 <option key={i.id} value={i.id}>{i.name}</option>
               ))}
             </select>
-            <input name="damageDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+            <input name="damageDate" type="date" required defaultValue={defaultDate} className={inputClass} />
             <select name="status" className={inputClass}>
               {Object.entries(INVENTORY_DAMAGE_STATUS_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>

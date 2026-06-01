@@ -1,5 +1,6 @@
 import { InventoryIssuesPanel } from "@/features/inventory/components/inventory-issues-panel";
 import { canIssueInventory } from "@/config/permissions";
+import { todayIsoDate } from "@/lib/dates";
 import {
   getClubMembers,
   getDashboardContext,
@@ -32,6 +33,7 @@ export default async function InventoryIssuesPage() {
         members={members}
         transactions={transactions}
         canIssue={canIssueInventory(access.roles)}
+        defaultDate={todayIsoDate()}
       />
     </div>
   );

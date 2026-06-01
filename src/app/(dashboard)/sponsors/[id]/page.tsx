@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { SponsorDetailView } from "@/features/sponsors/components/sponsor-detail-view";
 import { canManageSponsors } from "@/config/permissions";
+import { todayIsoDate } from "@/lib/dates";
 import {
   getDashboardContext,
   getSponsorDetail,
@@ -21,6 +22,10 @@ export default async function SponsorDetailPage({
   if (!data) notFound();
 
   return (
-    <SponsorDetailView data={data} canManage={canManageSponsors(access.roles)} />
+    <SponsorDetailView
+      data={data}
+      canManage={canManageSponsors(access.roles)}
+      defaultDate={todayIsoDate()}
+    />
   );
 }

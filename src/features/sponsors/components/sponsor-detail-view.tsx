@@ -28,9 +28,11 @@ const initialState: SponsorActionState = {};
 export function SponsorDetailView({
   data,
   canManage,
+  defaultDate,
 }: {
   data: SponsorDetailData;
   canManage: boolean;
+  defaultDate: string;
 }) {
   const { sponsor } = data;
   const contractAction = createSponsorContract.bind(null, sponsor.id);
@@ -150,7 +152,7 @@ export function SponsorDetailView({
                 <option key={t} value={t}>{SPONSOR_NOTE_TYPE_LABELS[t]}</option>
               ))}
             </select>
-            <Input name="contactDate" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
+            <Input name="contactDate" type="date" defaultValue={defaultDate} />
             <textarea name="content" rows={3} required placeholder="Treść kontaktu..." className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm" />
             {noteState.error ? <p className="text-sm text-destructive">{noteState.error}</p> : null}
             <Button type="submit" size="sm" disabled={notePending}>Dodaj wpis</Button>

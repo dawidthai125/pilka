@@ -494,6 +494,15 @@ export async function getInventoryPhotoSignedUrl(storagePath: string): Promise<s
   if (!storagePath.startsWith(`${access.clubId}/inventory/`)) return null;
 
   const supabase = await createClient();
+  const { data: item } = await supabase
+    .from("inventory_items")
+    .select("id")
+    .eq("club_id", access.clubId)
+    .eq("photo_path", storagePath)
+    .maybeSingle();
+
+  if (!item) return null;
+
   const { data } = await supabase.storage.from("club-assets").createSignedUrl(storagePath, 3600);
   return data?.signedUrl ?? null;
 }

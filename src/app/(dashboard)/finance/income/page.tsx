@@ -1,3 +1,4 @@
+import { todayIsoDate } from "@/lib/dates";
 import { FinanceIncomeForm } from "@/features/finance/components/finance-income-form";
 import { FinanceTransactionsTable } from "@/features/finance/components/finance-transactions-table";
 import { canManageFinance } from "@/config/permissions";
@@ -14,7 +15,7 @@ export default async function FinanceIncomePage() {
         <h1 className="text-2xl font-semibold">Przychody</h1>
         <p className="text-sm text-muted-foreground">{income.length} operacji</p>
       </div>
-      {canManageFinance(access.roles) ? <FinanceIncomeForm /> : null}
+      {canManageFinance(access.roles) ? <FinanceIncomeForm defaultDate={todayIsoDate()} /> : null}
       <FinanceTransactionsTable type="income" items={income} />
     </div>
   );

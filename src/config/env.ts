@@ -55,3 +55,13 @@ export function getServerEnv(): ServerEnv {
 export function getSiteUrl(): string {
   return getClientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
 }
+
+/** Domyślnie włączona (dev). Ustaw ALLOW_PUBLIC_REGISTRATION=false na produkcji. */
+export function isPublicRegistrationEnabled(): boolean {
+  return process.env.ALLOW_PUBLIC_REGISTRATION !== "false";
+}
+
+/** W produkcji wymaga OPENAI_API_KEY, jeśli moduł AI ma być dostępny. */
+export function isOpenAiRequiredInProduction(): boolean {
+  return process.env.NODE_ENV === "production";
+}

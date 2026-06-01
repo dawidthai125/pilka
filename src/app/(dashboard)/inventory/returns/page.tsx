@@ -1,5 +1,6 @@
 import { InventoryReturnsPanel } from "@/features/inventory/components/inventory-returns-panel";
 import { canIssueInventory } from "@/config/permissions";
+import { todayIsoDate } from "@/lib/dates";
 import {
   getDashboardContext,
   getInventoryItems,
@@ -29,6 +30,7 @@ export default async function InventoryReturnsPage() {
         transactions={transactions}
         returns={returns}
         canIssue={canIssueInventory(access.roles)}
+        defaultDate={todayIsoDate()}
       />
     </div>
   );

@@ -34,7 +34,7 @@ import {
 export const DEFAULT_PUBLIC_CLUB_SLUG = siteConfig.defaultClubSlug;
 
 const MATCH_PUBLIC_SELECT =
-  "id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, stadium, competition, round_number, status, coach_notes";
+  "id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, stadium, competition, round_number, status";
 
 export const resolvePublicClubId = cache(async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<string | null> => {
   const supabase = await createClient();

@@ -15,7 +15,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-import pg from "pg";
+import { connectDb } from "./lib/db-client.mjs";
 import { createClient } from "@supabase/supabase-js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -143,21 +143,11 @@ async function seedUsers(admin) {
 }
 
 async function main() {
-  const dbPassword = requireEnv("SUPABASE_DB_PASSWORD");
   const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
   const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-  const client = new pg.Client({
-    host: `db.${PROJECT_REF}.supabase.co`,
-    port: 5432,
-    user: "postgres",
-    password: dbPassword,
-    database: "postgres",
-    ssl: { rejectUnauthorized: false },
-  });
-
-  await client.connect();
-  console.log("Connected to PostgreSQL.");
+  const client = await connectDb();
+  console.log("Connected to PostgreSQL (pooler).");
 
   try {
     await runMigrations(client);

@@ -11,6 +11,7 @@ import {
 import { requireAccessContext } from "@/lib/auth/session";
 import { AI_MAX_MESSAGE_LENGTH } from "@/lib/ai/constants";
 import { buildAiClubContext, serializeAiContext } from "@/lib/ai/context";
+import { AiRateLimitError, AiReportRateLimitError, assertAiChatRateLimit, assertAiReportRateLimit } from "@/lib/ai/rate-limit";
 import { syncAiSuggestions } from "@/lib/ai/insights";
 import { generateAiAnswer, generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +24,21 @@ function revalidateAiPaths() {
   revalidatePath("/ai/chat");
   revalidatePath("/ai/reports");
   revalidatePath("/ai/suggestions");
+}
+
+async function assertReportRateLimitOrError(
+  userId: string,
+  clubId: string,
+): Promise<AiActionState | null> {
+  try {
+    await assertAiReportRateLimit(userId, clubId);
+    return null;
+  } catch (error) {
+    if (error instanceof AiReportRateLimitError) {
+      return { error: error.message };
+    }
+    throw error;
+  }
 }
 
 async function verifyConversationOwned(
@@ -92,6 +108,15 @@ export async function sendAiMessage(
     return { error: "Rozmowa nie istnieje." };
   }
 
+  try {
+    await assertAiChatRateLimit(access.userId, access.clubId);
+  } catch (error) {
+    if (error instanceof AiRateLimitError) {
+      return { error: error.message };
+    }
+    throw error;
+  }
+
   const supabase = await createClient();
 
   const { error: userError } = await supabase.from("ai_messages").insert({
@@ -117,7 +142,7 @@ export async function sendAiMessage(
 
   let assistantContent: string;
   try {
-    const ctxObj = await buildAiClubContext(access.clubId);
+    const ctxObj = await buildAiClubContext(access);
     if (!isOpenAiConfigured()) {
       assistantContent =
         "OpenAI nie jest skonfigurowane (brak OPENAI_API_KEY). " +
@@ -282,6 +307,9 @@ export async function generateAiMatchReport(
     return { error: "Brak uprawnień." };
   }
 
+  const rateError = await assertReportRateLimitOrError(access.userId, access.clubId);
+  if (rateError) return rateError;
+
   const supabase = await createClient();
   const { data: match } = await supabase
     .from("matches")
@@ -294,7 +322,7 @@ export async function generateAiMatchReport(
     return { error: "Mecz musi być zakończony." };
   }
 
-  const ctxObj = await buildAiClubContext(access.clubId);
+  const ctxObj = await buildAiClubContext(access);
   const instruction =
     `Wygeneruj raport meczowy AI po meczu ${match.home_team_name} ${match.home_score}:${match.away_score} ${match.away_team_name} (${match.match_date}). ` +
     "Sekcje: Podsumowanie, Najważniejsze wydarzenia, Wyróżnieni zawodnicy, Mocne strony, Słabe strony. Markdown.";
@@ -330,7 +358,10 @@ export async function generateAiTrainingReport(_prev: AiActionState): Promise<Ai
     return { error: "Brak uprawnień." };
   }
 
-  const ctxObj = await buildAiClubContext(access.clubId);
+  const rateError = await assertReportRateLimitOrError(access.userId, access.clubId);
+  if (rateError) return rateError;
+
+  const ctxObj = await buildAiClubContext(access);
   const instruction =
     "Wygeneruj raport treningowy AI — podsumowanie tygodnia: frekwencja, aktywność zawodników, nieobecności. Markdown.";
 
@@ -362,7 +393,10 @@ export async function generateAiManagementReport(_prev: AiActionState): Promise<
   const access = await requireAccessContext();
   if (!canManageAi(access.roles)) return { error: "Brak uprawnień." };
 
-  const ctxObj = await buildAiClubContext(access.clubId);
+  const rateError = await assertReportRateLimitOrError(access.userId, access.clubId);
+  if (rateError) return rateError;
+
+  const ctxObj = await buildAiClubContext(access);
   const month = new Date().toISOString().slice(0, 7);
   const instruction =
     `Wygeneruj miesięczny raport zarządu AI za ${month}: liczba treningów, meczów, średnia frekwencja, aktywność, wydarzenia. Markdown.`;
@@ -400,6 +434,9 @@ export async function generateAiSocialPosts(
     return { error: "Brak uprawnień." };
   }
 
+  const rateError = await assertReportRateLimitOrError(access.userId, access.clubId);
+  if (rateError) return rateError;
+
   const supabase = await createClient();
   const { data: match } = await supabase
     .from("matches")
@@ -412,7 +449,7 @@ export async function generateAiSocialPosts(
     return { error: "Mecz musi być zakończony." };
   }
 
-  const ctxObj = await buildAiClubContext(access.clubId);
+  const ctxObj = await buildAiClubContext(access);
   const base = `${match.home_team_name} ${match.home_score}:${match.away_score} ${match.away_team_name}`;
 
   let facebookContent = `⚽ ${base} — dziękujemy kibicom!`;
@@ -487,7 +524,7 @@ export async function refreshAiSuggestions(_prev: AiActionState): Promise<AiActi
   const access = await requireAccessContext();
   if (!canUseAiChat(access.roles)) return { error: "Brak uprawnień." };
 
-  const count = await syncAiSuggestions(access.clubId);
+  const count = await syncAiSuggestions(access);
   revalidateAiPaths();
   return { success: `Zaktualizowano sugestie (${count} nowych).` };
 }

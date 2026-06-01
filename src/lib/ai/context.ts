@@ -1,5 +1,12 @@
 import { unstable_cache } from "next/cache";
 
+import {
+  canReadAcademy,
+  canReadFinance,
+  canReadIntegrations,
+  canReadInventory,
+  canReadSponsors,
+} from "@/config/permissions";
 import { DEFAULT_CLUB_ID, getClub, getPlayers, getTeams } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { computeTeamForm, aggregateTeamStats } from "@/lib/matches/mappers";
@@ -7,6 +14,7 @@ import { DEFAULT_SEASON } from "@/lib/matches/constants";
 import { formatIsoDate, startOfWeek } from "@/lib/training/calendar";
 import { createClient } from "@/lib/supabase/server";
 import type { AiClubContext } from "@/types/ai";
+import type { ClubRole, UserAccessContext } from "@/types/rbac";
 import { mapMatch } from "@/lib/matches/mappers";
 import { buildSponsorAiContext } from "@/lib/sponsors/insights";
 import { buildFinanceAiContext } from "@/lib/finance/insights";
@@ -15,24 +23,82 @@ import { buildIntegrationsAiContext } from "@/lib/integrations/insights";
 import { buildAcademyAiContext } from "@/lib/academy/insights";
 
 const MATCH_SELECT =
-  "id, club_id, team_id, competition, season, round_number, match_date, match_time, home_team_name, away_team_name, stadium, stadium_address, status, home_score, away_score, formation, mvp_player_id, coach_notes, teams(name), mvp:mvp_player_id(first_name, last_name)";
+  "id, club_id, team_id, competition, season, round_number, match_date, match_time, home_team_name, away_team_name, stadium, stadium_address, status, home_score, away_score, formation, mvp_player_id, teams(name), mvp:mvp_player_id(first_name, last_name)";
 
 const MAX_MATCHES_FOR_CONTEXT = 15;
 const MAX_ATTENDANCE_ROWS = 2000;
 
+export type AiContextScope = Pick<UserAccessContext, "userId" | "clubId" | "roles">;
+
+const EMPTY_SPONSORS: AiClubContext["sponsors"] = {
+  totalSponsors: 0,
+  activeContracts: 0,
+  activeContractValue: 0,
+  expiringWithin60Days: [],
+  noContact30Days: [],
+};
+
+const EMPTY_FINANCE: AiClubContext["finance"] = {
+  summary: { totalIncome: 0, totalExpenses: 0, balance: 0, overdueFeesCount: 0 },
+  overduePlayerFees: [],
+  unpaidSponsorEntries: [],
+  recentExpenses: [],
+};
+
+const EMPTY_INVENTORY: AiClubContext["inventory"] = {
+  summary: { totalItems: 0, lowStockCount: 0, damagedCount: 0, ballsAvailable: 0 },
+  lowStockItems: [],
+  openDamages: [],
+  playersWithoutKit: [],
+};
+
+const EMPTY_INTEGRATIONS: AiClubContext["integrations"] = {
+  integrations: [],
+  recentSyncLogs: [],
+  recentImports: [],
+  pendingConflicts: [],
+  summary: {
+    activeIntegrations: 0,
+    recentErrors: 0,
+    partialSyncs: 0,
+    pendingConflicts: 0,
+  },
+};
+
+const EMPTY_ACADEMY: AiClubContext["academy"] = {
+  groups: [],
+  topTalents: [],
+  regressions: [],
+  recentAssessments: [],
+  activeGoals: [],
+  recentTransitions: [],
+  scoutingProspects: [],
+  scoutingReports: [],
+  summary: {},
+};
+
+function scopeCacheKey(roles: ClubRole[]): string {
+  return [...roles].sort().join(",");
+}
+
 export async function buildAiClubContext(
-  clubId: string = DEFAULT_CLUB_ID,
+  access: AiContextScope = {
+    userId: "system",
+    clubId: DEFAULT_CLUB_ID,
+    roles: ["owner"],
+  },
 ): Promise<AiClubContext> {
+  const roleKey = scopeCacheKey(access.roles);
+
   return unstable_cache(
-    () => buildAiClubContextUncached(clubId),
-    ["ai-club-context", clubId],
-    { revalidate: 300, tags: [`ai-context-${clubId}`] },
+    () => buildAiClubContextUncached(access),
+    ["ai-club-context", access.clubId, access.userId, roleKey],
+    { revalidate: 300, tags: [`ai-context-${access.clubId}-${access.userId}`] },
   )();
 }
 
-async function buildAiClubContextUncached(
-  clubId: string = DEFAULT_CLUB_ID,
-): Promise<AiClubContext> {
+async function buildAiClubContextUncached(access: AiContextScope): Promise<AiClubContext> {
+  const clubId = access.clubId;
   const [club, players, teams] = await Promise.all([
     getClub(clubId),
     getPlayers(clubId),
@@ -159,11 +225,16 @@ async function buildAiClubContextUncached(
     goals: row.goals,
   }));
 
-  const sponsors = await buildSponsorAiContext(clubId);
-  const finance = await buildFinanceAiContext(clubId);
-  const inventory = await buildInventoryAiContext(clubId);
-  const integrations = await buildIntegrationsAiContext(clubId);
-  const academy = await buildAcademyAiContext(clubId);
+  const { roles } = access;
+  const [sponsors, finance, inventory, integrations, academy] = await Promise.all([
+    canReadSponsors(roles) ? buildSponsorAiContext(clubId) : Promise.resolve(EMPTY_SPONSORS),
+    canReadFinance(roles) ? buildFinanceAiContext(clubId) : Promise.resolve(EMPTY_FINANCE),
+    canReadInventory(roles) ? buildInventoryAiContext(clubId) : Promise.resolve(EMPTY_INVENTORY),
+    canReadIntegrations(roles)
+      ? buildIntegrationsAiContext(clubId)
+      : Promise.resolve(EMPTY_INTEGRATIONS),
+    canReadAcademy(roles) ? buildAcademyAiContext(clubId) : Promise.resolve(EMPTY_ACADEMY),
+  ]);
 
   return {
     clubName,

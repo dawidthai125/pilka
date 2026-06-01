@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getSiteUrl } from "@/config/env";
+import { getSiteUrl, isPublicRegistrationEnabled } from "@/config/env";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthActionState = {
@@ -36,6 +36,10 @@ export async function signUpWithPassword(
   _prev: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
+  if (!isPublicRegistrationEnabled()) {
+    return { error: "Rejestracja nowych kont jest wyłączona. Skontaktuj się z zarządem klubu." };
+  }
+
   const fullName = String(formData.get("fullName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");

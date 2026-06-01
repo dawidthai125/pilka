@@ -17,12 +17,14 @@ export function InventoryIssuesPanel({
   members,
   transactions,
   canIssue,
+  defaultDate,
 }: {
   items: InventoryItem[];
   players: Player[];
   members: ClubMemberRow[];
   transactions: InventoryTransaction[];
   canIssue: boolean;
+  defaultDate: string;
 }) {
   const [state, action, pending] = useActionState(issueInventoryItem, {});
 
@@ -65,7 +67,7 @@ export function InventoryIssuesPanel({
               ))}
             </select>
             <input name="quantity" type="number" min={1} placeholder="Ilość" required className={inputClass} />
-            <input name="issueDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+            <input name="issueDate" type="date" required defaultValue={defaultDate} className={inputClass} />
             <input name="expectedReturnDate" type="date" className={inputClass} />
           </div>
           <textarea name="notes" placeholder="Uwagi" rows={2} className="border-input w-full rounded-md border px-3 py-2" />

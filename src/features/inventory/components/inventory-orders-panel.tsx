@@ -14,10 +14,12 @@ export function InventoryOrdersPanel({
   orders,
   suppliers,
   canManage,
+  defaultDate,
 }: {
   orders: InventoryPurchaseOrder[];
   suppliers: InventorySupplier[];
   canManage: boolean;
+  defaultDate: string;
 }) {
   const [state, action, pending] = useActionState(createInventoryPurchaseOrder, {});
 
@@ -42,7 +44,7 @@ export function InventoryOrdersPanel({
                 <option key={k} value={k}>{v}</option>
               ))}
             </select>
-            <input name="orderDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+            <input name="orderDate" type="date" required defaultValue={defaultDate} className={inputClass} />
             <input name="expectedDelivery" type="date" className={inputClass} />
           </div>
           <textarea name="notes" placeholder="Uwagi" rows={2} className="border-input w-full rounded-md border px-3 py-2" />

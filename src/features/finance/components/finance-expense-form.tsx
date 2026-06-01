@@ -9,7 +9,7 @@ import {
 } from "@/lib/finance/constants";
 import { FINANCE_EXPENSE_CATEGORIES } from "@/types/finance";
 
-export function FinanceExpenseForm() {
+export function FinanceExpenseForm({ defaultDate }: { defaultDate: string }) {
   const [state, action, pending] = useActionState(createFinanceExpense, {});
 
   return (
@@ -22,7 +22,7 @@ export function FinanceExpenseForm() {
             type="date"
             name="transactionDate"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            defaultValue={defaultDate}
             className="border-input bg-background mt-1 min-h-[44px] w-full rounded-md border px-3"
           />
         </label>

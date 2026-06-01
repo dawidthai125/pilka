@@ -1,5 +1,6 @@
 import { InventoryDamagesPanel } from "@/features/inventory/components/inventory-damages-panel";
 import { canIssueInventory } from "@/config/permissions";
+import { todayIsoDate } from "@/lib/dates";
 import {
   getDashboardContext,
   getInventoryDamages,
@@ -26,6 +27,7 @@ export default async function InventoryDamagesPage() {
         items={items}
         damages={damages}
         canIssue={canIssueInventory(access.roles)}
+        defaultDate={todayIsoDate()}
       />
     </div>
   );

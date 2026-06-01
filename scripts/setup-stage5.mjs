@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-import pg from "pg";
+import { connectDb } from "./lib/db-client.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -34,18 +34,8 @@ function requireEnv(name) {
 }
 
 async function main() {
-  const dbPassword = requireEnv("SUPABASE_DB_PASSWORD");
-  const client = new pg.Client({
-    host: `db.${PROJECT_REF}.supabase.co`,
-    port: 5432,
-    user: "postgres",
-    password: dbPassword,
-    database: "postgres",
-    ssl: { rejectUnauthorized: false },
-  });
-
-  await client.connect();
-  console.log("Connected to PostgreSQL.");
+  const client = await connectDb();
+  console.log("Connected to PostgreSQL (pooler).");
 
   try {
     for (const file of STAGE5_MIGRATIONS) {

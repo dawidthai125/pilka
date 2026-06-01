@@ -15,11 +15,13 @@ export function InventoryReturnsPanel({
   transactions,
   returns,
   canIssue,
+  defaultDate,
 }: {
   items: InventoryItem[];
   transactions: InventoryTransaction[];
   returns: InventoryReturn[];
   canIssue: boolean;
+  defaultDate: string;
 }) {
   const [state, action, pending] = useActionState(returnInventoryItem, {});
 
@@ -49,7 +51,7 @@ export function InventoryReturnsPanel({
                 <option key={k} value={k}>{v}</option>
               ))}
             </select>
-            <input name="returnDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+            <input name="returnDate" type="date" required defaultValue={defaultDate} className={inputClass} />
           </div>
           <textarea name="notes" placeholder="Uwagi" rows={2} className="border-input w-full rounded-md border px-3 py-2" />
           <Button type="submit" disabled={pending}>Zapisz zwrot</Button>

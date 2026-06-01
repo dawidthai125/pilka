@@ -1,8 +1,8 @@
 import type { Json } from "@/types/database";
-import { DEFAULT_CLUB_ID } from "@/lib/auth/session";
+import type { AiContextScope } from "@/lib/ai/context";
+import { buildAiClubContext } from "@/lib/ai/context";
 import { createClient } from "@/lib/supabase/server";
 import type { AiSuggestionType } from "@/types/ai";
-import { buildAiClubContext } from "@/lib/ai/context";
 
 type DetectedSuggestion = {
   suggestionType: AiSuggestionType;
@@ -12,10 +12,8 @@ type DetectedSuggestion = {
   metadata: Record<string, unknown>;
 };
 
-export async function detectAiSuggestions(
-  clubId: string = DEFAULT_CLUB_ID,
-): Promise<DetectedSuggestion[]> {
-  const context = await buildAiClubContext(clubId);
+export async function detectAiSuggestions(access: AiContextScope): Promise<DetectedSuggestion[]> {
+  const context = await buildAiClubContext(access);
   const suggestions: DetectedSuggestion[] = [];
 
   const lowAttendance = context.players.lowestAttendance.filter((p) => p.rate < 60);
@@ -62,14 +60,14 @@ export async function detectAiSuggestions(
   return suggestions;
 }
 
-export async function syncAiSuggestions(clubId: string = DEFAULT_CLUB_ID): Promise<number> {
-  const detected = await detectAiSuggestions(clubId);
+export async function syncAiSuggestions(access: AiContextScope): Promise<number> {
+  const detected = await detectAiSuggestions(access);
   const supabase = await createClient();
 
   const { data: existing } = await supabase
     .from("ai_suggestions")
     .select("suggestion_type, status")
-    .eq("club_id", clubId)
+    .eq("club_id", access.clubId)
     .eq("status", "open");
 
   const openTypes = new Set((existing ?? []).map((row) => row.suggestion_type));
@@ -78,7 +76,7 @@ export async function syncAiSuggestions(clubId: string = DEFAULT_CLUB_ID): Promi
   for (const item of detected) {
     if (openTypes.has(item.suggestionType)) continue;
     const { error } = await supabase.from("ai_suggestions").insert({
-      club_id: clubId,
+      club_id: access.clubId,
       suggestion_type: item.suggestionType,
       title: item.title,
       description: item.description,
