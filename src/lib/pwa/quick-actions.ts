@@ -11,6 +11,8 @@ import {
   Video,
   Medal,
   Newspaper,
+  HardHat,
+  HeartPulse,
 } from "lucide-react";
 
 import {
@@ -26,6 +28,10 @@ import {
   canAccessSponsorPortal,
   canUseAiChat,
   canReadPlayers,
+  canIssueEquipment,
+  canAccessEquipmentPortal,
+  canManageInjuryStaff,
+  canAccessInjuryPortal,
 } from "@/config/permissions";
 import type { ClubRole } from "@/types/rbac";
 
@@ -85,6 +91,38 @@ export function getQuickActionsForRoles(roles: ClubRole[]): QuickAction[] {
       label: "Frekwencja",
       href: "/attendance",
       icon: ClipboardCheck,
+    });
+  }
+  if (canIssueEquipment(roles) && actions.length < 6) {
+    actions.push({
+      id: "equipment-issue",
+      label: "Wydaj sprzęt",
+      href: "/equipment/assignments",
+      icon: HardHat,
+    });
+  }
+  if (canAccessEquipmentPortal(roles) && actions.length < 6) {
+    actions.push({
+      id: "equipment-portal",
+      label: "Mój sprzęt",
+      href: "/equipment/portal",
+      icon: HardHat,
+    });
+  }
+  if (canManageInjuryStaff(roles) && actions.length < 6) {
+    actions.push({
+      id: "injury-report",
+      label: "Zgłoś uraz",
+      href: "/injuries/report",
+      icon: HeartPulse,
+    });
+  }
+  if (canAccessInjuryPortal(roles) && actions.length < 6) {
+    actions.push({
+      id: "injury-portal",
+      label: "Mój status urazu",
+      href: "/injuries/portal",
+      icon: HeartPulse,
     });
   }
   if (canAccessFinancePortal(roles)) {

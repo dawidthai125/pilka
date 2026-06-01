@@ -13,6 +13,8 @@ import {
   SQUAD_CONFIRMATION_LABELS,
   type MatchSquadCallRow,
 } from "@/types/attendance";
+import { RETURN_TO_MATCH_STATUS_LABELS } from "@/types/injuries";
+import { Badge } from "@/components/ui/badge";
 
 export function MatchSquadPanel({
   matchId,
@@ -36,6 +38,14 @@ export function MatchSquadPanel({
             <p className="text-xs text-muted-foreground">
               {MATCH_CALL_STATUS_LABELS[row.callStatus]} · {row.squadRole}
             </p>
+            {row.injuryMatchStatus ? (
+              <Badge variant="outline" className="mt-1">
+                RTP mecz:{" "}
+                {RETURN_TO_MATCH_STATUS_LABELS[
+                  row.injuryMatchStatus as keyof typeof RETURN_TO_MATCH_STATUS_LABELS
+                ] ?? row.injuryMatchStatus}
+              </Badge>
+            ) : null}
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {canManage ? (

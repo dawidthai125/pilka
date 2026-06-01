@@ -22,6 +22,10 @@ import {
   canReadAttendance,
   canReadCrm,
   canAccessCrmPortal,
+  canReadEquipment,
+  canAccessEquipmentPortal,
+  canReadInjuries,
+  canAccessInjuryPortal,
   canReadWebsite,
 } from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
@@ -42,6 +46,7 @@ const PARENT_ONLY_HREFS = [
   "/communication",
   "/attendance",
   "/crm/parents",
+  "/equipment/portal",
 ];
 const PLAYER_ONLY_HREFS = [
   "/dashboard",
@@ -56,6 +61,7 @@ const PLAYER_ONLY_HREFS = [
   "/academy/development",
   "/communication",
   "/attendance",
+  "/equipment/portal",
 ];
 const WEBSITE_ADMIN_HREFS = ["/dashboard", "/profile", "/website", "/content"];
 
@@ -125,6 +131,18 @@ export function DashboardNav({
           if ("audience" in item && item.audience === "crm_parent") {
             return canAccessCrmPortal(roles);
           }
+          if ("audience" in item && item.audience === "equipment_staff") {
+            return canReadEquipment(roles);
+          }
+          if ("audience" in item && item.audience === "equipment_portal") {
+            return canAccessEquipmentPortal(roles);
+          }
+          if ("audience" in item && item.audience === "injuries_staff") {
+            return canReadInjuries(roles);
+          }
+          if ("audience" in item && item.audience === "injuries_portal") {
+            return canAccessInjuryPortal(roles);
+          }
           return true;
         })
     : dashboardNav;
@@ -156,6 +174,14 @@ export function DashboardNav({
                     ? pathname.startsWith("/communication")
                   : item.href === "/attendance"
                     ? pathname.startsWith("/attendance")
+                  : item.href === "/equipment"
+                    ? pathname.startsWith("/equipment") && !pathname.startsWith("/equipment/portal")
+                  : item.href === "/equipment/portal"
+                    ? pathname.startsWith("/equipment/portal")
+                  : item.href === "/injuries"
+                    ? pathname.startsWith("/injuries") && !pathname.startsWith("/injuries/portal")
+                  : item.href === "/injuries/portal"
+                    ? pathname.startsWith("/injuries/portal")
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (

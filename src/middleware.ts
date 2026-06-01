@@ -29,6 +29,8 @@ const protectedPrefixes = [
   "/communication",
   "/attendance",
   "/crm",
+  "/equipment",
+  "/injuries",
 ];
 
 function isAuthRoute(pathname: string) {

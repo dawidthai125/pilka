@@ -16,6 +16,7 @@ export const AVAILABILITY_STATUS_LABELS: Record<AvailabilityStatus, string> = {
   present: "Dostępny",
   absent: "Niedostępny",
   unknown: "Niepewny",
+  limited: "Ograniczony",
 };
 
 export const ABSENCE_REASON_LABELS_157: Record<AbsenceReason, string> = {
@@ -117,6 +118,8 @@ export type MatchSquadCallRow = {
   squadRole: string;
   callStatus: MatchCallStatus;
   userResponse: SquadConfirmationResponse | null;
+  injuryMatchStatus?: string | null;
+  injuryTrainingStatus?: string | null;
 };
 
 export type AttendanceAiInsight = {

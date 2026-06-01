@@ -76,4 +76,5 @@ export const CALENDAR_STATUS_COLORS: Record<AvailabilityStatus, string> = {
   present: "bg-emerald-500",
   absent: "bg-red-500",
   unknown: "bg-amber-400",
+  limited: "bg-orange-400",
 };

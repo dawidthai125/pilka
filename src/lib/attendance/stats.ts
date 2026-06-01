@@ -40,6 +40,9 @@ export function computeFrequencyStats(
     const injuryAvail = availability.filter(
       (a) => a.playerId === player.id && a.absenceReason === "injury" && a.status === "absent",
     );
+    const limitedInjury = availability.filter(
+      (a) => a.playerId === player.id && a.absenceReason === "injury" && a.status === "limited",
+    );
 
     return {
       playerId: player.id,
@@ -52,7 +55,7 @@ export function computeFrequencyStats(
         playerRecords.length,
       ),
       consecutiveAbsences,
-      isInjured: player.status === "injured" || injuryAvail.length > 0,
+      isInjured: player.status === "injured" || injuryAvail.length > 0 || limitedInjury.length > 0,
     };
   });
 }

@@ -17,6 +17,7 @@ export const AVAILABILITY_STATUS_LABELS: Record<AvailabilityStatus, string> = {
   present: "Będę obecny",
   absent: "Nie będzie mnie",
   unknown: "Nie wiem",
+  limited: "Ograniczony udział",
 };
 
 export const ABSENCE_REASON_LABELS: Record<AbsenceReason, string> = {

@@ -84,7 +84,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canReadCommunication, canReadAttendance, canReadCrm, canManageCrm, canAccessCrmPortal, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canReadCommunication, canReadAttendance, canReadCrm, canManageCrm, canAccessCrmPortal, canReadEquipment, canManageEquipment, canAccessEquipmentPortal, canReadInjuries, canManageInjuryStaff, canManageInjuryConfig, canAccessInjuryPortal, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
 import { resolveOwnPlayerIds } from "@/lib/players/access";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
@@ -575,6 +575,48 @@ export function requireCrmManageAccess(access: UserAccessContext) {
 
 export function requireCrmPortalAccess(access: UserAccessContext) {
   if (!canAccessCrmPortal(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireEquipmentReadAccess(access: UserAccessContext) {
+  if (!canReadEquipment(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireEquipmentManageAccess(access: UserAccessContext) {
+  if (!canManageEquipment(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireEquipmentPortalAccess(access: UserAccessContext) {
+  if (!canAccessEquipmentPortal(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireInjuryStaffAccess(access: UserAccessContext) {
+  if (!canManageInjuryStaff(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireInjuryReadAccess(access: UserAccessContext) {
+  if (!canReadInjuries(access.roles) && !canAccessInjuryPortal(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireInjuryConfigAccess(access: UserAccessContext) {
+  if (!canManageInjuryConfig(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireInjuryPortalAccess(access: UserAccessContext) {
+  if (!canAccessInjuryPortal(access.roles)) {
     redirect("/dashboard");
   }
 }

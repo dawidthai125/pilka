@@ -3,13 +3,12 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { mapAttendanceRecord, mapAvailabilityReason, mapPlayerAvailability } from "@/lib/attendance/mappers";
 import { computeCoachReport, computeFrequencyStats } from "@/lib/attendance/stats";
+import { getMatchSquadInjuryFlags } from "@/lib/injuries/loaders";
 import type {
   AttendanceDashboardWidgets,
-  AttendanceRecordRow,
   CalendarDayAvailability,
   CoachAttendanceReport,
   MatchSquadCallRow,
-  PlayerAvailabilityRow,
   PlayerFrequencyStats,
 } from "@/types/attendance";
 import type { AvailabilityStatus } from "@/types/trainings";
@@ -257,6 +256,7 @@ export const getMatchSquadCalls = cache(
       .eq("match_id", matchId);
 
     const playerIds = (squad ?? []).map((s) => String(s.player_id));
+    const injuryFlags = await getMatchSquadInjuryFlags(clubId, playerIds);
     const { data: responses } = playerIds.length
       ? await supabase
           .from("match_squad_responses")
@@ -268,12 +268,15 @@ export const getMatchSquadCalls = cache(
 
     return (squad ?? []).map((row) => {
       const player = row.players as { first_name?: string; last_name?: string } | null;
+      const flags = injuryFlags[String(row.player_id)];
       return {
         playerId: String(row.player_id),
         playerName: player ? `${player.first_name} ${player.last_name}` : "Zawodnik",
         squadRole: String(row.squad_role),
         callStatus: row.call_status as MatchSquadCallRow["callStatus"],
         userResponse: (responseMap.get(String(row.player_id)) ?? null) as MatchSquadCallRow["userResponse"],
+        injuryMatchStatus: flags?.matchStatus ?? null,
+        injuryTrainingStatus: flags?.trainingStatus ?? null,
       };
     });
   },

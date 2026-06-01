@@ -326,10 +326,15 @@ export type Database = {
           id: string;
           club_id: string;
           player_id: string;
+          team_id: string | null;
+          category_id: string | null;
           injury_date: string;
           recovery_date: string | null;
+          expected_return_date: string | null;
           description: string;
           severity: string | null;
+          injury_status: Database["public"]["Enums"]["injury_record_status"];
+          availability_impact: Database["public"]["Enums"]["injury_availability_impact"] | null;
           is_active: boolean;
           created_by: string | null;
           created_at: string;
@@ -339,17 +344,27 @@ export type Database = {
           id?: string;
           club_id: string;
           player_id: string;
+          team_id?: string | null;
+          category_id?: string | null;
           injury_date: string;
           recovery_date?: string | null;
+          expected_return_date?: string | null;
           description: string;
           severity?: string | null;
+          injury_status?: Database["public"]["Enums"]["injury_record_status"];
+          availability_impact?: Database["public"]["Enums"]["injury_availability_impact"] | null;
           is_active?: boolean;
           created_by?: string | null;
         };
         Update: {
+          team_id?: string | null;
+          category_id?: string | null;
           recovery_date?: string | null;
+          expected_return_date?: string | null;
           description?: string;
           severity?: string | null;
+          injury_status?: Database["public"]["Enums"]["injury_record_status"];
+          availability_impact?: Database["public"]["Enums"]["injury_availability_impact"] | null;
           is_active?: boolean;
         };
         Relationships: [];
@@ -2756,6 +2771,60 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      asset_categories: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      assets: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      asset_assignments: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      asset_maintenance: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      equipment_kits: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      equipment_kit_history: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      injury_categories: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      rehabilitation_plans: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      return_to_play: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -2889,7 +2958,7 @@ export type Database = {
         | "jersey_number_change";
       coach_note_type: "observation" | "progress" | "health" | "training_goal";
       training_status: "planned" | "completed" | "cancelled";
-      availability_status: "present" | "absent" | "unknown";
+      availability_status: "present" | "absent" | "unknown" | "limited";
       absence_reason:
         | "work"
         | "school"
@@ -3025,7 +3094,18 @@ export type Database = {
         | "chat_message_new"
         | "match_squad_call"
         | "availability_reminder"
-        | "crm_task_reminder";
+        | "crm_task_reminder"
+        | "asset_return_overdue"
+        | "asset_damaged"
+        | "asset_maintenance_due"
+        | "injury_reported"
+        | "injury_return_training"
+        | "injury_return_match";
+      injury_record_status: "active" | "rehabilitation" | "ready_for_training" | "closed";
+      injury_availability_impact: "unavailable" | "limited";
+      rehabilitation_plan_status: "started" | "in_progress" | "completed";
+      return_to_training_status: "no_clearance" | "individual" | "partial" | "full";
+      return_to_match_status: "unavailable" | "conditional" | "available";
       availability_event_type: "training" | "match" | "club_event";
       attendance_record_source: "training" | "match";
       match_call_status: "called_up" | "reserve" | "not_called_up";
@@ -3051,6 +3131,11 @@ export type Database = {
       crm_event_type: "tournament" | "club_picnic" | "sponsor_meeting" | "parent_meeting" | "other";
       crm_volunteer_area: "match_help" | "transport" | "event_org" | "tournament_ops";
       crm_event_rsvp: "invited" | "confirmed" | "declined" | "attended";
+      asset_condition: "new" | "good" | "needs_repair" | "damaged" | "retired";
+      asset_maintenance_type: "repair" | "inspection" | "replacement";
+      asset_maintenance_status: "reported" | "in_progress" | "completed";
+      asset_assignee_kind: "coach" | "player" | "staff" | "team_manager";
+      equipment_kit_type: "match_kit" | "training_kit" | "tracksuit";
       notification_delivery_status: "pending" | "sent" | "failed" | "cancelled";
     };
     CompositeTypes: Record<string, never>;

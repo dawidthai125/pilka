@@ -23,6 +23,8 @@ import {
   Wallet,
   UserCheck,
   Contact,
+  HardHat,
+  HeartPulse,
 } from "lucide-react";
 
 export const dashboardNav = [
@@ -72,6 +74,30 @@ export const dashboardNav = [
     href: "/crm",
     icon: Contact,
     audience: "crm_staff" as const,
+  },
+  {
+    title: "Equipment & Assets",
+    href: "/equipment",
+    icon: HardHat,
+    audience: "equipment_staff" as const,
+  },
+  {
+    title: "Injury & Medical",
+    href: "/injuries",
+    icon: HeartPulse,
+    audience: "injuries_staff" as const,
+  },
+  {
+    title: "Mój sprzęt",
+    href: "/equipment/portal",
+    icon: HardHat,
+    audience: "equipment_portal" as const,
+  },
+  {
+    title: "Mój status urazu",
+    href: "/injuries/portal",
+    icon: HeartPulse,
+    audience: "injuries_portal" as const,
   },
   {
     title: "Relacje klubu",
