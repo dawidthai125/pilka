@@ -84,7 +84,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canReadCommunication, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
   Sponsor,
@@ -544,6 +544,12 @@ export function requireVideoReadAccess(access: UserAccessContext) {
 
 export function requireContentReadAccess(access: UserAccessContext) {
   if (!canReadContent(access.roles)) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireCommunicationReadAccess(access: UserAccessContext) {
+  if (!canReadCommunication(access.roles)) {
     redirect("/dashboard");
   }
 }

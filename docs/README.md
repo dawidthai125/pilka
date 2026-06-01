@@ -35,6 +35,10 @@
 | [stage-15.5-report.md](./stage-15.5-report.md) | Raport ETAP 15.5 (konsolidacja) |
 | [audit/stage-15.5-audit.md](./audit/stage-15.5-audit.md) | Audyt ETAP 15.5 — weryfikacja regresji (post-fix) |
 | [audit/stage-15b2-league-data-research.md](./audit/stage-15b2-league-data-research.md) | ETAP 15B.2 — research automatycznego pobierania danych ligowych |
+| [audit/stage-15b2a-club-president-access-architecture.md](./audit/stage-15b2a-club-president-access-architecture.md) | ETAP 15B.2A — dostęp prezesa: kluby24 / Extranet / mPZPN (architektura) |
+| [modules/stage-156-communication-hub.md](./modules/stage-156-communication-hub.md) | ETAP 15.6 — Communication Hub |
+| [stage-156-report.md](./stage-156-report.md) | Raport ETAP 15.6 Communication Hub |
+| [audit/stage-156-audit-report.md](./audit/stage-156-audit-report.md) | Audyt końcowy ETAP 15.6 (RLS, role, push) |
 | [research/pzpn-data-ecosystem.md](./research/pzpn-data-ecosystem.md) | Ekosystem danych PZPN/DZPN — mPZPN, API, mirror, integracja |
 | [audit/stage-11.6-security-audit-post-fix.md](./audit/stage-11.6-security-audit-post-fix.md) | Audyt bezpieczeństwa po poprawkach 11.6 |
 | [deployment/production-checklist.md](./deployment/production-checklist.md) | Checklist wdrożenia produkcyjnego |

@@ -2641,6 +2641,54 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      announcements: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      announcement_reads: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      coach_messages: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      coach_message_responses: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      team_chats: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      chat_messages: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      chat_attachments: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+      notification_events: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -2896,7 +2944,10 @@ export type Database = {
         | "document_expiring"
         | "fee_overdue"
         | "ai_report_new"
-        | "general";
+        | "general"
+        | "club_announcement"
+        | "coach_message_new"
+        | "chat_message_new";
       notification_delivery_status: "pending" | "sent" | "failed" | "cancelled";
     };
     CompositeTypes: Record<string, never>;

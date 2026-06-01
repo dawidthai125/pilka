@@ -8,6 +8,7 @@ import {
   Handshake,
   LayoutDashboard,
   Medal,
+  MessageSquare,
   Package,
   Settings,
   Shield,
@@ -91,6 +92,12 @@ export const dashboardNav = [
     href: "/league",
     icon: Medal,
     audience: "league_staff" as const,
+  },
+  {
+    title: "Communication Hub",
+    href: "/communication",
+    icon: MessageSquare,
+    audience: "communication_staff" as const,
   },
   {
     title: "Akademia",

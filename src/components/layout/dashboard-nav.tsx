@@ -18,13 +18,14 @@ import {
   canReadSponsors,
   canReadVideos,
   canReadContent,
+  canReadCommunication,
   canReadWebsite,
 } from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import type { ClubRole } from "@/types/rbac";
 
-const SPONSOR_ONLY_HREFS = ["/dashboard", "/profile", "/club", "/sponsors/portal", "/content"];
+const SPONSOR_ONLY_HREFS = ["/dashboard", "/profile", "/club", "/sponsors/portal", "/content", "/communication"];
 const PARENT_ONLY_HREFS = [
   "/dashboard",
   "/profile",
@@ -35,6 +36,7 @@ const PARENT_ONLY_HREFS = [
   "/players",
   "/academy",
   "/academy/development",
+  "/communication",
 ];
 const PLAYER_ONLY_HREFS = [
   "/dashboard",
@@ -47,6 +49,7 @@ const PLAYER_ONLY_HREFS = [
   "/players",
   "/academy",
   "/academy/development",
+  "/communication",
 ];
 const WEBSITE_ADMIN_HREFS = ["/dashboard", "/profile", "/website", "/content"];
 
@@ -104,6 +107,9 @@ export function DashboardNav({
           if ("audience" in item && item.audience === "content_staff") {
             return canReadContent(roles);
           }
+          if ("audience" in item && item.audience === "communication_staff") {
+            return canReadCommunication(roles);
+          }
           return true;
         })
     : dashboardNav;
@@ -131,6 +137,8 @@ export function DashboardNav({
                     ? pathname.startsWith("/content")
                   : item.href === "/league"
                     ? pathname.startsWith("/league")
+                  : item.href === "/communication"
+                    ? pathname.startsWith("/communication")
                   : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (

@@ -26,6 +26,7 @@ const protectedPrefixes = [
   "/video",
   "/content",
   "/league",
+  "/communication",
 ];
 
 function isAuthRoute(pathname: string) {

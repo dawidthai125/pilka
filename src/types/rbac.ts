@@ -93,6 +93,10 @@ export const PERMISSIONS = [
   "league:read",
   "league:manage",
   "league:sync",
+  "communication:read",
+  "communication:create",
+  "communication:manage",
+  "communication:publish",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
