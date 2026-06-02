@@ -206,7 +206,7 @@ function MonthGrid({
   const currentMonth = anchor.getMonth();
 
   return (
-    <div className="min-w-[640px] overflow-hidden rounded-xl border">
+    <div className="min-w-[640px] overflow-hidden rounded-xl border bg-card shadow-sm">
       <div className="grid grid-cols-7 border-b bg-muted/40 text-center text-xs font-medium text-muted-foreground">
         {["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"].map((label) => (
           <div key={label} className="px-2 py-2">

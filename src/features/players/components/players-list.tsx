@@ -58,8 +58,8 @@ export function PlayersList({ players }: { players: Player[] }) {
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-xl border">
-        <div className="hidden border-b bg-muted/40 px-4 py-3 text-xs font-medium tracking-wide text-muted-foreground uppercase md:grid md:grid-cols-[4rem_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.8fr)_6rem] md:gap-4">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+        <div className="hidden border-b bg-muted/60 px-4 py-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase md:grid md:grid-cols-[4rem_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.8fr)_6rem] md:gap-4">
           <span>#</span>
           <span>Zawodnik</span>
           <span>Pozycja</span>
@@ -77,7 +77,7 @@ export function PlayersList({ players }: { players: Player[] }) {
               <li key={player.id}>
                 <Link
                   href={`/players/${player.id}`}
-                  className="block px-4 py-4 transition-colors hover:bg-muted/30 md:grid md:grid-cols-[4rem_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.8fr)_6rem] md:items-center md:gap-4"
+                  className="block bg-card px-4 py-4 text-card-foreground transition-colors hover:bg-muted/40 md:grid md:grid-cols-[4rem_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.8fr)_6rem] md:items-center md:gap-4"
                 >
                   <div className="flex items-start gap-3 md:contents">
                     <Avatar className="size-10 shrink-0 md:row-span-1">

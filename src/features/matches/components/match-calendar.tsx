@@ -147,7 +147,7 @@ function MonthGrid({ anchor, grouped }: { anchor: Date; grouped: Map<string, Mat
   const days = monthGridDates(anchor);
   const currentMonth = anchor.getMonth();
   return (
-    <div className="min-w-[640px] overflow-hidden rounded-xl border">
+    <div className="min-w-[640px] overflow-hidden rounded-xl border bg-card shadow-sm">
       <div className="grid grid-cols-7 border-b bg-muted/40 text-center text-xs font-medium text-muted-foreground">
         {["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"].map((l) => (<div key={l} className="px-2 py-2">{l}</div>))}
       </div>

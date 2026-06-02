@@ -39,7 +39,7 @@ export function SponsorLeadsPanel({
         </form>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <ul className="divide-y">
           {leads.map((lead) => (
             <li key={lead.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">

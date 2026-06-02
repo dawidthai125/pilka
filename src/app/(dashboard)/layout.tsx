@@ -80,7 +80,7 @@ export default async function DashboardLayout({
               unreadNotifications={unreadNotifications}
             />
           </div>
-          <main className="flex-1 px-3 py-4 pb-24 md:px-5 md:py-6 md:pb-8 print:p-0 lg:px-8">
+          <main className="dashboard-surface flex-1 px-3 py-4 pb-24 md:px-5 md:py-6 md:pb-8 print:bg-white print:p-0 lg:px-8">
             {children}
           </main>
           <BottomNavigation roles={access.roles} clubName={clubName} logoUrl={logoUrl} />

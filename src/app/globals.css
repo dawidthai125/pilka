@@ -158,3 +158,26 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* Panel klubowy: ciemny sidebar/header, jasna treść modułów */
+.dashboard-surface {
+  --background: oklch(0.985 0.004 145);
+  --foreground: oklch(0.2 0.02 145);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.02 145);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.02 145);
+  --primary: oklch(0.28 0.06 145);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.96 0.01 145);
+  --secondary-foreground: oklch(0.28 0.06 145);
+  --muted: oklch(0.96 0.008 145);
+  --muted-foreground: oklch(0.48 0.02 145);
+  --accent: oklch(0.96 0.01 145);
+  --accent-foreground: oklch(0.28 0.06 145);
+  --border: oklch(0.9 0.01 145);
+  --input: oklch(0.92 0.008 145);
+  --ring: oklch(0.62 0.08 145);
+  background-color: var(--background);
+  color: var(--foreground);
+}
