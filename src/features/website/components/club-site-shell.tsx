@@ -35,7 +35,7 @@ export function ClubSiteShell({
   const activeSocial = socialLinks.filter((item) => item.isEnabled && item.profileUrl);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f4f4f2]" style={style}>
+    <div className="flex min-h-screen flex-col bg-[#062820]" style={style}>
       <header className="sticky top-0 z-50 shadow-md">
         {/* Pasek social */}
         {activeSocial.length > 0 ? (

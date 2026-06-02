@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PublicDarkCard, PublicPageShell } from "@/features/website/components/public-page-shell";
+import { CLUB_DISPLAY_CLASS } from "@/lib/website/constants";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 import { getPublicClubId, getPublicLeagueTable, getPublicMatches, getPublicNews, getPublicTeamStats } from "@/lib/website/public-data";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPublicPageMetadata("Panel kibica", "/kibic");
@@ -18,56 +21,59 @@ export default async function FanPanelPage() {
     getPublicTeamStats(),
   ]);
 
-  return (
-    <div className="mx-auto max-w-6xl space-y-10 px-4 py-10 sm:px-6">
-      <div>
-        <h1 className="text-3xl font-bold">Panel kibica</h1>
-        <p className="mt-2 text-muted-foreground">
-          Terminarz, wyniki, aktualności i statystyki — bez logowania.
-        </p>
-      </div>
+  const ownPosition = league.entries.findIndex((e) => e.isOwnClub) + 1;
 
+  return (
+    <PublicPageShell title="Panel kibica" subtitle="Terminarz, wyniki, aktualności i statystyki — bez logowania.">
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Nadchodzące mecze", value: upcoming.length },
           { label: "Ostatnie wyniki", value: results.length },
-          { label: "Pozycja w tabeli", value: league.entries.findIndex((e) => e.isOwnClub) + 1 || "—" },
+          { label: "Pozycja w tabeli", value: ownPosition || "—" },
           { label: "Gole drużyny", value: stats?.goals ?? 0 },
         ].map((item) => (
-          <div key={item.label} className="rounded-xl border bg-card p-5 text-center">
-            <p className="text-2xl font-bold text-[var(--club-primary)]">{item.value}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
-          </div>
+          <PublicDarkCard key={item.label} className="text-center">
+            <p className={cn(CLUB_DISPLAY_CLASS, "text-2xl font-bold text-[var(--club-secondary)]")}>{item.value}</p>
+            <p className="mt-1 text-sm text-white/55">{item.label}</p>
+          </PublicDarkCard>
         ))}
       </section>
 
-      <section>
+      <section className="mt-10">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Terminarz</h2>
-          <Link href="/mecze" className="text-sm text-primary underline">Więcej</Link>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--club-secondary)]">Terminarz</h2>
+          <Link href="/mecze" className="text-sm text-white/60 hover:text-[var(--club-secondary)]">
+            Więcej →
+          </Link>
         </div>
         <div className="space-y-2">
           {upcoming.map((m) => (
-            <div key={m.id} className="rounded-lg border px-4 py-3 text-sm">
+            <div key={m.id} className="rounded-xl border border-white/8 bg-black/15 px-4 py-3 text-sm text-white">
               {m.matchDate} · {m.homeTeamName} — {m.awayTeamName}
             </div>
           ))}
         </div>
       </section>
 
-      <section>
+      <section className="mt-10">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Aktualności</h2>
-          <Link href="/aktualnosci" className="text-sm text-primary underline">Więcej</Link>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--club-secondary)]">Aktualności</h2>
+          <Link href="/aktualnosci" className="text-sm text-white/60 hover:text-[var(--club-secondary)]">
+            Więcej →
+          </Link>
         </div>
         <div className="space-y-2">
           {news.map((n) => (
-            <Link key={n.id} href={`/aktualnosci/${n.slug}`} className="block rounded-lg border px-4 py-3 text-sm hover:bg-muted/40">
+            <Link
+              key={n.id}
+              href={`/aktualnosci/${n.slug}`}
+              className="block rounded-xl border border-white/8 bg-black/15 px-4 py-3 text-sm text-white transition hover:border-white/20 hover:bg-black/25"
+            >
               {n.title}
             </Link>
           ))}
         </div>
       </section>
-    </div>
+    </PublicPageShell>
   );
 }

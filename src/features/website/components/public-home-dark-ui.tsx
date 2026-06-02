@@ -4,7 +4,17 @@ import { ChevronRight } from "lucide-react";
 import { CLUB_DISPLAY_CLASS, CLUB_SCENE_DARK } from "@/lib/website/constants";
 import { cn } from "@/lib/utils";
 
-const PITCH_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='none' stroke='white' stroke-width='1'/%3E%3Cpath d='M40 4 L48 28 L72 28 L52 44 L60 68 L40 52 L20 68 L28 44 L8 28 L32 28 Z' fill='white' opacity='0.5'/%3E%3C/svg%3E")`;
+export const CLUB_PITCH_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='none' stroke='white' stroke-width='1'/%3E%3Cpath d='M40 4 L48 28 L72 28 L52 44 L60 68 L40 52 L20 68 L28 44 L8 28 L32 28 Z' fill='white' opacity='0.5'/%3E%3C/svg%3E")`;
+
+export function ClubPitchPatternOverlay({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn("pointer-events-none absolute inset-0 opacity-[0.04]", className)}
+      style={{ backgroundImage: CLUB_PITCH_PATTERN, backgroundSize: "80px 80px" }}
+      aria-hidden
+    />
+  );
+}
 
 export function HomeDarkSection({
   id,
@@ -33,11 +43,7 @@ export function HomeDarkSection({
       aria-label={ariaLabel}
       className={cn(CLUB_SCENE_DARK, "relative overflow-hidden py-12 sm:py-16", className)}
     >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{ backgroundImage: PITCH_PATTERN, backgroundSize: "80px 80px" }}
-        aria-hidden
-      />
+      <ClubPitchPatternOverlay />
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
         {title ? (
           <HomeDarkSectionHeader

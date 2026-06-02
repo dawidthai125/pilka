@@ -21,13 +21,13 @@ export default async function GalleryPublicPage() {
           <Link
             key={album.id}
             href={`/galeria/${album.slug}`}
-            className="rounded-xl border border-black/5 bg-white p-6 shadow-sm transition hover:shadow-md"
+            className="rounded-2xl border border-white/10 bg-black/25 p-6 backdrop-blur-sm transition hover:border-white/20 hover:bg-black/35"
           >
-            <p className="text-xs font-medium text-[var(--club-primary)]">
+            <p className="text-xs font-medium text-[var(--club-secondary)]">
               {WEBSITE_GALLERY_CATEGORY_LABELS[album.category]}
             </p>
-            <h2 className="mt-2 text-lg font-semibold">{album.title}</h2>
-            {album.description ? <p className="mt-2 text-sm text-muted-foreground">{album.description}</p> : null}
+            <h2 className="mt-2 text-lg font-semibold text-white">{album.title}</h2>
+            {album.description ? <p className="mt-2 text-sm text-white/60">{album.description}</p> : null}
           </Link>
         ))}
       </div>

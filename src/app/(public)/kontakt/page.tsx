@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { PublicPageShell } from "@/features/website/components/public-page-shell";
+import { PublicDarkCard, PublicPageShell } from "@/features/website/components/public-page-shell";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 import { getPublicWebsiteHome } from "@/lib/website/public-data";
 
@@ -15,20 +15,20 @@ export default async function ContactPublicPage() {
   return (
     <PublicPageShell title="Kontakt" subtitle={`Skontaktuj się z ${home?.club.publicName ?? "klubem"}.`}>
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-black/5 bg-white p-6 shadow-sm">
-          <h2 className="font-semibold">Dane klubu</h2>
+        <PublicDarkCard>
+          <h2 className="font-semibold text-white">Dane klubu</h2>
           <dl className="mt-4 space-y-3 text-sm">
             {settings?.contactAddress ? (
               <div>
-                <dt className="text-muted-foreground">Adres</dt>
-                <dd className="font-medium">{settings.contactAddress}</dd>
+                <dt className="text-white/45">Adres</dt>
+                <dd className="font-medium text-white">{settings.contactAddress}</dd>
               </div>
             ) : null}
             {settings?.contactEmail ? (
               <div>
-                <dt className="text-muted-foreground">E-mail</dt>
+                <dt className="text-white/45">E-mail</dt>
                 <dd>
-                  <a className="font-medium text-[var(--club-primary)] underline" href={`mailto:${settings.contactEmail}`}>
+                  <a className="font-medium text-[var(--club-secondary)] underline" href={`mailto:${settings.contactEmail}`}>
                     {settings.contactEmail}
                   </a>
                 </dd>
@@ -36,29 +36,29 @@ export default async function ContactPublicPage() {
             ) : null}
             {settings?.contactPhone ? (
               <div>
-                <dt className="text-muted-foreground">Telefon</dt>
+                <dt className="text-white/45">Telefon</dt>
                 <dd>
-                  <a className="font-medium text-[var(--club-primary)] underline" href={`tel:${settings.contactPhone}`}>
+                  <a className="font-medium text-[var(--club-secondary)] underline" href={`tel:${settings.contactPhone}`}>
                     {settings.contactPhone}
                   </a>
                 </dd>
               </div>
             ) : null}
           </dl>
-        </div>
+        </PublicDarkCard>
 
         {settings?.googleMapsEmbedUrl ? (
-          <div className="rounded-xl border border-black/5 bg-white p-6 shadow-sm">
-            <h2 className="mb-3 font-semibold">Mapa</h2>
+          <PublicDarkCard>
+            <h2 className="mb-3 font-semibold text-white">Mapa</h2>
             <a
               href={settings.googleMapsEmbedUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] items-center rounded-md bg-[var(--club-primary)] px-4 text-sm font-medium text-[var(--club-accent)]"
+              className="inline-flex min-h-[44px] items-center rounded-lg bg-[var(--club-secondary)] px-4 text-sm font-bold text-[var(--club-primary)]"
             >
               Otwórz w Google Maps
             </a>
-          </div>
+          </PublicDarkCard>
         ) : null}
       </div>
     </PublicPageShell>

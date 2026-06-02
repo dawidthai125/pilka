@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
+import { PublicDarkLeagueTable } from "@/features/website/components/public-dark-subpage-content";
 import { PublicPageShell } from "@/features/website/components/public-page-shell";
-import { PublicLeagueTableSection } from "@/features/website/components/club-site-page";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 import { getPublicClubId, getPublicLeagueTable } from "@/lib/website/public-data";
 
@@ -18,7 +18,7 @@ export default async function LeagueTablePublicPage() {
       title="Tabela ligowa"
       subtitle={`${league.competition} · Sezon ${league.season}`}
     >
-      <PublicLeagueTableSection entries={league.entries} ownTeamName={league.ownTeamName} showFullLink={false} />
+      <PublicDarkLeagueTable entries={league.entries} />
     </PublicPageShell>
   );
 }
