@@ -49,6 +49,7 @@ npm run sync:league-live
 3. `league_table_entries` — publiczna `/tabela` (z mapowaniem Piorun)
 4. `matches` — moduł Mecze (mecze własnego klubu)
 5. `league_player_registry` — kadra ligowa GLKS Mietków (statystyki w polu `notes` jako JSON)
+6. `players` — tworzy brakujących zawodników z kadr ligowej i powiązuje rejestr; demo seed (`*@piorun.test`) ustawia jako nieaktywni
 
 ## Pliki
 

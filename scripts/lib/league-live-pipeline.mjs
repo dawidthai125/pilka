@@ -387,17 +387,122 @@ function matchClubPlayer(leaguePlayerName, clubPlayers) {
   const { lastName, firstName } = parseLeaguePlayerName(leaguePlayerName);
   const lastKey = normalizeName(lastName);
   const firstKey = normalizeName(firstName);
-  if (!lastKey) return null;
+  if (!lastKey || !firstKey) return null;
 
-  const candidates = (clubPlayers ?? []).filter((p) => normalizeName(p.last_name) === lastKey);
-  if (!candidates.length) return null;
-  if (candidates.length === 1) return String(candidates[0].id);
+  const candidates = (clubPlayers ?? []).filter(
+    (p) =>
+      normalizeName(p.last_name) === lastKey && !String(p.email ?? "").endsWith("@piorun.test"),
+  );
+  const exact = candidates.filter((p) => normalizeName(p.first_name) === firstKey);
+  return exact.length === 1 ? String(exact[0].id) : null;
+}
 
-  const byFirst = candidates.filter((p) => {
-    const fn = normalizeName(p.first_name);
-    return fn === firstKey || fn.startsWith(firstKey.slice(0, 1)) || firstKey.startsWith(fn.slice(0, 1));
+const DEMO_REGISTRY_NAMES = ["Kowalski J.", "Nowak P."];
+
+async function syncSquadToPlayersModule(supabase, { jobId, squadData, competitionId, seasonId }) {
+  const { clubId } = LEAGUE_CONFIG;
+
+  const { data: ownTeam } = await supabase
+    .from("league_teams")
+    .select("team_id")
+    .eq("club_id", clubId)
+    .eq("is_own_club", true)
+    .maybeSingle();
+  const teamId = ownTeam?.team_id;
+  if (!teamId) return { created: 0, linked: 0, deactivated: 0, failed: 0 };
+
+  let { data: clubPlayers } = await supabase
+    .from("players")
+    .select("id, first_name, last_name, email, status")
+    .eq("club_id", clubId);
+
+  let created = 0;
+  let linked = 0;
+  let failed = 0;
+  let deactivated = 0;
+
+  for (const player of squadData.players) {
+    const { lastName, firstName } = parseLeaguePlayerName(player.leaguePlayerName);
+    let playerId = matchClubPlayer(player.leaguePlayerName, clubPlayers ?? []);
+
+    if (playerId) {
+      const linked = (clubPlayers ?? []).find((p) => String(p.id) === playerId);
+      if (
+        linked &&
+        (normalizeName(linked.first_name) !== normalizeName(firstName) ||
+          normalizeName(linked.last_name) !== normalizeName(lastName))
+      ) {
+        playerId = null;
+      }
+    }
+
+    if (!playerId) {
+      const { data: inserted, error } = await supabase
+        .from("players")
+        .insert({
+          club_id: clubId,
+          team_id: teamId,
+          first_name: firstName,
+          last_name: lastName,
+          date_of_birth: "1990-01-01",
+          jersey_number: player.jerseyNumber ?? null,
+          status: "active",
+          joined_at: new Date().toISOString().slice(0, 10),
+          primary_position: "midfielder",
+        })
+        .select("id")
+        .single();
+
+      if (error || !inserted) {
+        failed += 1;
+        continue;
+      }
+
+      playerId = String(inserted.id);
+      created += 1;
+      clubPlayers = [
+        ...(clubPlayers ?? []),
+        { id: playerId, first_name: firstName, last_name: lastName, email: null, status: "active" },
+      ];
+    }
+
+    const { error: linkError } = await supabase
+      .from("league_player_registry")
+      .update({ player_id: playerId })
+      .eq("club_id", clubId)
+      .eq("competition_id", competitionId)
+      .eq("season_id", seasonId)
+      .eq("league_player_name", player.leaguePlayerName);
+
+    if (linkError) failed += 1;
+    else linked += 1;
+  }
+
+  for (const pl of clubPlayers ?? []) {
+    if (!String(pl.email ?? "").endsWith("@piorun.test")) continue;
+    const stillInSquad = squadData.players.some((sp) => matchClubPlayer(sp.leaguePlayerName, [pl]));
+    if (!stillInSquad && pl.status === "active") {
+      await supabase.from("players").update({ status: "inactive" }).eq("id", pl.id);
+      deactivated += 1;
+    }
+  }
+
+  await supabase
+    .from("league_player_registry")
+    .delete()
+    .eq("club_id", clubId)
+    .eq("competition_id", competitionId)
+    .eq("season_id", seasonId)
+    .in("league_player_name", DEMO_REGISTRY_NAMES);
+
+  await supabase.from("league_sync_logs").insert({
+    club_id: clubId,
+    job_id: jobId,
+    level: failed ? "warn" : "info",
+    message: `Kadra FC OS: ${created} nowych zawodników, ${linked} powiązań, ${deactivated} demo ustawionych jako nieaktywni.`,
   });
-  return byFirst.length === 1 ? String(byFirst[0].id) : null;
+
+  return { created, linked, deactivated, failed };
 }
 
 export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
@@ -459,7 +564,14 @@ export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
     message: `Kadra ligowa: ${processed} wpisów (${matched} auto-powiązań), ${failed} błędów. Źródło: regiowyniki.pl.`,
   });
 
-  return { processed, failed, matched, skipped: false };
+  const playersSync = await syncSquadToPlayersModule(supabase, {
+    jobId,
+    squadData,
+    competitionId,
+    seasonId,
+  });
+
+  return { processed, failed, matched, skipped: false, playersSync };
 }
 
 export async function runLivePipeline(merged, fetchMeta, squadData = null) {
