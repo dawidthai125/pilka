@@ -30,7 +30,7 @@ export async function GET() {
             fontWeight: 700,
           }}
         >
-          +
+          PW
         </div>
       </div>
     ),

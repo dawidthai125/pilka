@@ -33,7 +33,7 @@ export default function AppleIcon() {
             fontSize: 56,
           }}
         >
-          +
+          PW
         </div>
       </div>
     ),

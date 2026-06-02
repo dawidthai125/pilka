@@ -10,11 +10,13 @@ import {
 import { CoachDayPanel } from "@/features/dashboard/components/coach-day-panel";
 import { MobileQuickActions, MobileRoleHeader } from "@/features/pwa/components/mobile-home";
 import { OfflineCachedSummary } from "@/features/pwa/components/offline-cached-summary";
+import { ClubLogo } from "@/components/club/club-logo";
 import { getDashboardContext } from "@/lib/auth/session";
 import { getCoachDayData } from "@/lib/dashboard/coach-day";
 import { canShowCoachDay } from "@/lib/navigation/mobile-nav";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { formatClubOfficialSubtitle, getClubBrandingName } from "@/lib/club/names";
+import { getWebsiteAssetUrl } from "@/lib/website/assets";
 import { ROLE_LABELS } from "@/config/permissions";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -28,7 +30,11 @@ import {
 import { cn } from "@/lib/utils";
 
 export default async function DashboardPage() {
-  const { profile, access, club, teams } = await getDashboardContext();
+  const { profile, access, club, teams, websiteSettings } = await getDashboardContext();
+  const clubName = getClubBrandingName(club);
+  const logoUrl = websiteSettings?.logoPath
+    ? await getWebsiteAssetUrl(websiteSettings.logoPath)
+    : null;
   const canReadPlayers = hasPermission(access, "player:read");
   const showCoachDay = canShowCoachDay(access.roles);
   const coachDay = showCoachDay ? await getCoachDayData(access.clubId) : null;
@@ -36,14 +42,20 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <OfflineCachedSummary />
-      <MobileRoleHeader roles={access.roles} />
+      <MobileRoleHeader roles={access.roles} clubName={clubName} logoUrl={logoUrl} />
       <MobileQuickActions roles={access.roles} />
 
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Witaj, {profile?.fullName ?? profile?.email}. Oto podsumowanie klubu.
-        </p>
+      <div className="flex items-start gap-4">
+        <ClubLogo logoUrl={logoUrl} clubName={clubName} size="lg" className="hidden sm:flex" />
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Witaj, {profile?.fullName ?? profile?.email}. Oto podsumowanie {clubName}.
+          </p>
+          {formatClubOfficialSubtitle(club) ? (
+            <p className="mt-1 text-xs text-muted-foreground">{formatClubOfficialSubtitle(club)}</p>
+          ) : null}
+        </div>
       </div>
 
       {coachDay ? <CoachDayPanel data={coachDay} /> : null}

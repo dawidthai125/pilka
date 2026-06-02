@@ -28,11 +28,11 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.shortName}`,
   },
   description: siteConfig.description,
-  applicationName: PWA_DEFAULT_THEME.name,
+  applicationName: siteConfig.shortName,
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: PWA_DEFAULT_THEME.shortName,
+    title: siteConfig.shortName,
   },
   formatDetection: {
     telephone: false,

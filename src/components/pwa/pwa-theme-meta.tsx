@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 
-import type { PwaThemeColors } from "@/lib/pwa/branding";
+import { getClubThemeCssVariables } from "@/lib/club/theme";
+import type { ClubTheme } from "@/lib/club/theme";
 
-export function PwaThemeMeta({ theme }: { theme: PwaThemeColors }) {
+export function PwaThemeMeta({ theme }: { theme: ClubTheme }) {
   useEffect(() => {
     const themeMeta = document.querySelector('meta[name="theme-color"]');
     if (themeMeta) {
@@ -15,8 +16,9 @@ export function PwaThemeMeta({ theme }: { theme: PwaThemeColors }) {
       meta.content = theme.themeColor;
       document.head.appendChild(meta);
     }
-    document.documentElement.style.setProperty("--pwa-primary", theme.primaryColor);
-    document.documentElement.style.setProperty("--pwa-secondary", theme.secondaryColor);
+    for (const [key, value] of Object.entries(getClubThemeCssVariables(theme))) {
+      document.documentElement.style.setProperty(key, value);
+    }
   }, [theme]);
 
   return null;

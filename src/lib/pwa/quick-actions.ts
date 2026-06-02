@@ -144,7 +144,7 @@ export function getQuickActionsForRoles(roles: ClubRole[]): QuickAction[] {
   if (canManageVideos(roles)) {
     actions.push({
       id: "video-upload",
-      label: "Video Center",
+      label: "Wideo",
       href: "/video",
       icon: Video,
     });
@@ -152,7 +152,7 @@ export function getQuickActionsForRoles(roles: ClubRole[]): QuickAction[] {
   if (canReadLeague(roles) && actions.length < 6) {
     actions.push({
       id: "league-hub",
-      label: "League Hub",
+      label: "Rozgrywki",
       href: "/league",
       icon: Medal,
     });
@@ -160,7 +160,7 @@ export function getQuickActionsForRoles(roles: ClubRole[]): QuickAction[] {
   if (canManageContent(roles)) {
     actions.push({
       id: "content-hub",
-      label: "Content Hub",
+      label: "Treści",
       href: "/content",
       icon: Newspaper,
     });

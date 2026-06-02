@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
 
+import { ClubLogo } from "@/components/club/club-logo";
 import { MobileDashboardNav } from "@/components/layout/mobile-dashboard-nav";
 import { getRoleLabels } from "@/lib/auth/session";
 import type { Profile } from "@/types/rbac";
@@ -35,24 +36,28 @@ export function DashboardHeader({
   profile,
   roles,
   clubName,
-  appName,
+  logoUrl,
   unreadNotifications = 0,
 }: {
   profile: Profile | null;
   roles: ClubRole[];
   clubName: string;
-  appName: string;
+  logoUrl?: string | null;
   unreadNotifications?: number;
 }) {
   const email = profile?.email ?? "";
   const name = profile?.fullName ?? email;
 
   return (
-    <header className="flex h-16 items-center justify-between gap-3 border-b px-4 md:px-6">
+    <header className="flex h-16 items-center justify-between gap-3 border-b border-sidebar-border/40 bg-background px-4 md:px-6">
       <div className="flex min-w-0 items-center gap-3">
-        <MobileDashboardNav appName={appName} clubName={clubName} roles={roles} />
-        <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">Klub</p>
+        <MobileDashboardNav clubName={clubName} logoUrl={logoUrl} roles={roles} />
+        <ClubLogo logoUrl={logoUrl} clubName={clubName} size="sm" className="hidden md:flex" />
+        <div className="min-w-0 md:hidden">
+          <p className="truncate text-sm font-semibold">{clubName}</p>
+        </div>
+        <div className="hidden min-w-0 md:block">
+          <p className="text-xs text-muted-foreground">Klub</p>
           <p className="truncate font-semibold">{clubName}</p>
         </div>
       </div>

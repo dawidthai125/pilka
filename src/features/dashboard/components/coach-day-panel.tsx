@@ -34,7 +34,7 @@ export function CoachDayPanel({ data }: { data: CoachDayData }) {
     <section className="space-y-4" aria-labelledby="coach-day-heading">
       <div>
         <h2 id="coach-day-heading" className="text-xl font-semibold tracking-tight">
-          Coach Day
+          Dziś w klubie
         </h2>
         <p className="text-sm text-muted-foreground">
           Dzisiejsze priorytety — trening, mecz, kadra i szybkie akcje.

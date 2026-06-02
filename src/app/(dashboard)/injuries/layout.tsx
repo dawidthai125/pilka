@@ -8,7 +8,7 @@ export default async function InjuriesLayout({ children }: { children: React.Rea
   return (
     <div className="space-y-2">
       <div>
-        <h1 className="text-2xl font-semibold">Injury & Medical</h1>
+        <h1 className="text-2xl font-semibold">Urazy</h1>
         <p className="text-sm text-muted-foreground">
           Zarządzanie dostępnością sportową zawodników — {INJURY_MODULE_DISCLAIMER.toLowerCase()}
         </p>

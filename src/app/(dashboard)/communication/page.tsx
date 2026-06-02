@@ -32,7 +32,7 @@ export default async function CommunicationDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Communication Hub</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Komunikacja</h1>
         <p className="text-sm text-muted-foreground">
           Centralna komunikacja klubu — ogłoszenia, komunikaty trenerów i czaty drużynowe.
         </p>

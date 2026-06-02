@@ -1,30 +1,31 @@
+import { resolveClubTheme, type ClubTheme } from "@/lib/club/theme";
+import { siteConfig } from "@/config/site";
+
 /** Domyślne kolory PWA — nadpisywane z website_settings klubu. */
 export const PWA_DEFAULT_THEME = {
-  name: "Football Club OS",
-  shortName: "FCOS",
+  name: siteConfig.name,
+  shortName: siteConfig.shortName,
   primaryColor: "#0B3D2E",
   secondaryColor: "#F4C430",
   backgroundColor: "#0B3D2E",
   themeColor: "#0B3D2E",
 } as const;
 
-export type PwaThemeColors = {
-  primaryColor: string;
-  secondaryColor: string;
-  backgroundColor: string;
-  themeColor: string;
-};
+export type PwaThemeColors = Pick<
+  ClubTheme,
+  "primaryColor" | "secondaryColor" | "backgroundColor" | "themeColor"
+>;
 
 export function resolvePwaTheme(settings?: {
   primaryColor?: string | null;
   secondaryColor?: string | null;
+  accentColor?: string | null;
 }): PwaThemeColors {
-  const primary = settings?.primaryColor ?? PWA_DEFAULT_THEME.primaryColor;
-  const secondary = settings?.secondaryColor ?? PWA_DEFAULT_THEME.secondaryColor;
+  const theme = resolveClubTheme(settings);
   return {
-    primaryColor: primary,
-    secondaryColor: secondary,
-    backgroundColor: primary,
-    themeColor: primary,
+    primaryColor: theme.primaryColor,
+    secondaryColor: theme.secondaryColor,
+    backgroundColor: theme.backgroundColor,
+    themeColor: theme.themeColor,
   };
 }

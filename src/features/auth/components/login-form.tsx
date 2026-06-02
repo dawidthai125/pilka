@@ -25,7 +25,7 @@ export function LoginForm() {
     <Card>
       <CardHeader>
         <CardTitle>Logowanie</CardTitle>
-        <CardDescription>Zaloguj się do Football Club OS.</CardDescription>
+        <CardDescription>Wprowadź dane swojego konta klubowego.</CardDescription>
       </CardHeader>
       <form action={action}>
         <CardContent className="space-y-4">

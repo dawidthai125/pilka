@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
 
+import { siteConfig } from "@/config/site";
 import { PWA_DEFAULT_THEME } from "@/lib/pwa/branding";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: PWA_DEFAULT_THEME.name,
-    short_name: PWA_DEFAULT_THEME.shortName,
-    description: "System operacyjny klubu piłkarskiego — mecze, treningi, finanse i AI.",
+    name: siteConfig.name,
+    short_name: siteConfig.shortName,
+    description: siteConfig.description,
     start_url: "/dashboard",
     scope: "/",
     display: "standalone",

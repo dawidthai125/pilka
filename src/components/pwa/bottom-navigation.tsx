@@ -11,12 +11,12 @@ import type { ClubRole } from "@/types/rbac";
 
 export function BottomNavigation({
   roles,
-  appName,
   clubName,
+  logoUrl,
 }: {
   roles: ClubRole[];
-  appName: string;
   clubName: string;
+  logoUrl?: string | null;
 }) {
   const pathname = usePathname();
   const locale = getStoredLocale();
@@ -25,7 +25,7 @@ export function BottomNavigation({
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden print:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-[color-mix(in_srgb,var(--club-primary)_20%,transparent)] bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden print:hidden"
       aria-label="Nawigacja mobilna"
     >
       <ul
@@ -51,7 +51,7 @@ export function BottomNavigation({
           );
         })}
         <li>
-          <MobileMoreSheet roles={roles} appName={appName} clubName={clubName} />
+          <MobileMoreSheet roles={roles} clubName={clubName} logoUrl={logoUrl} />
         </li>
       </ul>
     </nav>

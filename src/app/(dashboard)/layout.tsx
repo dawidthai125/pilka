@@ -1,13 +1,15 @@
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
+import { ClubLogo } from "@/components/club/club-logo";
+import { ClubThemeStyles } from "@/components/club/club-theme-styles";
 import { BottomNavigation } from "@/components/pwa/bottom-navigation";
 import { AiCommandPalette } from "@/features/ai-manager/components/agent-manager-dashboard";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
 import { PwaThemeMeta } from "@/components/pwa/pwa-theme-meta";
 import { getDashboardContext } from "@/lib/auth/session";
 import { formatClubOfficialSubtitle, getClubBrandingName } from "@/lib/club/names";
-import { resolvePwaTheme } from "@/lib/pwa/branding";
-import { siteConfig } from "@/config/site";
+import { resolveClubTheme } from "@/lib/club/theme";
+import { getWebsiteAssetUrl } from "@/lib/website/assets";
 
 export default async function DashboardLayout({
   children,
@@ -15,28 +17,36 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const { profile, access, club, unreadNotifications, websiteSettings } = await getDashboardContext();
-  const pwaTheme = resolvePwaTheme({
+  const clubName = getClubBrandingName(club);
+  const theme = resolveClubTheme({
     primaryColor: websiteSettings?.primaryColor,
     secondaryColor: websiteSettings?.secondaryColor,
+    accentColor: websiteSettings?.accentColor,
   });
+  const logoUrl = websiteSettings?.logoPath
+    ? await getWebsiteAssetUrl(websiteSettings.logoPath)
+    : null;
 
   return (
     <PwaProvider userId={access.userId} clubId={access.clubId}>
+      <ClubThemeStyles theme={theme} />
       <AiCommandPalette />
-      <PwaThemeMeta theme={pwaTheme} />
+      <PwaThemeMeta theme={theme} />
       <div className="flex min-h-screen">
-        <aside className="hidden w-64 shrink-0 border-r bg-card md:flex md:flex-col print:hidden">
-          <div className="border-b px-6 py-5">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              {siteConfig.shortName}
-            </p>
-            <p className="mt-1 font-semibold">{getClubBrandingName(club)}</p>
-            {formatClubOfficialSubtitle(club) ? (
-              <p className="mt-0.5 text-xs text-muted-foreground">{club.officialName}</p>
-            ) : null}
+        <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex md:flex-col print:hidden">
+          <div className="border-b border-sidebar-border px-4 py-5">
+            <div className="flex items-center gap-3">
+              <ClubLogo logoUrl={logoUrl} clubName={clubName} size="lg" onDark />
+              <div className="min-w-0">
+                <p className="truncate font-semibold leading-tight">{clubName}</p>
+                {formatClubOfficialSubtitle(club) ? (
+                  <p className="mt-0.5 truncate text-xs text-sidebar-foreground/75">{club.officialName}</p>
+                ) : null}
+              </div>
+            </div>
           </div>
-          <div className="flex-1 px-3 py-4">
-            <DashboardNav roles={access.roles} />
+          <div className="flex-1 overflow-y-auto px-3 py-4">
+            <DashboardNav roles={access.roles} variant="sidebar" />
           </div>
         </aside>
 
@@ -45,8 +55,8 @@ export default async function DashboardLayout({
             <DashboardHeader
               profile={profile}
               roles={access.roles}
-              clubName={getClubBrandingName(club)}
-              appName={siteConfig.shortName}
+              clubName={clubName}
+              logoUrl={logoUrl}
               unreadNotifications={unreadNotifications}
             />
           </div>
@@ -55,8 +65,8 @@ export default async function DashboardLayout({
           </main>
           <BottomNavigation
             roles={access.roles}
-            appName={siteConfig.shortName}
-            clubName={getClubBrandingName(club)}
+            clubName={clubName}
+            logoUrl={logoUrl}
           />
         </div>
       </div>

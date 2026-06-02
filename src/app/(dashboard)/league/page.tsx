@@ -27,7 +27,7 @@ export default async function LeagueDashboardPage() {
   if (!competition || !season) {
     return (
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">League Hub</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Rozgrywki</h1>
         <p className="mt-2 text-sm text-muted-foreground">Brak skonfigurowanych rozgrywek — uruchom seed ETAP 15B.</p>
       </div>
     );
@@ -46,7 +46,7 @@ export default async function LeagueDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">League Hub</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Rozgrywki</h1>
         <p className="text-sm text-muted-foreground">
           {season.name} · {competition.name} · centralne zarządzanie rozgrywkami
         </p>

@@ -30,7 +30,7 @@ function renderIcon(size: number) {
             fontWeight: 700,
           }}
         >
-          +
+          PW
         </div>
       </div>
     ),

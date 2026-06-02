@@ -21,7 +21,7 @@ export default async function ContentHubPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Content Hub</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Treści</h1>
           <p className="text-sm text-muted-foreground">
             Centralny system publikacji — strona, social, sponsorzy, komunikaty.
           </p>

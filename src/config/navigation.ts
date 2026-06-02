@@ -82,7 +82,7 @@ export const dashboardNav = [
     audience: "equipment_staff" as const,
   },
   {
-    title: "Injury & Medical",
+    title: "Urazy",
     href: "/injuries",
     icon: HeartPulse,
     audience: "injuries_staff" as const,
@@ -111,13 +111,13 @@ export const dashboardNav = [
     icon: Trophy,
   },
   {
-    title: "Video Center",
+    title: "Wideo",
     href: "/video",
     icon: Video,
     audience: "video_staff" as const,
   },
   {
-    title: "Content Hub",
+    title: "Treści",
     href: "/content",
     icon: Newspaper,
     audience: "content_staff" as const,
@@ -134,13 +134,13 @@ export const dashboardNav = [
     audience: "integration_staff" as const,
   },
   {
-    title: "League Hub",
+    title: "Rozgrywki",
     href: "/league",
     icon: Medal,
     audience: "league_staff" as const,
   },
   {
-    title: "Communication Hub",
+    title: "Komunikacja",
     href: "/communication",
     icon: MessageSquare,
     audience: "communication_staff" as const,

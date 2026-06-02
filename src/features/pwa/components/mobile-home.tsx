@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { ClubLogo } from "@/components/club/club-logo";
 import {
   getQuickActionsForRoles,
   MOBILE_DASHBOARD_COPY,
@@ -42,15 +43,30 @@ export function MobileQuickActions({ roles }: { roles: ClubRole[] }) {
   );
 }
 
-export function MobileRoleHeader({ roles }: { roles: ClubRole[] }) {
+export function MobileRoleHeader({
+  roles,
+  clubName,
+  logoUrl,
+}: {
+  roles: ClubRole[];
+  clubName: string;
+  logoUrl?: string | null;
+}) {
   const variant = resolveMobileDashboardVariant(roles);
   const copy = MOBILE_DASHBOARD_COPY[variant];
 
   return (
-    <div className="rounded-xl border bg-gradient-to-br from-[var(--pwa-primary,#0B3D2E)] to-[#062820] p-4 text-white md:hidden">
-      <p className="text-xs font-medium uppercase tracking-wide text-white/70">Football Club OS</p>
-      <h2 className="mt-1 text-lg font-semibold">{copy.title}</h2>
-      <p className="mt-1 text-sm text-white/80">{copy.subtitle}</p>
+    <div className="rounded-xl border border-[color-mix(in_srgb,var(--club-primary)_25%,transparent)] bg-gradient-to-br from-[var(--club-primary,var(--pwa-primary,#0B3D2E))] to-[#062820] p-4 text-white md:hidden">
+      <div className="flex items-center gap-3">
+        <ClubLogo logoUrl={logoUrl} clubName={clubName} size="md" onDark />
+        <p className="min-w-0 flex-1">
+          <span className="block truncate text-xs font-medium uppercase tracking-wide text-white/70">
+            {clubName}
+          </span>
+          <span className="mt-1 block text-lg font-semibold">{copy.title}</span>
+          <span className="mt-1 block text-sm text-white/80">{copy.subtitle}</span>
+        </p>
+      </div>
     </div>
   );
 }

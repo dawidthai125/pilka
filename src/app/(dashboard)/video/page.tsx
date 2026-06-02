@@ -21,7 +21,7 @@ export default async function VideoCenterPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Video Center</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Wideo</h1>
           <p className="text-sm text-muted-foreground">
             AI Video Analysis — nagrania, raporty sportowe i materiały dla sztabu.
           </p>
