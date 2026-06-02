@@ -55,7 +55,7 @@ export function parseRegiowynikiKadra(html) {
   return players;
 }
 
-function parseNinetyMinutStrzelcy(html, teamFilter = /mietk/i) {
+export function parseNinetyMinutStrzelcy(html, teamFilter = /mietk/i) {
   const scorers = [];
   const blocks = html.split(/<table[^>]*class="main2"[^>]*>/i);
   for (const block of blocks) {
@@ -74,7 +74,7 @@ function parseNinetyMinutStrzelcy(html, teamFilter = /mietk/i) {
   return scorers;
 }
 
-function parseNinetyMinutBilans(html) {
+export function parseNinetyMinutBilans(html) {
   const players = [];
   const rowRe =
     /<tr[^>]*>\s*<td[^>]*>\s*(?:<a[^>]*>)?\s*([A-ZĄĆĘŁŃÓŚŹŻ][^\<]{2,40})\s*(?:<\/a>)?\s*<\/td>\s*<td[^>]*>\s*(\d+)\s*<\/td>\s*<td[^>]*>\s*(\d+)\s*<\/td>\s*<td[^>]*>\s*(\d+)\s*<\/td>\s*<td[^>]*>\s*(\d+)\s*<\/td>\s*<td[^>]*>\s*(\d+)\s*<\/td>\s*<td[^>]*>\s*(\d+)\s*<\/td>\s*<td[^>]*>\s*(\d+)\s*<\/td>/gi;
@@ -92,6 +92,31 @@ function parseNinetyMinutBilans(html) {
       source: "90minut_bilans",
     });
   }
+
+  if (players.length === 0) {
+    const looseRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+    while ((m = looseRe.exec(html)) !== null) {
+      const row = m[1];
+      if (!/<a[^>]*>/.test(row)) continue;
+      const name = row.match(/<a[^>]*>([^<]+)</)?.[1]?.trim();
+      if (!name || name.length < 4 || /(bilans|mecz|sezon|zawodnik)/i.test(name)) continue;
+      const nums = [...row.matchAll(/>\s*(\d+)\s*</g)].map((x) => Number(x[1]));
+      if (nums.length < 6) continue;
+      const goals = nums[nums.length - 1];
+      players.push({
+        name,
+        matches: nums[0] ?? 0,
+        fullMatches: nums[1] ?? 0,
+        benchEntries: nums[2] ?? 0,
+        minutes: nums[3] ?? 0,
+        yellowCards: nums[4] ?? 0,
+        redCards: nums[5] ?? 0,
+        goals,
+        source: "90minut_bilans",
+      });
+    }
+  }
+
   return players;
 }
 
@@ -189,15 +214,21 @@ export async function fetchSquadAndStats() {
     ninetyMinutBilans: `http://www.90minut.pl/bilans.php?id_klub=3824&id_sezon=107`,
   };
 
-  const [kadraPage, strzelcyPage, bilansPage] = await Promise.all([
+  const [kadraPage, strzelcyPage, bilans107, bilans91] = await Promise.all([
     get(urls.regiowynikiKadra),
     get(urls.ninetyMinutStrzelcy),
     get(urls.ninetyMinutBilans),
+    get("http://www.90minut.pl/bilans.php?id_klub=3824&id_sezon=91"),
   ]);
 
   const kadra = kadraPage.status === 200 ? parseRegiowynikiKadra(kadraPage.text) : [];
   const strzelcy = strzelcyPage.status === 200 ? parseNinetyMinutStrzelcy(strzelcyPage.text) : [];
-  const bilans = bilansPage.status === 200 ? parseNinetyMinutBilans(bilansPage.text) : [];
+  const bilans =
+    bilans107.status === 200
+      ? parseNinetyMinutBilans(bilans107.text)
+      : bilans91.status === 200
+        ? parseNinetyMinutBilans(bilans91.text)
+        : [];
   let players = mergePlayerStats(kadra, strzelcy, bilans);
 
   const lnpConfig = getLnpConfig();

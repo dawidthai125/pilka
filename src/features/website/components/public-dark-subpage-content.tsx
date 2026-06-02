@@ -148,6 +148,10 @@ export function PublicDarkSquadList({ players }: { players: PublicPlayer[] }) {
     return a.lastName.localeCompare(b.lastName, "pl");
   });
 
+  const hasAnyStats = sorted.some(
+    (p) => p.goals > 0 || p.assists > 0 || p.matchesPlayed > 0,
+  );
+
   if (sorted.length === 0) {
     return (
       <PublicDarkCard>
@@ -157,14 +161,26 @@ export function PublicDarkSquadList({ players }: { players: PublicPlayer[] }) {
   }
 
   return (
-    <HomeDarkPanel>
-      <HomeDarkPanelHeader title="Lista zawodników" icon={Shirt} />
-      <div className="divide-y divide-white/8">
-        {sorted.map((player, index) => (
-          <SquadPlayerRow key={player.id} player={player} rank={index + 1} />
-        ))}
-      </div>
-    </HomeDarkPanel>
+    <div className="space-y-4">
+      {!hasAnyStats ? (
+        <PublicDarkCard className="border-amber-400/20 bg-amber-500/5">
+          <p className="text-sm font-semibold text-amber-200/90">Statystyki sezonu niedostępne w źródłach ligowych</p>
+          <p className="mt-2 text-sm leading-relaxed text-white/60">
+            Portale ligowe (Regiowyniki, 90minut) nie udostępniają dla B Klasy bramek i występów per zawodnik.
+            Możesz uzupełnić statystyki ręcznie w panelu klubu w module Zawodnicy albo włączyć synchronizację z systemem
+            mPZPN (Łączy Nas Piłka) — wtedy po imporcie gole pojawią się tutaj automatycznie.
+          </p>
+        </PublicDarkCard>
+      ) : null}
+      <HomeDarkPanel>
+        <HomeDarkPanelHeader title="Lista zawodników" icon={Shirt} />
+        <div className="divide-y divide-white/8">
+          {sorted.map((player, index) => (
+            <SquadPlayerRow key={player.id} player={player} rank={index + 1} />
+          ))}
+        </div>
+      </HomeDarkPanel>
+    </div>
   );
 }
 
