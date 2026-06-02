@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { PublicPageShell } from "@/features/website/components/public-page-shell";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 import { WEBSITE_GALLERY_CATEGORY_LABELS } from "@/lib/website/constants";
 import { getPublicClubId, getPublicGalleryAlbums } from "@/lib/website/public-data";
@@ -14,15 +15,13 @@ export default async function GalleryPublicPage() {
   const albums = await getPublicGalleryAlbums(clubId);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold">Galeria zdjęć</h1>
-      <p className="mt-2 text-muted-foreground">Mecze, treningi, wydarzenia klubowe.</p>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <PublicPageShell title="Zdjęcia" subtitle="Albumy ze strony klubu i Facebooka.">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {albums.map((album) => (
           <Link
             key={album.id}
             href={`/galeria/${album.slug}`}
-            className="rounded-xl border bg-card p-6 transition hover:shadow-md"
+            className="rounded-xl border border-black/5 bg-white p-6 shadow-sm transition hover:shadow-md"
           >
             <p className="text-xs font-medium text-[var(--club-primary)]">
               {WEBSITE_GALLERY_CATEGORY_LABELS[album.category]}
@@ -32,6 +31,6 @@ export default async function GalleryPublicPage() {
           </Link>
         ))}
       </div>
-    </div>
+    </PublicPageShell>
   );
 }

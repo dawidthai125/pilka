@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PublicPageShell } from "@/features/website/components/public-page-shell";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 import { getPublicPlayers } from "@/lib/website/public-data";
 
@@ -11,10 +12,8 @@ export default async function TeamPublicPage() {
   const players = await getPublicPlayers();
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold">Kadra drużyny</h1>
-      <p className="mt-2 text-muted-foreground">Zawodnicy, pozycje, numery i statystyki sezonu.</p>
-      <div className="mt-8 overflow-x-auto rounded-xl border">
+    <PublicPageShell title="Kadra drużyny" subtitle="Zawodnicy, pozycje, numery i statystyki sezonu.">
+      <div className="overflow-x-auto rounded-xl border border-black/5 bg-white shadow-sm">
         <table className="w-full min-w-[720px] text-sm">
           <thead className="border-b bg-muted/50 text-left">
             <tr>
@@ -30,7 +29,9 @@ export default async function TeamPublicPage() {
             {players.map((p) => (
               <tr key={p.id} className="border-b last:border-0">
                 <td className="px-4 py-3 font-semibold">{p.jerseyNumber ?? "—"}</td>
-                <td className="px-4 py-3">{p.firstName} {p.lastName}</td>
+                <td className="px-4 py-3">
+                  {p.firstName} {p.lastName}
+                </td>
                 <td className="px-4 py-3 capitalize">{p.position ?? "—"}</td>
                 <td className="px-4 py-3">{p.matchesPlayed}</td>
                 <td className="px-4 py-3">{p.goals}</td>
@@ -40,6 +41,6 @@ export default async function TeamPublicPage() {
           </tbody>
         </table>
       </div>
-    </div>
+    </PublicPageShell>
   );
 }

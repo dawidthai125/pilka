@@ -12,6 +12,7 @@ const outDir = path.join(__dirname, "..", "public", "club-media");
 fs.mkdirSync(outDir, { recursive: true });
 
 const KEYS = [
+  "cover",
   "hero-team",
   "hero-match",
   "hero-stadium",

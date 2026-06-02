@@ -1,10 +1,10 @@
+import { DashboardModuleShell } from "@/components/layout/dashboard-module-shell";
 import { CommunicationSubNav } from "@/features/communication/components/communication-sub-nav";
 
 export default function CommunicationLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-6">
-      <CommunicationSubNav />
+    <DashboardModuleShell title="Komunikacja" description="Ogłoszenia, czaty i kanały klubowe." nav={<CommunicationSubNav />}>
       {children}
-    </div>
+    </DashboardModuleShell>
   );
 }

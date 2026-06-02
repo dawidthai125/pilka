@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ArrowRight, ChevronRight, MapPin, Phone, Trophy } from "lucide-react";
 
 import { ClubLogo } from "@/components/club/club-logo";
-import { HeroPhotoRotator } from "@/features/website/components/hero-photo-rotator";
 import {
   CLUB_DISPLAY_CLASS,
   CLUB_SCENE_DARK,
@@ -71,8 +70,6 @@ function PublicSectionHeader({
 }
 
 const CLUB_DISPLAY = CLUB_DISPLAY_CLASS;
-
-const HERO_SLOT_ORDER = ["team", "match", "stadium"] as const;
 
 function MatchEmptyState({ label }: { label: string }) {
   return (
@@ -154,89 +151,64 @@ export function PublicHeroSection({
   academyPreviewUrl?: string | null;
 }) {
   const bySlot = new Map(heroImages.filter((item) => item.url).map((item) => [item.slotKey, item]));
-  const heroSlides = HERO_SLOT_ORDER.map((slot) => bySlot.get(slot)).filter(Boolean) as PublicHeroMediaImage[];
-
-  const slides = [
-    ...heroSlides.map((item) => ({
-      url: item.url!,
-      alt: item.caption ?? clubName,
-    })),
-    ...(academyPreviewUrl ? [{ url: academyPreviewUrl, alt: `Akademia ${clubName}` }] : []),
-  ];
+  const featuredImage =
+    bySlot.get("match")?.url ?? bySlot.get("team")?.url ?? academyPreviewUrl ?? bySlot.get("stadium")?.url ?? null;
 
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-[#062820] text-white" aria-label="Strona główna klubu">
-      <div className="absolute inset-0">
-        <HeroPhotoRotator slides={slides} className="size-full" />
-      </div>
-
-      <div className="absolute inset-0 bg-gradient-to-t from-[#062820] via-[#062820]/80 to-[#062820]/25" aria-hidden />
-
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-4 pb-24 pt-28 sm:px-6 sm:pb-28 lg:pb-32">
-        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div className="max-w-3xl space-y-5">
-            <div className="flex items-center gap-4">
-              <ClubLogo logoUrl={logoUrl} clubName={clubName} size="xl" onDark className="ring-2 ring-white/25" />
-              <div>
-                <p className={cn(CLUB_DISPLAY, "text-lg font-semibold uppercase tracking-wide text-[var(--club-secondary)] sm:text-xl")}>
-                  {clubName}
-                </p>
-                {localityLine ? (
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-white/80">
-                    <MapPin className="size-4 shrink-0 text-[var(--club-secondary)]" />
-                    {localityLine}
-                  </p>
-                ) : null}
-              </div>
+    <section className="py-4 sm:py-6" aria-label="Post przypięty">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <article className="overflow-hidden rounded-xl border border-black/5 bg-white shadow-sm">
+          <div className="flex items-center gap-3 border-b border-black/5 px-4 py-3 sm:px-5">
+            <ClubLogo logoUrl={logoUrl} clubName={clubName} size="sm" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-[var(--club-primary)]">{clubName}</p>
+              <p className="text-xs text-muted-foreground">Post przypięty · Facebook klubu</p>
             </div>
-
-            <h1 className={cn(CLUB_DISPLAY, "text-4xl font-bold uppercase leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl")}>
-              {title}
-            </h1>
-
-            {subtitle ? (
-              <p className="max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">{subtitle}</p>
-            ) : null}
-
-            {communityLine ? <p className="text-sm text-white/70">{communityLine}</p> : null}
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link
-                href="/#akademia"
-                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-[var(--club-secondary)] px-6 text-sm font-bold text-[var(--club-primary)] sm:text-base"
-              >
-                Zapisz dziecko
-              </Link>
-              <Link
-                href="/mecze"
-                className="inline-flex min-h-12 items-center justify-center rounded-lg border-2 border-white/40 px-6 text-sm font-semibold text-white backdrop-blur-sm sm:text-base"
-              >
-                Sobotni mecz
-              </Link>
-            </div>
-
-            {contactPhone ? (
-              <p className="flex items-center gap-2 text-sm sm:text-base">
-                <Phone className="size-4 text-[var(--club-secondary)]" />
-                <a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="font-semibold tabular-nums hover:underline">
-                  {contactPhone}
-                </a>
-              </p>
-            ) : null}
           </div>
 
-          {academyPreviewUrl ? (
-            <Link
-              href="/#akademia"
-              className="group relative hidden w-44 overflow-hidden rounded-2xl ring-2 ring-[var(--club-secondary)]/40 lg:block xl:w-52"
-            >
+          <div className="space-y-3 px-4 py-4 sm:px-5">
+            <h2 className={cn(CLUB_DISPLAY, "text-xl font-bold leading-snug text-[var(--club-primary)] sm:text-2xl")}>{title}</h2>
+            {subtitle ? <p className="text-sm leading-relaxed text-foreground sm:text-base">{subtitle}</p> : null}
+            {localityLine ? (
+              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="size-4 shrink-0 text-[var(--club-secondary)]" />
+                {localityLine}
+              </p>
+            ) : null}
+            {communityLine ? <p className="text-sm text-muted-foreground">{communityLine}</p> : null}
+          </div>
+
+          {featuredImage ? (
+            <Link href="/aktualnosci" className="block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={academyPreviewUrl} alt="Akademia klubu" className="aspect-[3/4] size-full object-cover transition group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#062820] to-transparent" />
-              <p className="absolute bottom-3 left-3 right-3 text-xs font-bold text-[var(--club-secondary)]">Akademia · zapisz dziecko</p>
+              <img src={featuredImage} alt={clubName} className="max-h-[420px] w-full object-cover" />
             </Link>
           ) : null}
-        </div>
+
+          <div className="flex flex-wrap gap-2 border-t border-black/5 px-4 py-4 sm:px-5">
+            <Link
+              href="/#akademia"
+              className="inline-flex min-h-10 items-center rounded-lg bg-[var(--club-secondary)] px-4 text-sm font-bold text-[var(--club-primary)]"
+            >
+              Zapisz dziecko
+            </Link>
+            <Link
+              href="/mecze"
+              className="inline-flex min-h-10 items-center rounded-lg bg-[var(--club-primary)] px-4 text-sm font-semibold text-white"
+            >
+              Terminarz meczów
+            </Link>
+            {contactPhone ? (
+              <a
+                href={`tel:${contactPhone.replace(/\s/g, "")}`}
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-4 text-sm font-semibold text-[var(--club-primary)]"
+              >
+                <Phone className="size-4" />
+                {contactPhone}
+              </a>
+            ) : null}
+          </div>
+        </article>
       </div>
     </section>
   );
@@ -609,75 +581,58 @@ export function PublicGallerySection({ items }: { items: PublicGalleryMediaItem[
 const NEWS_CATEGORY_BADGE: Record<PublicNewsPreviewItem["category"], string> = {
   matches: "bg-[var(--club-primary)] text-white",
   academy: "bg-[var(--club-secondary)] text-[var(--club-primary)]",
-  club: "bg-white/15 text-white",
-  transfers: "bg-white/15 text-white",
-  sponsors: "bg-white/15 text-white",
-  other: "bg-white/15 text-white",
+  club: "bg-[var(--club-primary)]/10 text-[var(--club-primary)]",
+  transfers: "bg-muted text-foreground",
+  sponsors: "bg-muted text-foreground",
+  other: "bg-muted text-foreground",
 };
 
-export function PublicNewsSection({ news }: { news: PublicNewsPreviewItem[] }) {
+export function PublicNewsSection({ news, clubName }: { news: PublicNewsPreviewItem[]; clubName: string }) {
   if (news.length === 0) return null;
 
   const [featured, ...rest] = news;
   if (!featured) return null;
+  const initials = clubName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 
   return (
-    <section className={cn(CLUB_SCENE_LIGHT, "py-12 sm:py-16 lg:py-20")} aria-label="Aktualności">
+    <section className="py-4 sm:py-6" aria-label="Aktualności">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <PublicSectionHeader title="Aktualności" subtitle="Wiadomości z boiska i życia klubu." href="/aktualnosci" />
-        <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
-          <Link
-            href={`/aktualnosci/${featured.slug}`}
-            className="group relative min-h-[280px] overflow-hidden rounded-2xl lg:min-h-[360px]"
-          >
-            {featured.featuredImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={featured.featuredImageUrl} alt="" className="absolute inset-0 size-full object-cover transition group-hover:scale-105" />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--club-primary)] to-[#062820]" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#062820] via-[#062820]/45 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-5 text-white sm:p-7">
-              <span className={cn("rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide", NEWS_CATEGORY_BADGE[featured.category])}>
-                {WEBSITE_NEWS_CATEGORY_LABELS[featured.category]}
-              </span>
-              <h3 className="mt-4 text-2xl font-bold leading-snug sm:text-3xl">{featured.title}</h3>
-              {featured.excerpt ? <p className="mt-3 line-clamp-2 text-sm text-white/85 sm:text-base">{featured.excerpt}</p> : null}
-              <p className="mt-4 text-xs text-white/65">
-                {featured.publishedAt?.slice(0, 10) ?? featured.createdAt.slice(0, 10)}
-              </p>
-            </div>
-          </Link>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            {rest.slice(0, 4).map((item) => (
-              <Link
-                key={item.id}
-                href={`/aktualnosci/${item.slug}`}
-                className="group flex gap-4 rounded-xl bg-white/60 p-3 transition hover:bg-white sm:p-4"
-              >
-                <div className="relative size-24 shrink-0 overflow-hidden rounded-lg sm:size-28">
-                  {item.featuredImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.featuredImageUrl} alt="" className="size-full object-cover" />
-                  ) : (
-                    <div className="flex size-full items-center justify-center bg-[var(--club-primary)] text-xs font-bold text-white">
-                      {WEBSITE_NEWS_CATEGORY_LABELS[item.category].slice(0, 3)}
-                    </div>
-                  )}
+        <PublicSectionHeader title="Posty z klubu" subtitle="Tak jak na Facebooku — mecze, akademia, wydarzenia." href="/aktualnosci" />
+        <div className="space-y-4">
+          {[featured, ...rest.slice(0, 4)].map((item) => (
+            <Link
+              key={item.id}
+              href={`/aktualnosci/${item.slug}`}
+              className="group block overflow-hidden rounded-xl border border-black/5 bg-white shadow-sm transition hover:shadow-md"
+            >
+              <div className="flex items-center gap-3 border-b border-black/5 px-4 py-3">
+                <div className="flex size-9 items-center justify-center rounded-full bg-[var(--club-primary)] text-xs font-bold text-white">
+                  {initials || "K"}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <span className={cn("inline-block rounded px-2 py-0.5 text-[10px] font-bold uppercase", NEWS_CATEGORY_BADGE[item.category])}>
-                    {WEBSITE_NEWS_CATEGORY_LABELS[item.category]}
-                  </span>
-                  <h3 className="mt-2 line-clamp-2 font-bold text-[var(--club-primary)] group-hover:underline">{item.title}</h3>
-                  <p className="mt-2 text-xs text-[#0B3D2E]/60">
+                <div>
+                  <p className="text-sm font-bold text-[var(--club-primary)]">{clubName}</p>
+                  <p className="text-xs text-muted-foreground">
                     {item.publishedAt?.slice(0, 10) ?? item.createdAt.slice(0, 10)}
                   </p>
                 </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+              <div className="space-y-3 px-4 py-3">
+                <span className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase", NEWS_CATEGORY_BADGE[item.category])}>
+                  {WEBSITE_NEWS_CATEGORY_LABELS[item.category]}
+                </span>
+                <h3 className="text-lg font-bold text-[var(--club-primary)] group-hover:underline">{item.title}</h3>
+                {item.excerpt ? <p className="text-sm text-muted-foreground">{item.excerpt}</p> : null}
+              </div>
+              {item.featuredImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={item.featuredImageUrl} alt="" className="max-h-80 w-full object-cover" />
+              ) : null}
+            </Link>
+          ))}
         </div>
       </div>
     </section>

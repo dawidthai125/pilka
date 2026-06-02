@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { PublicPageShell } from "@/features/website/components/public-page-shell";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 import { getPublicWebsiteHome } from "@/lib/website/public-data";
 
@@ -12,12 +13,9 @@ export default async function ContactPublicPage() {
   const settings = home?.settings;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold">Kontakt</h1>
-      <p className="mt-2 text-muted-foreground">Skontaktuj się z klubem {home?.club.publicName}.</p>
-
-      <div className="mt-8 grid gap-8 lg:grid-cols-2">
-        <div className="rounded-xl border bg-card p-6">
+    <PublicPageShell title="Kontakt" subtitle={`Skontaktuj się z ${home?.club.publicName ?? "klubem"}.`}>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-xl border border-black/5 bg-white p-6 shadow-sm">
           <h2 className="font-semibold">Dane klubu</h2>
           <dl className="mt-4 space-y-3 text-sm">
             {settings?.contactAddress ? (
@@ -29,20 +27,28 @@ export default async function ContactPublicPage() {
             {settings?.contactEmail ? (
               <div>
                 <dt className="text-muted-foreground">E-mail</dt>
-                <dd><a className="font-medium text-primary underline" href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a></dd>
+                <dd>
+                  <a className="font-medium text-[var(--club-primary)] underline" href={`mailto:${settings.contactEmail}`}>
+                    {settings.contactEmail}
+                  </a>
+                </dd>
               </div>
             ) : null}
             {settings?.contactPhone ? (
               <div>
                 <dt className="text-muted-foreground">Telefon</dt>
-                <dd><a className="font-medium text-primary underline" href={`tel:${settings.contactPhone}`}>{settings.contactPhone}</a></dd>
+                <dd>
+                  <a className="font-medium text-[var(--club-primary)] underline" href={`tel:${settings.contactPhone}`}>
+                    {settings.contactPhone}
+                  </a>
+                </dd>
               </div>
             ) : null}
           </dl>
         </div>
 
         {settings?.googleMapsEmbedUrl ? (
-          <div className="rounded-xl border bg-card p-4">
+          <div className="rounded-xl border border-black/5 bg-white p-6 shadow-sm">
             <h2 className="mb-3 font-semibold">Mapa</h2>
             <a
               href={settings.googleMapsEmbedUrl}
@@ -52,10 +58,9 @@ export default async function ContactPublicPage() {
             >
               Otwórz w Google Maps
             </a>
-            <p className="mt-3 text-xs text-muted-foreground">Opcjonalna integracja mapy — pełne embed w kolejnej iteracji.</p>
           </div>
         ) : null}
       </div>
-    </div>
+    </PublicPageShell>
   );
 }

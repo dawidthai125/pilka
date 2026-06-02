@@ -1,3 +1,4 @@
+import { DashboardModuleShell } from "@/components/layout/dashboard-module-shell";
 import { AcademySubNav } from "@/features/academy/components/academy-sub-nav";
 import { getAcademyNavItems } from "@/lib/academy/constants";
 import { getDashboardContext } from "@/lib/auth/session";
@@ -7,9 +8,8 @@ export default async function AcademyLayout({ children }: { children: React.Reac
   const navItems = getAcademyNavItems(access.roles);
 
   return (
-    <div className="space-y-6">
-      <AcademySubNav items={navItems} />
+    <DashboardModuleShell title="Akademia" description="Grupy, talenty, scouting i rozwój zawodników." nav={<AcademySubNav items={navItems} />}>
       {children}
-    </div>
+    </DashboardModuleShell>
   );
 }

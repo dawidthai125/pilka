@@ -11,6 +11,7 @@ import {
   getPublicWebsiteHome,
   getPublicWebsiteMedia,
 } from "@/lib/website/public-data";
+import { CLUB_COVER_IMAGE } from "@/lib/website/constants";
 import { ClubSiteShell } from "@/features/website/components/club-site-shell";
 
 export async function ClubSitePageWrapper({
@@ -40,6 +41,7 @@ export async function ClubSitePageWrapper({
       officialName={home.club.officialName}
       settings={home.settings}
       logoUrl={logoUrl}
+      coverImageUrl={CLUB_COVER_IMAGE}
       socialLinks={socialLinks}
     >
       {children}

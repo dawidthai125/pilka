@@ -15,6 +15,7 @@ export const DEMO_MEDIA_ASSETS = {
   "news-transfers": { file: "news-transfers.jpg", label: "Aktualność — transfer" },
   "news-sponsors": { file: "news-sponsors.jpg", label: "Aktualność — sponsor" },
   placeholder: { file: "placeholder.jpg", label: "Placeholder" },
+  cover: { file: "cover.jpg", label: "Okładka" },
   "gallery-01": { file: "gallery-01.jpg", label: "Galeria 1" },
   "gallery-02": { file: "gallery-02.jpg", label: "Galeria 2" },
   "gallery-03": { file: "gallery-03.jpg", label: "Galeria 3" },

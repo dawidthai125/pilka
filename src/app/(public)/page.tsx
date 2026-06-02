@@ -74,7 +74,7 @@ export default async function ClubHomePage() {
 
       <PublicGallerySection items={galleryItems} />
 
-      <PublicNewsSection news={news} />
+      <PublicNewsSection news={news} clubName={home.club.publicName} />
 
       <PublicSponsorsSection sponsors={sponsors} />
 
