@@ -16,7 +16,7 @@ export default async function SponsorsPublicPage() {
   const sponsors = await getPublicSponsors();
 
   return (
-    <PublicPageShell title="Partnerzy klubu" subtitle="Firmy wspierające rozwój Pioruna — jak na koszulkach i Facebooku.">
+    <PublicPageShell eyebrow="Partnerzy" title="Partnerzy klubu" subtitle="Firmy wspierające rozwój Pioruna — jak na koszulkach i Facebooku.">
       <div className="space-y-10">
         {TIERS.map((tier) => {
           const tierSponsors = sponsors.filter((s) => s.publicTier === tier);

@@ -17,7 +17,7 @@ export default async function MatchesPublicPage() {
   ]);
 
   return (
-    <PublicPageShell title="Mecze" subtitle="Terminarz i wyniki — dane z modułu meczowego klubu.">
+    <PublicPageShell eyebrow="Dla kibica" title="Mecze" subtitle="Terminarz i wyniki — dane z modułu meczowego klubu.">
       <PublicDarkMatchesContent upcoming={upcoming} results={results} />
     </PublicPageShell>
   );

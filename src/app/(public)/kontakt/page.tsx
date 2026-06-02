@@ -13,7 +13,7 @@ export default async function ContactPublicPage() {
   const settings = home?.settings;
 
   return (
-    <PublicPageShell title="Kontakt" subtitle={`Skontaktuj się z ${home?.club.publicName ?? "klubem"}.`}>
+    <PublicPageShell eyebrow="Kontakt" title="Kontakt" subtitle={`Skontaktuj się z ${home?.club.publicName ?? "klubem"}.`}>
       <div className="grid gap-6 lg:grid-cols-2">
         <PublicDarkCard>
           <h2 className="font-semibold text-white">Dane klubu</h2>

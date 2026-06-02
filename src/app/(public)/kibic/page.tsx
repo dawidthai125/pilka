@@ -24,7 +24,7 @@ export default async function FanPanelPage() {
   const ownPosition = league.entries.findIndex((e) => e.isOwnClub) + 1;
 
   return (
-    <PublicPageShell title="Panel kibica" subtitle="Terminarz, wyniki, aktualności i statystyki — bez logowania.">
+    <PublicPageShell eyebrow="Dla kibica" title="Panel kibica" subtitle="Terminarz, wyniki, aktualności i statystyki — bez logowania.">
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Nadchodzące mecze", value: upcoming.length },

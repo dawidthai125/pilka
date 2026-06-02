@@ -15,7 +15,7 @@ export default async function GalleryPublicPage() {
   const albums = await getPublicGalleryAlbums(clubId);
 
   return (
-    <PublicPageShell title="Zdjęcia" subtitle="Albumy ze strony klubu i Facebooka.">
+    <PublicPageShell eyebrow="Media" title="Zdjęcia" subtitle="Albumy ze strony klubu i Facebooka.">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {albums.map((album) => (
           <Link

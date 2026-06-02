@@ -159,6 +159,29 @@
   }
 }
 
+/* Publiczna strona klubu — ciemne tło boiska (niezależne od purge Tailwind) */
+.club-public-surface {
+  background-color: #062820;
+  color: #fff;
+}
+
+.club-public-surface-pitch {
+  position: relative;
+  background-color: #062820;
+  color: #fff;
+  overflow: hidden;
+}
+
+.club-public-surface-pitch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='36' fill='none' stroke='white' stroke-width='1'/%3E%3Cpath d='M40 4 L48 28 L72 28 L52 44 L60 68 L40 52 L20 68 L28 44 L8 28 L32 28 Z' fill='white' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 80px 80px;
+}
+
 /* Panel klubowy: ciemny sidebar/header, jasna treść modułów */
 .dashboard-surface {
   --background: oklch(0.985 0.004 145);

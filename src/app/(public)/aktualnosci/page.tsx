@@ -14,7 +14,7 @@ export default async function NewsListPage() {
   const news = await getPublicNews(clubId, { limit: 50 });
 
   return (
-    <PublicPageShell title="Aktualności" subtitle="Posty z boiska i życia klubu — jak na Facebooku.">
+    <PublicPageShell eyebrow="Klub na żywo" title="Aktualności" subtitle="Posty z boiska i życia klubu — jak na Facebooku.">
       <PublicDarkNewsList news={news} />
     </PublicPageShell>
   );

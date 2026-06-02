@@ -13,7 +13,11 @@ export default async function TeamPublicPage() {
   const players = await getPublicPlayers();
 
   return (
-    <PublicPageShell title="Kadra drużyny" subtitle="Zawodnicy, pozycje, numery i statystyki sezonu.">
+    <PublicPageShell
+      eyebrow="Skład"
+      title="Kadra drużyny"
+      subtitle="Zawodnicy, pozycje, numery i statystyki sezonu."
+    >
       <PublicDarkSquadList players={players} />
     </PublicPageShell>
   );

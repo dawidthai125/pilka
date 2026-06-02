@@ -29,6 +29,7 @@ export default async function NewsDetailPage({ params }: Props) {
 
   return (
     <PublicPageShell
+      eyebrow="Aktualności"
       title={article.title}
       breadcrumbs={[{ label: "Aktualności", href: "/aktualnosci" }]}
     >

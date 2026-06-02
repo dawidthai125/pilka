@@ -26,6 +26,7 @@ export default async function GalleryAlbumPage({ params }: Props) {
 
   return (
     <PublicPageShell
+      eyebrow="Galeria"
       title={album.title}
       subtitle={album.description ?? undefined}
       breadcrumbs={[{ label: "Galeria", href: "/galeria" }]}

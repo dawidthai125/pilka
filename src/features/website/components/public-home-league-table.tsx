@@ -9,15 +9,20 @@ import type { LeagueTableEntry } from "@/types/matches";
 export function PublicHomeLeagueTable({
   entries,
   ownPosition,
+  pageMode = false,
 }: {
   entries: LeagueTableEntry[];
   ownPosition: number | null;
+  /** Pełna strona /tabela — bez linku „Pełna tabela”. */
+  pageMode?: boolean;
 }) {
   if (entries.length === 0) return null;
 
   return (
     <HomeDarkPanel>
-      <HomeDarkPanelHeader title="Tabela ligi" icon={Trophy} href="/tabela" linkLabel="Pełna tabela →" />
+      {!pageMode ? (
+        <HomeDarkPanelHeader title="Tabela ligi" icon={Trophy} href="/tabela" linkLabel="Pełna tabela →" />
+      ) : null}
       <div className="overflow-x-auto">
         <div className="min-w-[520px]">
           <div className="grid grid-cols-[2rem_1fr_repeat(6,minmax(2rem,auto))] gap-x-1 border-b border-white/10 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/45 sm:px-4">
@@ -66,7 +71,7 @@ export function PublicHomeLeagueTable({
           </div>
         </div>
       </div>
-      {ownPosition ? (
+      {ownPosition && !pageMode ? (
         <p className="border-t border-white/10 px-4 py-2.5 text-center text-[11px] text-white/45">
           Nasza drużyna: <span className="font-semibold text-[var(--club-secondary)]">{ownPosition}. miejsce</span>
           {" · "}
