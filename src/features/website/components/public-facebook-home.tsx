@@ -75,7 +75,7 @@ function PhotoGrid({ urls }: { urls: string[] }) {
           key={`${url}-${index}`}
           src={url}
           alt=""
-          className={cn("w-full", photos.length === 1 ? "max-h-72 object-contain bg-muted/40" : "aspect-square object-cover")}
+          className={cn("w-full object-cover", photos.length === 1 ? "max-h-80" : "aspect-square")}
         />
       ))}
     </div>
@@ -104,9 +104,9 @@ export function PublicFacebookHome({
   feedNews,
   nextMatch,
   ownTeamName,
-  heroImages: _heroImages,
-  academyImages: _academyImages,
-  galleryItems: _galleryItems,
+  heroImages,
+  academyImages,
+  galleryItems,
 }: {
   clubName: string;
   logoUrl?: string | null;
@@ -124,13 +124,18 @@ export function PublicFacebookHome({
   academyImages: PublicAcademyMediaImage[];
   galleryItems: PublicGalleryMediaItem[];
 }) {
+  const galleryUrls = galleryItems.map((item) => item.url).filter(Boolean) as string[];
+
   const pinnedText =
     pinnedNews?.excerpt ??
     pinnedNews?.title ??
     heroSubtitle ??
     heroTitle;
   const pinnedTime = formatRelativeTimePl(pinnedNews?.publishedAt ?? pinnedNews?.createdAt) || "3 dni temu";
-  const pinnedImage = pinnedNews?.featuredImageUrl ?? null;
+  const pinnedImage = "/club-media/pinned-youth.jpg";
+  const pinnedHashtag = `#${clubName.replace(/\s+/g, "")}`;
+
+  const facebookLabel = facebookUrl ? facebookUrl.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "") : null;
 
   const displayMatch = isDisplayablePublicMatch(nextMatch) ? nextMatch : null;
   const opponentName =
@@ -151,13 +156,15 @@ export function PublicFacebookHome({
             </div>
             <AuthorRow clubName={clubName} logoUrl={logoUrl} timeLabel={pinnedTime} />
             <div className={cn("gap-4 px-4 pb-4", pinnedImage ? "grid md:grid-cols-[1fr_220px] lg:grid-cols-[1fr_280px]" : "")}>
-              <p className="text-sm leading-relaxed text-foreground">{pinnedText}</p>
+              <p className="text-sm leading-relaxed text-foreground">
+                {pinnedText} {pinnedHashtag}
+              </p>
               {pinnedImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={pinnedImage}
                   alt=""
-                  className="h-40 w-full rounded-lg object-contain bg-muted md:h-full md:min-h-[140px]"
+                  className="h-40 w-full rounded-lg object-cover md:h-full md:min-h-[140px]"
                 />
               ) : null}
             </div>
@@ -175,7 +182,12 @@ export function PublicFacebookHome({
             <div className="space-y-4">
               {feedNews.length > 0 ? (
                 feedNews.slice(0, 4).map((item, index) => {
-                  const gridPhotos = item.featuredImageUrl ? [item.featuredImageUrl] : [];
+                  const gridPhotos =
+                    index === 0
+                      ? galleryUrls.slice(0, 3)
+                      : item.featuredImageUrl
+                        ? [item.featuredImageUrl]
+                        : [];
 
                   return (
                     <FbCard key={item.id}>
@@ -251,7 +263,7 @@ export function PublicFacebookHome({
                     <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded bg-[#1877F2] text-[10px] font-bold text-white">
                       f
                     </span>
-                    <span className="break-all text-sm">facebook.com/…</span>
+                    <span className="break-all text-sm">{facebookLabel ?? "Facebook"}</span>
                   </a>
                 </li>
               ) : null}

@@ -8,6 +8,7 @@ export const DEMO_MEDIA_ASSETS = {
   "team-youth": { file: "team-youth.jpg", label: "Młodzi" },
   "academy-training": { file: "academy-training.jpg", label: "Trening" },
   "academy-kids": { file: "academy-kids.jpg", label: "Akademia" },
+  "pinned-youth": { file: "pinned-youth.jpg", label: "Młodzicy — krąg" },
   "academy-path": { file: "academy-path.jpg", label: "Rozwój" },
   "news-matches": { file: "news-matches.jpg", label: "Aktualność — mecz" },
   "news-club": { file: "news-club.jpg", label: "Aktualność — klub" },

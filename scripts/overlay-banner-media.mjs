@@ -17,11 +17,10 @@ const PITCH =
 const STADIUM =
   "https://images.unsplash.com/photo-1459865264687-595d652de67e?w=1600&h=900&fit=crop&q=85";
 const TEAM =
-  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1600&h=900&fit=crop&q=85";
+  "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1600&h=900&fit=crop&q=85";
 
-/** Tylko sloty pełnej szerokości — reszta z importu FB. */
+/** Tylko sloty pomocnicze — cover.jpg to własna grafika mockupowa (nie nadpisywać). */
 const BANNER_KEYS = {
-  cover: PITCH,
   "hero-stadium": STADIUM,
   "hero-team": TEAM,
   "hero-match": PITCH,
