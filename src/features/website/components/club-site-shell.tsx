@@ -18,6 +18,12 @@ type ClubSiteShellProps = {
   children: React.ReactNode;
 };
 
+/** Wysokość okładki FB-style — osobna warstwa, bez tekstu. */
+const COVER_HEIGHT = "h-[168px] sm:h-[188px] md:h-[220px]";
+
+/** Logo nachodzi ~50% na cover (środek na linii cover / pasek). */
+const LOGO_SIZE = "size-[96px] sm:size-[104px] md:size-[112px]";
+
 export function ClubSiteShell({
   clubName,
   officialName,
@@ -40,17 +46,11 @@ export function ClubSiteShell({
   return (
     <div className="flex min-h-screen flex-col bg-[#f0f2f5]" style={style}>
       <header className="relative">
-        <div className="relative h-36 overflow-hidden sm:h-40 md:h-44">
+        {/* Warstwa 1: cover — tylko zdjęcie / gradient, bez nachodzenia UI */}
+        <div className={cn("relative w-full overflow-hidden", COVER_HEIGHT)}>
           {hasCoverPhoto ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={coverImageUrl!}
-                alt=""
-                className="size-full object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[var(--club-primary)]" />
-            </>
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={coverImageUrl!} alt="" className="size-full object-cover object-center" />
           ) : (
             <div
               className="size-full bg-gradient-to-br from-[var(--club-primary)] via-[color-mix(in_srgb,var(--club-primary)_88%,#000)] to-[#041810]"
@@ -59,27 +59,37 @@ export function ClubSiteShell({
           )}
         </div>
 
-        <div className="bg-[var(--club-primary)]">
+        {/* Warstwa 2: zielony pasek profilu (Facebook Page) */}
+        <div className="relative bg-[var(--club-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.12)]">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="-mt-10 flex flex-col gap-4 pb-3 sm:-mt-12 md:flex-row md:items-end md:justify-between">
-              <div className="flex items-end gap-4">
+            <div className="relative min-h-[92px] pb-4 pt-0 sm:min-h-[96px] sm:pb-5">
+              {/* Logo — nachodzi tylko na cover, nie na tekst */}
+              <div className="absolute left-0 top-0 z-10 -translate-y-1/2">
                 <ClubLogo
                   logoUrl={logoUrl}
                   clubName={clubName}
-                  size="xl"
-                  onDark
-                  className="size-24 shrink-0 rounded-full border-4 border-[#f0f2f5] bg-[var(--club-primary)] shadow-lg sm:size-28"
+                  variant="profile"
+                  className={cn(
+                    LOGO_SIZE,
+                    "border-4 border-white bg-white shadow-[0_2px_12px_rgba(0,0,0,0.2)]",
+                  )}
                 />
-                <div className="min-w-0 pb-1 text-white">
-                  <h1 className={cn(CLUB_DISPLAY_CLASS, "text-2xl font-bold sm:text-3xl")}>{clubName}</h1>
-                  <p className="text-sm text-white/90">{officialName}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/85">
+              </div>
+
+              {/* Nazwa, telefon, CTA — wyłącznie w pasku profilu */}
+              <div className="flex flex-col gap-3 pt-[52px] sm:gap-4 sm:pt-[56px] md:flex-row md:items-end md:justify-between md:pt-2 md:pl-[112px] lg:pl-[128px]">
+                <div className="min-w-0 text-white">
+                  <h1 className={cn(CLUB_DISPLAY_CLASS, "text-xl font-bold leading-tight sm:text-2xl md:text-3xl")}>
+                    {clubName}
+                  </h1>
+                  <p className="mt-0.5 text-sm text-white/90">{officialName}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/90 sm:text-sm">
                     {settings.contactPhone ? (
                       <a
                         href={`tel:${settings.contactPhone.replace(/\s/g, "")}`}
-                        className="inline-flex items-center gap-1 hover:underline"
+                        className="inline-flex items-center gap-1.5 hover:underline"
                       >
-                        <Phone className="size-3.5" />
+                        <Phone className="size-3.5 shrink-0" />
                         {settings.contactPhone}
                       </a>
                     ) : null}
@@ -88,23 +98,23 @@ export function ClubSiteShell({
                         href={facebookLink.profileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 hover:underline"
+                        className="inline-flex items-center gap-1.5 hover:underline"
                       >
-                        <ExternalLink className="size-3.5" />
+                        <ExternalLink className="size-3.5 shrink-0" />
                         Facebook
                       </a>
                     ) : null}
                   </div>
                 </div>
-              </div>
 
-              <Link
-                href="/#akademia"
-                className="mb-1 inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-[var(--club-secondary)] px-5 text-sm font-bold text-[var(--club-primary)] shadow-md md:self-auto"
-              >
-                <UserPlus className="size-4" />
-                Zapisz dziecko
-              </Link>
+                <Link
+                  href="/#akademia"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-[var(--club-secondary)] px-5 text-sm font-bold text-[var(--club-primary)] shadow-md hover:brightness-105 md:self-auto"
+                >
+                  <UserPlus className="size-4" />
+                  Zapisz dziecko
+                </Link>
+              </div>
             </div>
           </div>
         </div>
