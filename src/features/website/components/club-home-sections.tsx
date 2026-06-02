@@ -3,6 +3,11 @@ import { ArrowRight, ChevronRight, MapPin, Phone, Trophy } from "lucide-react";
 
 import { ClubLogo } from "@/components/club/club-logo";
 import {
+  HomeDarkPanel,
+  HomeDarkPrimaryButton,
+  HomeDarkSection,
+} from "@/features/website/components/public-home-dark-ui";
+import {
   CLUB_DISPLAY_CLASS,
   CLUB_SCENE_DARK,
   CLUB_SCENE_LIGHT,
@@ -459,58 +464,70 @@ export function PublicAcademySection({
   const secondaryImage = academyImages.find((item) => item.slotKey === "training") ?? academyImages[1];
 
   return (
-    <section id="akademia" className={cn(CLUB_SCENE_LIGHT, "scroll-mt-24 py-12 sm:py-16 lg:py-20")} aria-label="Akademia">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <PublicSectionHeader
-          title={clubName ? `Akademia ${clubName}` : "Akademia klubu"}
-          subtitle="Od najmłodszych grup po pierwszą drużynę seniorską — pierwszy kontakt z piłką."
-          href="/kontakt"
-          linkLabel="Zapisz dziecko"
-        />
-        <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-start">
+    <HomeDarkSection
+      id="akademia"
+      eyebrow="Akademia"
+      title={clubName ? `Akademia ${clubName}` : "Akademia klubu"}
+      subtitle="Od najmłodszych grup po pierwszą drużynę seniorską — pierwszy kontakt z piłką."
+      href="/kontakt"
+      linkLabel="Zapisz dziecko"
+      className="scroll-mt-24 border-t border-white/5 py-10 sm:py-12 lg:py-16"
+      aria-label="Akademia"
+    >
+      <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-start">
+        <HomeDarkPanel className="p-3 sm:p-4">
           <div className="grid grid-cols-2 gap-3">
             {[primaryImage, secondaryImage].filter(Boolean).map((item) => (
               <div
                 key={item?.slotKey ?? "placeholder"}
                 className={cn(
-                  "overflow-hidden rounded-2xl",
+                  "overflow-hidden rounded-xl border border-white/10",
                   item?.slotKey === "kids" ? "col-span-2 aspect-[16/10]" : "aspect-square",
                 )}
               >
                 {item?.url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.url} alt={item.caption ?? "Akademia"} className="size-full object-cover" />
-                ) : null}
+                ) : (
+                  <div className="flex size-full items-center justify-center bg-white/5 text-sm text-white/40">Akademia</div>
+                )}
               </div>
             ))}
           </div>
-          <div className="space-y-6">
-            <p className="text-base leading-relaxed text-[#0B3D2E]/80 sm:text-lg">
-              Twoje dziecko może tu grać — regularne treningi, nabory i profesjonalne szkolenie pod okiem
-              licencjonowanych trenerów.
-            </p>
-            <div className="relative pl-4">
-              <div className="absolute bottom-2 left-1 top-2 w-0.5 bg-[var(--club-secondary)]" aria-hidden />
+        </HomeDarkPanel>
+        <div className="space-y-6">
+          <p className="text-base leading-relaxed text-white/75 sm:text-lg">
+            Twoje dziecko może tu grać — regularne treningi, nabory i profesjonalne szkolenie pod okiem
+            licencjonowanych trenerów.
+          </p>
+          <HomeDarkPanel padding={false}>
+            <div className="relative px-4 py-5 sm:px-5">
+              <div className="absolute bottom-3 left-6 top-3 w-0.5 bg-[var(--club-secondary)]/60" aria-hidden />
               <div className="space-y-4">
                 {displayPath.map((team) => (
-                  <div key={team.id} className="relative pl-6">
-                    <span className="absolute left-0 top-1.5 size-3 rounded-full bg-[var(--club-primary)] ring-4 ring-[#f7f5f0]" />
-                    <p className="font-bold text-[var(--club-primary)]">{team.name}</p>
+                  <div key={team.id} className="relative pl-8">
+                    <span className="absolute left-0 top-1.5 size-3 rounded-full bg-[var(--club-secondary)] ring-4 ring-[#062820]" />
+                    <p className={cn(CLUB_DISPLAY_CLASS, "font-bold text-white")}>{team.name}</p>
                     {team.playersCount > 0 ? (
-                      <p className="text-sm text-[#0B3D2E]/70">{team.playersCount} zawodników</p>
+                      <p className="text-sm text-white/50">{team.playersCount} zawodników</p>
                     ) : null}
                   </div>
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl bg-[var(--club-primary)] p-6 text-white sm:p-8">
-              <p className="text-sm font-semibold text-[var(--club-secondary)]">Dla rodziców</p>
-              <p className="mt-2 text-xl font-bold">Chcesz zapisać dziecko do akademii?</p>
-              <div className="mt-4 space-y-2 text-sm">
+          </HomeDarkPanel>
+          <div className="relative overflow-hidden rounded-2xl border border-[var(--club-secondary)]/25 bg-gradient-to-br from-[var(--club-primary)] via-[#0a4a38] to-[#062820] p-6 sm:p-8">
+            <div className="absolute -right-8 -top-8 size-32 rounded-full bg-[var(--club-secondary)]/10 blur-2xl" aria-hidden />
+            <div className="relative">
+              <p className={cn(CLUB_DISPLAY_CLASS, "text-xs font-bold uppercase tracking-[0.15em] text-[var(--club-secondary)]")}>
+                Dla rodziców
+              </p>
+              <p className="mt-2 text-xl font-bold text-white sm:text-2xl">Chcesz zapisać dziecko do akademii?</p>
+              <div className="mt-4 space-y-2 text-sm text-white/80">
                 {contactPhone ? (
                   <p className="flex items-center gap-2">
                     <Phone className="size-4 shrink-0 text-[var(--club-secondary)]" />
-                    <a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="font-semibold hover:underline">
+                    <a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="font-semibold hover:text-[var(--club-secondary)]">
                       {contactPhone}
                     </a>
                   </p>
@@ -522,17 +539,14 @@ export function PublicAcademySection({
                   </p>
                 ) : null}
               </div>
-              <Link
-                href="/kontakt"
-                className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-[var(--club-secondary)] text-sm font-bold text-[var(--club-primary)] sm:w-auto sm:px-8"
-              >
-                Umów zapis
-              </Link>
+              <div className="mt-5">
+                <HomeDarkPrimaryButton href="/kontakt">Umów zapis</HomeDarkPrimaryButton>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </HomeDarkSection>
   );
 }
 
