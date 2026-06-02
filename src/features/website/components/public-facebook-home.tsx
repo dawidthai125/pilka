@@ -75,7 +75,7 @@ function PhotoGrid({ urls }: { urls: string[] }) {
           key={`${url}-${index}`}
           src={url}
           alt=""
-          className={cn("w-full object-cover", photos.length === 1 ? "max-h-80" : "aspect-square")}
+          className={cn("w-full", photos.length === 1 ? "max-h-72 object-contain bg-muted/40" : "aspect-square object-cover")}
         />
       ))}
     </div>
@@ -104,9 +104,9 @@ export function PublicFacebookHome({
   feedNews,
   nextMatch,
   ownTeamName,
-  heroImages,
-  academyImages,
-  galleryItems,
+  heroImages: _heroImages,
+  academyImages: _academyImages,
+  galleryItems: _galleryItems,
 }: {
   clubName: string;
   logoUrl?: string | null;
@@ -124,33 +124,13 @@ export function PublicFacebookHome({
   academyImages: PublicAcademyMediaImage[];
   galleryItems: PublicGalleryMediaItem[];
 }) {
-  const heroBySlot = new Map(heroImages.filter((i) => i.url).map((i) => [i.slotKey, i.url!]));
-  const academyPhoto =
-    academyImages.find((i) => i.slotKey === "kids")?.url ??
-    academyImages[0]?.url ??
-    heroBySlot.get("team") ??
-    null;
-
-  const teamPhotos = [
-    heroBySlot.get("team"),
-    galleryItems[0]?.url,
-    galleryItems[1]?.url,
-  ].filter(Boolean) as string[];
-
-  const matchPhotos = [
-    heroBySlot.get("match"),
-    galleryItems.find((i) => i.caption?.toLowerCase().includes("mecz"))?.url ?? galleryItems[2]?.url,
-    galleryItems[3]?.url,
-  ].filter(Boolean) as string[];
-
   const pinnedText =
     pinnedNews?.excerpt ??
     pinnedNews?.title ??
     heroSubtitle ??
     heroTitle;
-  const pinnedHashtag = `#${clubName.replace(/\s+/g, "")}`;
   const pinnedTime = formatRelativeTimePl(pinnedNews?.publishedAt ?? pinnedNews?.createdAt) || "3 dni temu";
-  const pinnedImage = pinnedNews?.featuredImageUrl ?? academyPhoto;
+  const pinnedImage = pinnedNews?.featuredImageUrl ?? null;
 
   const displayMatch = isDisplayablePublicMatch(nextMatch) ? nextMatch : null;
   const opponentName =
@@ -171,15 +151,13 @@ export function PublicFacebookHome({
             </div>
             <AuthorRow clubName={clubName} logoUrl={logoUrl} timeLabel={pinnedTime} />
             <div className={cn("gap-4 px-4 pb-4", pinnedImage ? "grid md:grid-cols-[1fr_220px] lg:grid-cols-[1fr_280px]" : "")}>
-              <p className="text-sm leading-relaxed text-foreground">
-                {pinnedText} {pinnedHashtag}
-              </p>
+              <p className="text-sm leading-relaxed text-foreground">{pinnedText}</p>
               {pinnedImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={pinnedImage}
-                  alt="Akademia klubu"
-                  className="h-40 w-full rounded-lg object-cover md:h-full md:min-h-[140px]"
+                  alt=""
+                  className="h-40 w-full rounded-lg object-contain bg-muted md:h-full md:min-h-[140px]"
                 />
               ) : null}
             </div>
@@ -197,22 +175,7 @@ export function PublicFacebookHome({
             <div className="space-y-4">
               {feedNews.length > 0 ? (
                 feedNews.slice(0, 4).map((item, index) => {
-                  const gridPhotos =
-                    item.category === "matches"
-                      ? matchPhotos.length > 0
-                        ? matchPhotos
-                        : item.featuredImageUrl
-                          ? [item.featuredImageUrl]
-                          : []
-                      : item.category === "academy"
-                        ? academyPhoto
-                          ? [academyPhoto]
-                          : item.featuredImageUrl
-                            ? [item.featuredImageUrl]
-                            : []
-                        : item.featuredImageUrl
-                          ? [item.featuredImageUrl, ...teamPhotos].slice(0, 3)
-                          : teamPhotos;
+                  const gridPhotos = item.featuredImageUrl ? [item.featuredImageUrl] : [];
 
                   return (
                     <FbCard key={item.id}>
@@ -244,7 +207,6 @@ export function PublicFacebookHome({
                       Sobotni mecz za nami! Dziękujemy kibicom za wsparcie!
                     </p>
                   </div>
-                  <PhotoGrid urls={matchPhotos.length > 0 ? matchPhotos : teamPhotos} />
                 </FbCard>
               )}
             </div>

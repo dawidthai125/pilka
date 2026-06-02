@@ -10,6 +10,8 @@
     "validate:env": "node scripts/validate-env.mjs",
     "fetch:club-media": "node scripts/fetch-club-demo-photos.mjs",
     "import:facebook": "node scripts/import-piorun-facebook.mjs",
+    "overlay:banner-media": "node scripts/overlay-banner-media.mjs",
+    "sync:club-media": "node scripts/import-piorun-facebook.mjs && node scripts/overlay-banner-media.mjs",
     "capture:p1-screenshots": "node scripts/capture-p1-screenshots.mjs",
     "audit:security": "node scripts/security-audit.mjs",
     "audit:stage13": "node scripts/audit-stage13-security.mjs",
