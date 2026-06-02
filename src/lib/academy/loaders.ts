@@ -150,30 +150,39 @@ export const getPlayerDevelopmentDetail = cache(
 );
 
 export const getTalentRanking = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<TalentRankingEntry[]> => {
+  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<TalentRankingEntry[]> => {
     const supabase = await createClient();
-    const [playersRes, developmentsRes, assessmentsRes, historyRes] = await Promise.all([
-      supabase
-        .from("players")
-        .select("id, first_name, last_name, team_id, teams(name)")
-        .eq("club_id", clubId)
-        .eq("status", "active"),
+    const { data: playersData } = await supabase
+      .from("players")
+      .select("id, first_name, last_name, team_id, teams(name)")
+      .eq("club_id", clubId)
+      .eq("status", "active")
+      .order("last_name")
+      .limit(limit);
+
+    const players = playersData ?? [];
+    const playerIds = players.map((p) => String(p.id));
+    if (!playerIds.length) return [];
+
+    const [developmentsRes, assessmentsRes, historyRes] = await Promise.all([
       supabase
         .from("player_development")
         .select("player_id, potential, overall_rating, development_level")
-        .eq("club_id", clubId),
+        .eq("club_id", clubId)
+        .in("player_id", playerIds),
       supabase
         .from("player_assessments")
         .select("player_id, average_score")
-        .eq("club_id", clubId),
+        .eq("club_id", clubId)
+        .in("player_id", playerIds),
       supabase
         .from("player_development_history")
         .select("player_id, overall_rating, recorded_at")
         .eq("club_id", clubId)
+        .in("player_id", playerIds)
         .order("recorded_at", { ascending: true }),
     ]);
 
-    const players = playersRes.data;
     const developments = developmentsRes.data;
     const assessments = assessmentsRes.data;
     const history = historyRes.data;

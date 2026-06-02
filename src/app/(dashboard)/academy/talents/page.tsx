@@ -16,7 +16,7 @@ export default async function AcademyTalentsPage() {
       <div>
         <h1 className="text-2xl font-semibold">Ranking talentów</h1>
         <p className="text-sm text-muted-foreground">
-          Na podstawie ocen, potencjału, frekwencji i postępów rozwoju.
+          Na podstawie ocen, potencjału, frekwencji i postępów rozwoju (max 100 zawodników).
         </p>
       </div>
       <TalentRankingPanel ranking={ranking} />

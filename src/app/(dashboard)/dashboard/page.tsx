@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Users, Building2, Shield, User } from "lucide-react";
+import { Users, Building2 } from "lucide-react";
 
 import {
   DashboardDocumentAlertsSection,
   DashboardPlayerSection,
   DashboardPlayerSectionFallback,
 } from "@/features/dashboard/components/dashboard-player-section";
+import { CoachDayPanel } from "@/features/dashboard/components/coach-day-panel";
 import { MobileQuickActions, MobileRoleHeader } from "@/features/pwa/components/mobile-home";
 import { OfflineCachedSummary } from "@/features/pwa/components/offline-cached-summary";
 import { getDashboardContext } from "@/lib/auth/session";
+import { getCoachDayData } from "@/lib/dashboard/coach-day";
+import { canShowCoachDay } from "@/lib/navigation/mobile-nav";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { formatClubOfficialSubtitle, getClubBrandingName } from "@/lib/club/names";
 import { ROLE_LABELS } from "@/config/permissions";
@@ -27,6 +30,8 @@ import { cn } from "@/lib/utils";
 export default async function DashboardPage() {
   const { profile, access, club, teams } = await getDashboardContext();
   const canReadPlayers = hasPermission(access, "player:read");
+  const showCoachDay = canShowCoachDay(access.roles);
+  const coachDay = showCoachDay ? await getCoachDayData(access.clubId) : null;
 
   return (
     <div className="space-y-8">
@@ -40,6 +45,8 @@ export default async function DashboardPage() {
           Witaj, {profile?.fullName ?? profile?.email}. Oto podsumowanie klubu.
         </p>
       </div>
+
+      {coachDay ? <CoachDayPanel data={coachDay} /> : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         <Card>
@@ -83,11 +90,11 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Uprawnienia</CardDescription>
+            <CardDescription>Uprawnienia aktywne</CardDescription>
             <CardTitle className="text-lg">{access.permissions.length}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Aktywne w bieżącym klubie</p>
+            <p className="text-sm text-muted-foreground">W bieżącym klubie</p>
           </CardContent>
         </Card>
       </div>
@@ -118,9 +125,6 @@ export default async function DashboardPage() {
                 Zawodnicy
               </Link>
             ) : null}
-            <Link href="/members" className={cn(buttonVariants({ variant: "outline" }))}>
-              Role
-            </Link>
           </CardContent>
         </Card>
 
@@ -147,24 +151,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Shield className="size-4" />
-            Dostęp użytkownika
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-2 sm:grid-cols-2">
-          <div className="flex items-center gap-2 text-sm">
-            <User className="size-4 text-muted-foreground" />
-            {profile?.email}
-          </div>
-          <div className="break-words text-sm text-muted-foreground">
-            Uprawnienia: {access.permissions.join(", ")}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

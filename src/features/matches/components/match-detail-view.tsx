@@ -88,14 +88,48 @@ function SquadPanel({
           </div>
           <Link
             href={`/attendance/matches/${data.match.id}`}
-            className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-8 items-center justify-center rounded-md border px-3 text-sm font-medium shadow-xs"
+            className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex min-h-11 items-center justify-center rounded-md border px-3 text-sm font-medium shadow-xs"
           >
             Powołania i RSVP
           </Link>
         </div>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
+      <CardContent className="space-y-4">
+        <div className="space-y-3 md:hidden">
+          {roster.map((player) => {
+            const entry = squadMap.get(player.id);
+            return (
+              <div key={player.id} className="rounded-lg border p-3 text-sm">
+                <p className="font-medium">
+                  {player.firstName} {player.lastName}
+                </p>
+                <div className="mt-2 grid gap-1 text-muted-foreground">
+                  <p>
+                    Status: <Badge variant="secondary">{entry?.playerStatus ?? "active"}</Badge>
+                  </p>
+                  <p>Frekwencja: {entry?.attendanceRate ?? 0}%</p>
+                  <p>
+                    Ostatnia aktywność:{" "}
+                    {entry?.lastActivity ? new Date(entry.lastActivity).toLocaleDateString("pl-PL") : "—"}
+                  </p>
+                  <div className="pt-1">
+                    {canManage ? (
+                      <SquadRoleForm
+                        matchId={data.match.id}
+                        playerId={player.id}
+                        current={entry?.squadRole ?? "squad"}
+                      />
+                    ) : (
+                      <span>{entry ? MATCH_SQUAD_ROLE_LABELS[entry.squadRole] : "—"}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="hidden overflow-x-auto md:block">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
               <th className="py-2">Zawodnik</th>
@@ -126,6 +160,7 @@ function SquadPanel({
             })}
           </tbody>
         </table>
+        </div>
       </CardContent>
     </Card>
   );

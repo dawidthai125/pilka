@@ -12,7 +12,6 @@ import {
   getPlayerFormStats,
   getTeamMatchStats,
   getTeams,
-  getPlayersByTeam,
   requireMatchReadAccess,
 } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
@@ -44,17 +43,12 @@ export default async function MatchDetailPage({
     );
   }
 
-  const [teamStats, playerForm, teamPlayers] = await Promise.all([
+  const [teamStats, playerForm] = await Promise.all([
     getTeamMatchStats(data.match.teamId, data.match.season),
     getPlayerFormStats(data.match.teamId),
-    getPlayersByTeam(data.match.teamId),
   ]);
 
-  const roster = teamPlayers.map((p) => ({
-    id: p.id,
-    firstName: p.firstName,
-    lastName: p.lastName,
-  }));
+  const roster = data.roster;
 
   return (
     <div className="space-y-6">

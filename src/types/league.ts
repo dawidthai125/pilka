@@ -147,6 +147,7 @@ export type LeagueDashboardStats = {
   upcomingMatches: number;
   ownTeamPoints: number | null;
   ownTeamPosition: number | null;
+  table: LeagueTableRow[];
 };
 
 export type LeagueAiInsights = {

@@ -1542,6 +1542,11 @@ export const getMatchDetail = cache(
         playerName: nameMap.get(row.player_id) ?? "Zawodnik",
         createdAt: row.created_at,
       })),
+      roster: roster.map((p) => ({
+        id: String(p.id),
+        firstName: String(p.first_name),
+        lastName: String(p.last_name),
+      })),
     };
   },
 );

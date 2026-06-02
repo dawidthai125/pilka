@@ -57,14 +57,20 @@ export const getCrmDashboardStats = cache(async (clubId: string): Promise<CrmDas
 });
 
 export const getCrmContacts = cache(
-  async (clubId: string, contactType?: CrmContactType): Promise<CrmContactRow[]> => {
+  async (
+    clubId: string,
+    contactType?: CrmContactType,
+    limit = 100,
+    offset = 0,
+  ): Promise<CrmContactRow[]> => {
     const supabase = await createClient();
     let query = supabase
       .from("crm_contacts")
       .select("*")
       .eq("club_id", clubId)
       .eq("is_active", true)
-      .order("updated_at", { ascending: false });
+      .order("updated_at", { ascending: false })
+      .range(offset, offset + limit - 1);
     if (contactType) query = query.eq("contact_type", contactType);
     const { data } = await query;
     return (data ?? []).map((row) => mapCrmContact(row as Record<string, unknown>));
@@ -101,10 +107,16 @@ export const getCrmContactDetail = cache(
 );
 
 export const getCrmPipeline = cache(async (clubId: string): Promise<CrmPipelineColumn[]> => {
-  const contacts = await getCrmContacts(clubId);
-  const pipelineContacts = contacts.filter((c) =>
-    ["sponsor", "donor", "company"].includes(c.contactType),
-  );
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("crm_contacts")
+    .select("*")
+    .eq("club_id", clubId)
+    .eq("is_active", true)
+    .in("contact_type", ["sponsor", "donor", "company"])
+    .order("updated_at", { ascending: false });
+
+  const pipelineContacts = (data ?? []).map((row) => mapCrmContact(row as Record<string, unknown>));
 
   return PIPELINE_KANBAN_ORDER.map((status) => ({
     status,

@@ -56,6 +56,16 @@ export function AnnouncementsList({
 }) {
   const [, startTransition] = useTransition();
 
+  if (!items.length) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          Brak ogłoszeń do wyświetlenia.
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {items.map((item) => {
@@ -110,6 +120,16 @@ export function AnnouncementsList({
 export function CoachMessagesList({ items, canCoach }: { items: CoachMessage[]; canCoach: boolean }) {
   const [, startTransition] = useTransition();
 
+  if (!items.length) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          Brak komunikatów trenera.
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {items.map((item) => (
@@ -153,6 +173,16 @@ export function CoachMessagesList({ items, canCoach }: { items: CoachMessage[]; 
 }
 
 export function TeamChatsList({ chats }: { chats: TeamChat[] }) {
+  if (!chats.length) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          Brak aktywnych czatów drużynowych.
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {chats.map((chat) => (
@@ -181,12 +211,16 @@ export function ChatThread({
   return (
     <div className="flex h-[min(70vh,640px)] flex-col rounded-xl border">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {messages.map((msg) => (
+        {messages.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">Brak wiadomości — napisz pierwszą.</p>
+        ) : (
+          messages.map((msg) => (
           <div key={msg.id} className="rounded-lg bg-muted/50 px-3 py-2 text-sm">
             <p className="text-xs font-medium text-muted-foreground">{msg.senderName ?? "Użytkownik"}</p>
             <p className="mt-1 whitespace-pre-wrap">{msg.body}</p>
           </div>
-        ))}
+        ))
+        )}
       </div>
       <form
         className="flex gap-2 border-t p-3"
@@ -203,7 +237,7 @@ export function ChatThread({
           placeholder="Napisz wiadomość…"
           required
         />
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" className="min-h-11">
           Wyślij
         </Button>
       </form>

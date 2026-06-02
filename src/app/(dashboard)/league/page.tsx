@@ -7,13 +7,13 @@ import { canSyncLeague } from "@/config/permissions";
 import { getDashboardContext, requireLeagueReadAccess } from "@/lib/auth/session";
 import {
   getActiveLeagueSeason,
-  getLatestLeagueTable,
   getLeagueCompetitions,
   getLeagueDashboardStats,
   getLeagueRecentResults,
+  getLeagueTeams,
   getLeagueUpcoming,
 } from "@/lib/league/loaders";
-import { formatLeagueInsightsSummary, buildLeagueAiInsights } from "@/lib/league/insights";
+import { buildLeagueAiInsightsFromData, formatLeagueInsightsSummary } from "@/lib/league/insights";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function LeagueDashboardPage() {
@@ -24,7 +24,7 @@ export default async function LeagueDashboardPage() {
   const competitions = await getLeagueCompetitions(access.clubId, season?.id);
   const competition = competitions[0];
 
-  if (!competition) {
+  if (!competition || !season) {
     return (
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">League Hub</h1>
@@ -33,20 +33,22 @@ export default async function LeagueDashboardPage() {
     );
   }
 
-  const [stats, table, recent, upcoming, insights] = await Promise.all([
+  const [stats, recent, upcoming, teams] = await Promise.all([
     getLeagueDashboardStats(access.clubId, competition.id),
-    getLatestLeagueTable(access.clubId, competition.id),
     getLeagueRecentResults(access.clubId, competition.id, 5),
     getLeagueUpcoming(access.clubId, competition.id, 5),
-    buildLeagueAiInsights(access.clubId, competition.id),
+    getLeagueTeams(access.clubId, competition.id),
   ]);
+
+  const table = stats.table;
+  const insights = buildLeagueAiInsightsFromData(season, competition, table, recent, upcoming, teams);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">League Hub</h1>
         <p className="text-sm text-muted-foreground">
-          {season?.name ?? "—"} · {competition.name} · centralne zarządzanie rozgrywkami
+          {season.name} · {competition.name} · centralne zarządzanie rozgrywkami
         </p>
       </div>
 

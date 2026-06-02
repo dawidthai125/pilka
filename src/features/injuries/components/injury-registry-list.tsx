@@ -10,7 +10,16 @@ import {
 
 export function InjuryRegistryList({ injuries }: { injuries: PlayerInjuryRow[] }) {
   if (!injuries.length) {
-    return <p className="text-sm text-muted-foreground">Brak wpisów w rejestrze urazów.</p>;
+    return (
+      <Card>
+        <CardContent className="space-y-3 py-8 text-center text-sm text-muted-foreground">
+          <p>Brak wpisów w rejestrze urazów.</p>
+          <Link href="/injuries/report" className="text-primary font-medium underline-offset-4 hover:underline">
+            Zgłoś pierwszy uraz
+          </Link>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

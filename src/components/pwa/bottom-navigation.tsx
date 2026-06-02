@@ -2,29 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, LayoutDashboard, Trophy, UserRound } from "lucide-react";
 
+import { resolveBottomNavTabs } from "@/lib/navigation/mobile-nav";
 import { cn } from "@/lib/utils";
 import { t, getStoredLocale } from "@/lib/pwa/i18n";
 import { MobileMoreSheet } from "@/components/pwa/mobile-more-sheet";
 import type { ClubRole } from "@/types/rbac";
-
-const tabs = [
-  { href: "/dashboard", labelKey: "nav.start", icon: LayoutDashboard, match: (p: string) => p === "/dashboard" },
-  { href: "/matches", labelKey: "nav.matches", icon: Trophy, match: (p: string) => p.startsWith("/matches") },
-  {
-    href: "/training",
-    labelKey: "nav.training",
-    icon: CalendarDays,
-    match: (p: string) => p.startsWith("/training"),
-  },
-  {
-    href: "/players",
-    labelKey: "nav.team",
-    icon: UserRound,
-    match: (p: string) => p.startsWith("/players") || p.startsWith("/teams"),
-  },
-] as const;
 
 export function BottomNavigation({
   roles,
@@ -37,13 +20,18 @@ export function BottomNavigation({
 }) {
   const pathname = usePathname();
   const locale = getStoredLocale();
+  const tabs = resolveBottomNavTabs(roles);
+  const gridCols = tabs.length + 1;
 
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden print:hidden"
       aria-label="Nawigacja mobilna"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-5">
+      <ul
+        className="mx-auto grid max-w-lg"
+        style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
+      >
         {tabs.map((tab) => {
           const active = tab.match(pathname);
           const Icon = tab.icon;
@@ -57,7 +45,7 @@ export function BottomNavigation({
                 )}
               >
                 <Icon className={cn("size-5", active && "stroke-[2.5]")} />
-                <span>{t(tab.labelKey, locale)}</span>
+                <span className="max-w-full truncate">{t(tab.labelKey, locale)}</span>
               </Link>
             </li>
           );

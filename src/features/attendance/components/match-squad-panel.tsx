@@ -29,6 +29,16 @@ export function MatchSquadPanel({
 }) {
   const [, startTransition] = useTransition();
 
+  if (!rows.length) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          Brak powołań na ten mecz. Trener może dodać skład w module Mecze.
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-3">
       {rows.map((row) => (
@@ -53,6 +63,7 @@ export function MatchSquadPanel({
                 <Button
                   key={status}
                   size="sm"
+                  className="min-h-11"
                   variant={row.callStatus === status ? "default" : "outline"}
                   onClick={() =>
                     startTransition(() => void setMatchCallStatusAction(matchId, row.playerId, status))

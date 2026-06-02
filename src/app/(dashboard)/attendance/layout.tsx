@@ -1,6 +1,11 @@
 import { AttendanceSubNav } from "@/features/attendance/components/attendance-sub-nav";
+import { canViewAttendanceReports } from "@/config/permissions";
+import { getDashboardContext } from "@/lib/auth/session";
 
-export default function AttendanceLayout({ children }: { children: React.ReactNode }) {
+export default async function AttendanceLayout({ children }: { children: React.ReactNode }) {
+  const { access } = await getDashboardContext();
+  const showStaffTabs = canViewAttendanceReports(access.roles);
+
   return (
     <div className="space-y-6">
       <div>
@@ -9,7 +14,7 @@ export default function AttendanceLayout({ children }: { children: React.ReactNo
           Dostępność zawodników, powołania meczowe i raporty trenera.
         </p>
       </div>
-      <AttendanceSubNav />
+      <AttendanceSubNav showStaffTabs={showStaffTabs} />
       {children}
     </div>
   );

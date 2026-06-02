@@ -142,6 +142,7 @@ export type MatchDetailData = {
   events: MatchEvent[];
   playerStats: MatchPlayerStats[];
   mvpHistory: Array<{ playerId: string; playerName: string; createdAt: string }>;
+  roster: Array<{ id: string; firstName: string; lastName: string }>;
 };
 
 export type MatchFilters = {

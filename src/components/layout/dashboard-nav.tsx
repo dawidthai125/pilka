@@ -29,41 +29,14 @@ import {
   canReadWebsite,
 } from "@/config/permissions";
 import { dashboardNav } from "@/config/navigation";
+import {
+  PARENT_ONLY_HREFS,
+  PLAYER_ONLY_HREFS,
+  SPONSOR_ONLY_HREFS,
+  WEBSITE_ADMIN_HREFS,
+} from "@/lib/navigation/mobile-nav";
 import { cn } from "@/lib/utils";
 import type { ClubRole } from "@/types/rbac";
-
-const SPONSOR_ONLY_HREFS = ["/dashboard", "/profile", "/club", "/sponsors/portal", "/content", "/communication"];
-const PARENT_ONLY_HREFS = [
-  "/dashboard",
-  "/profile",
-  "/club",
-  "/finance/portal",
-  "/training",
-  "/matches",
-  "/players",
-  "/academy",
-  "/academy/development",
-  "/communication",
-  "/attendance",
-  "/crm/parents",
-  "/equipment/portal",
-];
-const PLAYER_ONLY_HREFS = [
-  "/dashboard",
-  "/profile",
-  "/club",
-  "/inventory/portal",
-  "/training",
-  "/matches",
-  "/league",
-  "/players",
-  "/academy",
-  "/academy/development",
-  "/communication",
-  "/attendance",
-  "/equipment/portal",
-];
-const WEBSITE_ADMIN_HREFS = ["/dashboard", "/profile", "/website", "/content"];
 
 export function DashboardNav({
   roles,
