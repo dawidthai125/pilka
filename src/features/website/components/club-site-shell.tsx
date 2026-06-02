@@ -3,11 +3,7 @@ import { ExternalLink, Phone, UserPlus } from "lucide-react";
 
 import { ClubLogo } from "@/components/club/club-logo";
 import { PublicSiteNav } from "@/features/website/components/public-site-nav";
-import {
-  CLUB_COVER_IMAGE,
-  CLUB_DISPLAY_CLASS,
-  WEBSITE_SOCIAL_PLATFORM_LABELS,
-} from "@/lib/website/constants";
+import { CLUB_DISPLAY_CLASS, WEBSITE_SOCIAL_PLATFORM_LABELS } from "@/lib/website/constants";
 import { formatPublicSiteFooter } from "@/config/product";
 import { cn } from "@/lib/utils";
 import type { WebsiteSettings, WebsiteSocialIntegration } from "@/types/website";
@@ -37,61 +33,79 @@ export function ClubSiteShell({
     ["--club-accent" as string]: settings.accentColor,
   } as React.CSSProperties;
 
-  const cover = coverImageUrl ?? CLUB_COVER_IMAGE;
   const activeSocial = socialLinks.filter((item) => item.isEnabled && item.profileUrl);
   const facebookLink = activeSocial.find((item) => item.platform === "facebook");
+  const hasCoverPhoto = Boolean(coverImageUrl);
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f0f2f5]" style={style}>
-      <header className="relative bg-[var(--club-primary)]">
-        <div className="relative h-48 overflow-hidden sm:h-56 md:h-64">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={cover} alt="" className="size-full object-cover object-center" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+      <header className="relative">
+        <div className="relative h-36 overflow-hidden sm:h-40 md:h-44">
+          {hasCoverPhoto ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverImageUrl!}
+                alt=""
+                className="size-full object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[var(--club-primary)]" />
+            </>
+          ) : (
+            <div
+              className="size-full bg-gradient-to-br from-[var(--club-primary)] via-[color-mix(in_srgb,var(--club-primary)_88%,#000)] to-[#041810]"
+              aria-hidden
+            />
+          )}
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="-mt-12 flex flex-col gap-4 pb-0 sm:-mt-14 md:flex-row md:items-end md:justify-between">
-            <div className="flex items-end gap-4">
-              <ClubLogo
-                logoUrl={logoUrl}
-                clubName={clubName}
-                size="xl"
-                onDark
-                className="size-24 shrink-0 rounded-full border-4 border-[#f0f2f5] bg-[var(--club-primary)] shadow-lg sm:size-28"
-              />
-              <div className="min-w-0 pb-1 text-white">
-                <h1 className={cn(CLUB_DISPLAY_CLASS, "text-2xl font-bold sm:text-3xl")}>{clubName}</h1>
-                <p className="text-sm text-white/90">{officialName}</p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/85">
-                  {settings.contactPhone ? (
-                    <a href={`tel:${settings.contactPhone.replace(/\s/g, "")}`} className="inline-flex items-center gap-1 hover:underline">
-                      <Phone className="size-3.5" />
-                      {settings.contactPhone}
-                    </a>
-                  ) : null}
-                  {facebookLink?.profileUrl ? (
-                    <a
-                      href={facebookLink.profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 hover:underline"
-                    >
-                      <ExternalLink className="size-3.5" />
-                      Facebook
-                    </a>
-                  ) : null}
+        <div className="bg-[var(--club-primary)]">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="-mt-10 flex flex-col gap-4 pb-3 sm:-mt-12 md:flex-row md:items-end md:justify-between">
+              <div className="flex items-end gap-4">
+                <ClubLogo
+                  logoUrl={logoUrl}
+                  clubName={clubName}
+                  size="xl"
+                  onDark
+                  className="size-24 shrink-0 rounded-full border-4 border-[#f0f2f5] bg-[var(--club-primary)] shadow-lg sm:size-28"
+                />
+                <div className="min-w-0 pb-1 text-white">
+                  <h1 className={cn(CLUB_DISPLAY_CLASS, "text-2xl font-bold sm:text-3xl")}>{clubName}</h1>
+                  <p className="text-sm text-white/90">{officialName}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/85">
+                    {settings.contactPhone ? (
+                      <a
+                        href={`tel:${settings.contactPhone.replace(/\s/g, "")}`}
+                        className="inline-flex items-center gap-1 hover:underline"
+                      >
+                        <Phone className="size-3.5" />
+                        {settings.contactPhone}
+                      </a>
+                    ) : null}
+                    {facebookLink?.profileUrl ? (
+                      <a
+                        href={facebookLink.profileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 hover:underline"
+                      >
+                        <ExternalLink className="size-3.5" />
+                        Facebook
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <Link
-              href="/#akademia"
-              className="mb-1 inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-[var(--club-secondary)] px-5 text-sm font-bold text-[var(--club-primary)] shadow-md md:self-auto"
-            >
-              <UserPlus className="size-4" />
-              Zapisz dziecko
-            </Link>
+              <Link
+                href="/#akademia"
+                className="mb-1 inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-[var(--club-secondary)] px-5 text-sm font-bold text-[var(--club-primary)] shadow-md md:self-auto"
+              >
+                <UserPlus className="size-4" />
+                Zapisz dziecko
+              </Link>
+            </div>
           </div>
         </div>
       </header>

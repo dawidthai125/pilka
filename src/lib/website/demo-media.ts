@@ -33,7 +33,7 @@ const CLUB_MEDIA_BASE = "/club-media";
 export function getDemoMediaUrl(key: string | null | undefined): string | null {
   if (!key) return null;
   const asset = DEMO_MEDIA_ASSETS[key as DemoMediaAssetKey];
-  if (!asset) return `${CLUB_MEDIA_BASE}/placeholder.jpg`;
+  if (!asset) return `${CLUB_MEDIA_BASE}/hero-stadium.jpg`;
   return `${CLUB_MEDIA_BASE}/${asset.file}`;
 }
 

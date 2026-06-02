@@ -1,5 +1,6 @@
 import { getWebsiteAssetUrl } from "@/lib/website/assets";
 import { buildPublicWebsiteMediaBundle } from "@/lib/website/media";
+import { resolvePublicCoverImageUrl } from "@/lib/website/cover-image";
 import {
   getPublicClubId,
   getPublicClubStats,
@@ -11,7 +12,6 @@ import {
   getPublicWebsiteHome,
   getPublicWebsiteMedia,
 } from "@/lib/website/public-data";
-import { CLUB_COVER_IMAGE } from "@/lib/website/constants";
 import { ClubSiteShell } from "@/features/website/components/club-site-shell";
 
 export async function ClubSitePageWrapper({
@@ -30,9 +30,10 @@ export async function ClubSitePageWrapper({
     );
   }
 
-  const [logoUrl, socialLinks] = await Promise.all([
+  const [logoUrl, socialLinks, coverImageUrl] = await Promise.all([
     getWebsiteAssetUrl(home.settings.logoPath),
     getPublicSocialIntegrations(home.club.id),
+    resolvePublicCoverImageUrl(home.settings),
   ]);
 
   return (
@@ -41,7 +42,7 @@ export async function ClubSitePageWrapper({
       officialName={home.club.officialName}
       settings={home.settings}
       logoUrl={logoUrl}
-      coverImageUrl={CLUB_COVER_IMAGE}
+      coverImageUrl={coverImageUrl}
       socialLinks={socialLinks}
     >
       {children}

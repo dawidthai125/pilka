@@ -70,5 +70,6 @@ export const PUBLIC_NAV_LINKS = [
 export const CLUB_SCENE_DARK = "bg-[#062820] text-white";
 export const CLUB_SCENE_LIGHT = "bg-[#f7f5f0] text-[#0B3D2E]";
 export const CLUB_DISPLAY_CLASS = "[font-family:var(--font-club-display)]";
-export const CLUB_COVER_IMAGE = "/club-media/cover.jpg";
+/** @deprecated Użyj resolvePublicCoverImageUrl — nie wskazuj cover.jpg (losowy Picsum). */
+export const CLUB_COVER_IMAGE = "/club-media/hero-stadium.jpg";
 export const CLUB_DASHBOARD_COVER = "/club-media/hero-stadium.jpg";
