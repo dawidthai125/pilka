@@ -42,11 +42,11 @@ export default async function ClubHomePage() {
         heroSubtitle={home.settings.heroSubtitle ?? "Razem tworzymy historię ⚡"}
         coverImageUrl={coverImageUrl}
         news={news}
-        teams={teams}
         nextMatch={nextMatch}
         recentResults={resultsList}
         league={league}
         teamStats={teamStats}
+        players={players}
         topScorers={topScorers}
       />
       <PublicAcademySection

@@ -1,11 +1,17 @@
 import Link from "next/link";
-import { Flame, Heart, Sparkles, Users, Zap, CalendarDays, Trophy } from "lucide-react";
+import { Flame, Heart, Sparkles, Users, CalendarDays, Trophy } from "lucide-react";
 
+import { PublicHomeNewsSection } from "@/features/website/components/public-home-news-section";
 import { PublicHomeSeasonHub } from "@/features/website/components/public-home-season-hub";
-import { CLUB_DISPLAY_CLASS, CLUB_SCENE_DARK, CLUB_SCENE_LIGHT, WEBSITE_NEWS_CATEGORY_LABELS } from "@/lib/website/constants";
+import { PublicHomeSquadSection } from "@/features/website/components/public-home-squad-section";
+import { PublicHomeLeagueTable } from "@/features/website/components/public-home-league-table";
+import {
+  HomeDarkSection,
+} from "@/features/website/components/public-home-dark-ui";
+import { CLUB_DISPLAY_CLASS, CLUB_SCENE_DARK } from "@/lib/website/constants";
 import { cn } from "@/lib/utils";
 import type { LeagueTableEntry } from "@/types/matches";
-import type { PublicNewsPreviewItem, PublicMatchSummary, PublicPlayer, PublicTeamCardWithMedia, PublicTeamStats } from "@/types/website";
+import type { PublicNewsPreviewItem, PublicMatchSummary, PublicPlayer, PublicTeamStats } from "@/types/website";
 
 const VALUES = [
   { icon: Heart, title: "Pasja", text: "Gra z sercem na każdym treningu i meczu." },
@@ -14,13 +20,6 @@ const VALUES = [
   { icon: Flame, title: "Tradycja", text: "Lokalny klub z ambicją i tożsamością." },
 ] as const;
 
-function formatNewsDate(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
-  return d.toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" });
-}
-
 export function PublicLandingHome({
   clubName,
   officialName,
@@ -28,11 +27,11 @@ export function PublicLandingHome({
   heroSubtitle,
   coverImageUrl,
   news,
-  teams,
   nextMatch,
   recentResults,
   league,
   teamStats,
+  players,
   topScorers,
 }: {
   clubName: string;
@@ -41,15 +40,15 @@ export function PublicLandingHome({
   heroSubtitle: string | null;
   coverImageUrl?: string | null;
   news: PublicNewsPreviewItem[];
-  teams: PublicTeamCardWithMedia[];
   nextMatch: PublicMatchSummary | null;
   recentResults: PublicMatchSummary[];
   league: { entries: LeagueTableEntry[]; ownTeamName: string; competition: string; season: string };
   teamStats: PublicTeamStats | null;
+  players: PublicPlayer[];
   topScorers: PublicPlayer[];
 }) {
-  const newsCards = news.slice(0, 4);
-  const teamCards = teams.filter((t) => t.imageUrl).slice(0, 5);
+  const ownRow = league.entries.find((e) => e.isOwnClub);
+  const ownPosition = ownRow ? league.entries.indexOf(ownRow) + 1 : null;
 
   return (
     <>
@@ -106,11 +105,27 @@ export function PublicLandingHome({
         ownTeamName={league.ownTeamName}
         officialTeamName={officialName}
         teamStats={teamStats}
-        topScorers={topScorers}
       />
 
+      {league.entries.length > 0 ? (
+        <HomeDarkSection
+          eyebrow="Liga"
+          title="Tabela"
+          subtitle={`${league.competition} · sezon ${league.season}`}
+          href="/tabela"
+          linkLabel="Pełna tabela"
+          className="border-t border-white/5 py-10 sm:py-12"
+        >
+          <PublicHomeLeagueTable entries={league.entries} ownPosition={ownPosition} />
+        </HomeDarkSection>
+      ) : null}
+
+      <PublicHomeSquadSection players={players} topScorers={topScorers} />
+
+      <PublicHomeNewsSection news={news} />
+
       {/* Wartości */}
-      <section className={cn(CLUB_SCENE_DARK, "py-10 sm:py-12")} aria-label="Wartości klubu">
+      <section className={cn(CLUB_SCENE_DARK, "border-t border-white/5 py-10 sm:py-12")} aria-label="Wartości klubu">
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 sm:grid-cols-4 sm:px-6">
           {VALUES.map((item) => (
             <div key={item.title} className="text-center">
@@ -123,94 +138,6 @@ export function PublicLandingHome({
           ))}
         </div>
       </section>
-
-      {/* Aktualności */}
-      {newsCards.length > 0 ? (
-        <section className={cn(CLUB_SCENE_LIGHT, "py-12 sm:py-16")} aria-label="Aktualności">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mb-8 flex items-end justify-between gap-4">
-              <div>
-                <h2 className={cn(CLUB_DISPLAY_CLASS, "text-3xl font-bold text-[var(--club-primary)] sm:text-4xl")}>
-                  Aktualności
-                </h2>
-                <p className="mt-2 text-sm text-[var(--club-primary)]/70">Mecze, akademia i życie klubu</p>
-              </div>
-              <Link href="/aktualnosci" className="text-sm font-semibold text-[var(--club-primary)] hover:underline">
-                Zobacz wszystkie →
-              </Link>
-            </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {newsCards.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/aktualnosci/${item.slug}`}
-                  className="group overflow-hidden rounded-xl border border-black/5 bg-white shadow-sm transition hover:shadow-md"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                    {item.featuredImageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.featuredImageUrl}
-                        alt=""
-                        className="size-full object-cover transition duration-300 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="flex size-full items-center justify-center bg-[var(--club-primary)]/10">
-                        <Zap className="size-10 text-[var(--club-primary)]/40" />
-                      </div>
-                    )}
-                    <span className="absolute left-3 top-3 rounded-full bg-[var(--club-secondary)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--club-primary)]">
-                      {WEBSITE_NEWS_CATEGORY_LABELS[item.category]}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <p className="text-xs text-muted-foreground">{formatNewsDate(item.publishedAt ?? item.createdAt)}</p>
-                    <h3 className="mt-1 line-clamp-2 font-bold leading-snug text-[var(--club-primary)] group-hover:underline">
-                      {item.title}
-                    </h3>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {/* Drużyny */}
-      {teamCards.length > 0 ? (
-        <section className="bg-white py-12 sm:py-16" aria-label="Nasze drużyny">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mb-8 flex items-end justify-between gap-4">
-              <h2 className={cn(CLUB_DISPLAY_CLASS, "text-3xl font-bold text-[var(--club-primary)] sm:text-4xl")}>
-                Nasze drużyny
-              </h2>
-              <Link href="/druzyna" className="text-sm font-semibold text-[var(--club-primary)] hover:underline">
-                Kadra klubu →
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {teamCards.map((team) => (
-                <Link
-                  key={team.id}
-                  href="/druzyna"
-                  className="group relative overflow-hidden rounded-xl"
-                >
-                  <div className="aspect-[3/4]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={team.imageUrl!}
-                      alt={team.name}
-                      className="size-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#041810] via-transparent to-transparent" />
-                    <p className="absolute bottom-0 left-0 right-0 p-3 text-center text-sm font-bold text-white">{team.name}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
 
       {/* Join CTA */}
       <section className={cn(CLUB_SCENE_DARK, "relative overflow-hidden py-14 sm:py-16")} aria-label="Dołącz do klubu">
