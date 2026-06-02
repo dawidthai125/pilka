@@ -13,25 +13,47 @@ import type {
   WebsiteMediaItem,
 } from "@/types/website";
 
+function readSettingsField(row: Record<string, unknown>, snake: string, camel: string): unknown {
+  return row[snake] ?? row[camel];
+}
+
 export function mapWebsiteSettings(row: Record<string, unknown>): WebsiteSettings {
   return {
-    clubId: String(row.club_id),
-    publicSiteEnabled: Boolean(row.public_site_enabled),
-    logoPath: row.logo_path ? String(row.logo_path) : null,
-    logoDarkPath: row.logo_dark_path ? String(row.logo_dark_path) : null,
-    primaryColor: String(row.primary_color ?? "#0B3D2E"),
-    secondaryColor: String(row.secondary_color ?? "#F4C430"),
-    accentColor: String(row.accent_color ?? "#FFFFFF"),
-    heroImagePath: row.hero_image_path ? String(row.hero_image_path) : null,
-    heroTitle: row.hero_title ? String(row.hero_title) : null,
-    heroSubtitle: row.hero_subtitle ? String(row.hero_subtitle) : null,
-    contactAddress: row.contact_address ? String(row.contact_address) : null,
-    contactEmail: row.contact_email ? String(row.contact_email) : null,
-    contactPhone: row.contact_phone ? String(row.contact_phone) : null,
-    googleMapsEmbedUrl: row.google_maps_embed_url ? String(row.google_maps_embed_url) : null,
-    seoTitle: row.seo_title ? String(row.seo_title) : null,
-    seoDescription: row.seo_description ? String(row.seo_description) : null,
-    ogImagePath: row.og_image_path ? String(row.og_image_path) : null,
+    clubId: String(row.club_id ?? row.clubId ?? ""),
+    publicSiteEnabled: Boolean(row.public_site_enabled ?? row.publicSiteEnabled ?? true),
+    logoPath: readSettingsField(row, "logo_path", "logoPath") ? String(readSettingsField(row, "logo_path", "logoPath")) : null,
+    logoDarkPath: readSettingsField(row, "logo_dark_path", "logoDarkPath")
+      ? String(readSettingsField(row, "logo_dark_path", "logoDarkPath"))
+      : null,
+    primaryColor: String(readSettingsField(row, "primary_color", "primaryColor") ?? "#0B3D2E"),
+    secondaryColor: String(readSettingsField(row, "secondary_color", "secondaryColor") ?? "#F4C430"),
+    accentColor: String(readSettingsField(row, "accent_color", "accentColor") ?? "#FFFFFF"),
+    heroImagePath: readSettingsField(row, "hero_image_path", "heroImagePath")
+      ? String(readSettingsField(row, "hero_image_path", "heroImagePath"))
+      : null,
+    heroTitle: readSettingsField(row, "hero_title", "heroTitle") ? String(readSettingsField(row, "hero_title", "heroTitle")) : null,
+    heroSubtitle: readSettingsField(row, "hero_subtitle", "heroSubtitle")
+      ? String(readSettingsField(row, "hero_subtitle", "heroSubtitle"))
+      : null,
+    contactAddress: readSettingsField(row, "contact_address", "contactAddress")
+      ? String(readSettingsField(row, "contact_address", "contactAddress"))
+      : null,
+    contactEmail: readSettingsField(row, "contact_email", "contactEmail")
+      ? String(readSettingsField(row, "contact_email", "contactEmail"))
+      : null,
+    contactPhone: readSettingsField(row, "contact_phone", "contactPhone")
+      ? String(readSettingsField(row, "contact_phone", "contactPhone"))
+      : null,
+    googleMapsEmbedUrl: readSettingsField(row, "google_maps_embed_url", "googleMapsEmbedUrl")
+      ? String(readSettingsField(row, "google_maps_embed_url", "googleMapsEmbedUrl"))
+      : null,
+    seoTitle: readSettingsField(row, "seo_title", "seoTitle") ? String(readSettingsField(row, "seo_title", "seoTitle")) : null,
+    seoDescription: readSettingsField(row, "seo_description", "seoDescription")
+      ? String(readSettingsField(row, "seo_description", "seoDescription"))
+      : null,
+    ogImagePath: readSettingsField(row, "og_image_path", "ogImagePath")
+      ? String(readSettingsField(row, "og_image_path", "ogImagePath"))
+      : null,
   };
 }
 
