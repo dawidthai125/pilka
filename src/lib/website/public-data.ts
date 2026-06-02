@@ -138,19 +138,24 @@ export const getPublicMatches = cache(
       .from("matches")
       .select(MATCH_PUBLIC_SELECT)
       .eq("club_id", clubId)
-      .order("match_date", { ascending: filter === "upcoming" })
-      .order("match_time", { ascending: filter === "upcoming" })
       .limit(limit);
 
     if (filter === "upcoming") {
-      query = query.in("status", ["planned", "in_progress"]).gte("match_date", new Date().toISOString().slice(0, 10));
+      query = query
+        .in("status", ["planned", "in_progress"])
+        .gte("match_date", new Date().toISOString().slice(0, 10))
+        .order("match_date", { ascending: true })
+        .order("match_time", { ascending: true });
     } else if (filter === "results") {
       const today = new Date().toISOString().slice(0, 10);
       query = query
         .eq("status", "completed")
         .lte("match_date", today)
         .order("match_date", { ascending: false })
-        .order("round_number", { ascending: false });
+        .order("round_number", { ascending: false })
+        .order("match_time", { ascending: false });
+    } else {
+      query = query.order("match_date", { ascending: false }).order("match_time", { ascending: false });
     }
 
     const { data, error } = await query;

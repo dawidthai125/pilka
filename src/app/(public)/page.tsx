@@ -23,10 +23,7 @@ export default async function ClubHomePage() {
 
   const coverImageUrl = await resolvePublicCoverImageUrl(home.settings);
   const nextMatch = home.nextMatch;
-  const resultsList = [...recentResults];
-  if (home.lastResult && !resultsList.some((m) => m.id === home.lastResult!.id)) {
-    resultsList.unshift(home.lastResult);
-  }
+  const resultsList = recentResults;
 
   const topScorers = [...players]
     .filter((p) => p.goals > 0)

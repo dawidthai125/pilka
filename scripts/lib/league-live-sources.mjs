@@ -75,6 +75,9 @@ export function normalizeTeamName(name) {
     .replace(/Sob.tka/i, "Sobótka")
     .replace(/Pustk.w/i, "Pustków")
     .replace(/Pustków\s+[óo]?urawski/i, "Pustków Żurawski")
+    .replace(/KP II K[óą]ty Wroc[óął]awskie/i, "KP II Kąty Wrocławskie")
+    .replace(/Orze[ół]? Sadowice/i, "Orzeł Sadowice")
+    .replace(/\b(MKS|KS)\s+Magnice\b/i, "MKS Magnice")
     .trim();
 }
 

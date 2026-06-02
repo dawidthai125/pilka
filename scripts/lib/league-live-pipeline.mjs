@@ -302,11 +302,28 @@ async function loadCompetitionMeta(supabase) {
   };
 }
 
+function isSuspiciousMatchDate(value) {
+  const date = String(value ?? "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return true;
+  if (date === "2026-06-07") return true;
+  const today = new Date().toISOString().slice(0, 10);
+  return date > today;
+}
+
+function teamNameLooksCorrupted(name) {
+  const raw = String(name ?? "").trim();
+  return raw !== normalizeTeamName(raw);
+}
+
 function pickBestLeagueRow(candidates) {
   if (!candidates.length) return null;
-  const withoutBulkPlaceholder = candidates.filter((lm) => String(lm.match_date) !== "2026-06-07");
-  const pool = withoutBulkPlaceholder.length ? withoutBulkPlaceholder : candidates;
-  return pool.sort((a, b) => String(a.match_date).localeCompare(String(b.match_date)))[0];
+  const withoutSuspicious = candidates.filter((lm) => !isSuspiciousMatchDate(lm.match_date));
+  const pool = withoutSuspicious.length ? withoutSuspicious : candidates;
+  const cleanNames = pool.filter(
+    (lm) => !teamNameLooksCorrupted(lm.home_team_name) && !teamNameLooksCorrupted(lm.away_team_name),
+  );
+  const namePool = cleanNames.length ? cleanNames : pool;
+  return namePool.sort((a, b) => String(b.match_date).localeCompare(String(a.match_date)))[0];
 }
 
 function findLeagueRowForModuleMatch(moduleMatch, leagueRows, teams) {
@@ -329,19 +346,19 @@ function findLeagueRowForModuleMatch(moduleMatch, leagueRows, teams) {
 function pickCanonicalModuleMatch(candidates, leagueRow) {
   if (candidates.length === 1) return candidates[0];
 
-  if (leagueRow?.match_date && String(leagueRow.match_date) !== "2026-06-07") {
+  if (leagueRow?.match_date && !isSuspiciousMatchDate(leagueRow.match_date)) {
     const byLeagueDate = candidates.find((m) => String(m.match_date) === String(leagueRow.match_date));
     if (byLeagueDate) return byLeagueDate;
   }
 
   if (leagueRow?.match_id) {
     const linked = candidates.find((m) => m.id === leagueRow.match_id);
-    if (linked && String(linked.match_date) !== "2026-06-07") return linked;
+    if (linked && !isSuspiciousMatchDate(linked.match_date)) return linked;
   }
 
-  const withoutBulkPlaceholder = candidates.filter((m) => String(m.match_date) !== "2026-06-07");
-  if (withoutBulkPlaceholder.length) {
-    return withoutBulkPlaceholder.sort((a, b) => String(a.match_date).localeCompare(String(b.match_date)))[0];
+  const withoutSuspicious = candidates.filter((m) => !isSuspiciousMatchDate(m.match_date));
+  if (withoutSuspicious.length) {
+    return withoutSuspicious.sort((a, b) => String(a.match_date).localeCompare(String(b.match_date)))[0];
   }
 
   return candidates.sort((a, b) => String(a.match_date).localeCompare(String(b.match_date)))[0];
