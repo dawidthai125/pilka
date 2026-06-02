@@ -18,8 +18,8 @@ type ClubLogoProps = {
   className?: string;
   /** Jasne tło monogramu na ciemnym sidebarze / hero logowania */
   onDark?: boolean;
-  /** Okładka FB — białe tło, żółty monogram (czytelny na zielonym pasku) */
-  variant?: "default" | "profile";
+  /** Okładka FB — białe tło pod okrągłym herbem */
+  variant?: "default" | "profile" | "crest";
 };
 
 export function ClubLogo({
@@ -42,6 +42,7 @@ export function ClubLogo({
       .slice(0, 2) || "PW";
 
   const showImage = Boolean(logoUrl) && !imgError;
+  const isCrest = variant === "crest" || variant === "profile" || variant === "default";
 
   if (showImage) {
     return (
@@ -50,7 +51,12 @@ export function ClubLogo({
         src={logoUrl!}
         alt={clubName}
         onError={() => setImgError(true)}
-        className={cn("shrink-0 rounded-full object-cover", sizeClasses[size], className)}
+        className={cn(
+          "shrink-0 object-contain",
+          isCrest ? "rounded-full bg-white p-0.5" : "rounded-lg",
+          sizeClasses[size],
+          className,
+        )}
       />
     );
   }
