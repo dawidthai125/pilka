@@ -1,19 +1,29 @@
 {
-  "fetchedAt": "2026-06-02T19:14:56.073Z",
+  "fetchedAt": "2026-06-02T20:07:29.367Z",
   "leagueTeamName": "GLKS Mietków",
   "urls": {
     "regiowynikiKadra": "https://regiowyniki.pl/druzyna/Pilka_Nozna/Dolnoslaskie/GLKS_Mietkow/kadra/",
     "ninetyMinutStrzelcy": "http://www.90minut.pl/strzelcy.php?id_liga=14526",
     "ninetyMinutBilans": "http://www.90minut.pl/bilans.php?id_klub=3824&id_sezon=107"
   },
+  "lnp": {
+    "enabled": false,
+    "ok": false,
+    "skipped": true,
+    "count": 0,
+    "hasAnyStats": false,
+    "reason": "Ustaw LNP_ACCESS_TOKEN i LNP_TEAM_ID w .env.local (UUID drużyny z mPZPN / laczynaspilka.pl).",
+    "teamId": null
+  },
   "counts": {
     "regiowynikiKadra": 29,
     "ninetyMinutStrzelcy": 0,
     "ninetyMinutBilans": 0,
+    "mpzpnLnp": 0,
     "merged": 29
   },
   "hasAnyStats": false,
-  "statsNote": "Mirror B Klasy nie publikuje statystyk per zawodnik — zaimportowano kadrę (nazwiska).",
+  "statsNote": "Mirror B Klasy nie publikuje statystyk per zawodnik. mPZPN ma pełne dane — ustaw LNP_ACCESS_TOKEN i LNP_TEAM_ID w .env.local.",
   "players": [
     {
       "leaguePlayerName": "Błachowicz Dominik",

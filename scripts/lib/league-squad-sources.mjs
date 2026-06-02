@@ -1,13 +1,20 @@
 #!/usr/bin/env node
 /**
- * Kadra + statystyki sezonowe GLKS Mietków z mirrorów publicznych.
- * Primary roster: regiowyniki.pl/kadra (29 zawodników).
- * Statystyki per zawodnik w B Klasie często puste w HTML — merge z 90minut gdy dostępne.
+ * Kadra + statystyki sezonowe GLKS Mietków.
+ * Kadra (nazwiska): regiowyniki.pl/kadra.
+ * Statystyki M/G/ŻK: competition-api-pro (mPZPN) gdy LNP_ACCESS_TOKEN + LNP_TEAM_ID;
+ * w przeciwnym razie merge z 90minut (często puste w B Klasie).
  */
 import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { LEAGUE_CONFIG } from "./league-live-sources.mjs";
+import { normalizeName, parseLeaguePlayerName } from "./league-player-utils.mjs";
+import {
+  fetchLnpSquadAndStats,
+  getLnpConfig,
+  mergeLnpIntoMirrorRoster,
+} from "./league-lnp-sources.mjs";
 
 const UA = { "User-Agent": "Mozilla/5.0 (compatible; PiorunLeagueSync/1.0)" };
 
@@ -16,24 +23,7 @@ async function get(url) {
   return { status: r.status, text: await r.text() };
 }
 
-export function normalizeName(name) {
-  return String(name ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/** regiowyniki: "Nazwisko Imię" */
-export function parseLeaguePlayerName(name) {
-  const parts = String(name ?? "")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-  if (parts.length < 2) return { lastName: parts[0] ?? "", firstName: "" };
-  return { lastName: parts[0], firstName: parts.slice(1).join(" ") };
-}
+export { normalizeName, parseLeaguePlayerName } from "./league-player-utils.mjs";
 
 export function parseRegiowynikiKadra(html) {
   const players = [];
@@ -208,26 +198,55 @@ export async function fetchSquadAndStats() {
   const kadra = kadraPage.status === 200 ? parseRegiowynikiKadra(kadraPage.text) : [];
   const strzelcy = strzelcyPage.status === 200 ? parseNinetyMinutStrzelcy(strzelcyPage.text) : [];
   const bilans = bilansPage.status === 200 ? parseNinetyMinutBilans(bilansPage.text) : [];
-  const players = mergePlayerStats(kadra, strzelcy, bilans);
+  let players = mergePlayerStats(kadra, strzelcy, bilans);
+
+  const lnpConfig = getLnpConfig();
+  const lnp = await fetchLnpSquadAndStats(lnpConfig);
+  if (lnp.ok && lnp.players.length) {
+    players = mergeLnpIntoMirrorRoster(players, lnp.players);
+  }
+
   const fetchedAt = new Date().toISOString();
   const hasAnyStats = players.some(
     (p) => p.appearances > 0 || p.goals > 0 || p.yellowCards > 0 || p.redCards > 0 || p.minutes > 0,
   );
 
+  let statsNote = null;
+  if (!hasAnyStats) {
+    if (!lnpConfig.enabled) {
+      statsNote =
+        "Mirror B Klasy nie publikuje statystyk per zawodnik. mPZPN ma pełne dane — ustaw LNP_ACCESS_TOKEN i LNP_TEAM_ID w .env.local.";
+    } else if (lnp.skipped) {
+      statsNote = lnp.reason ?? "Adapter mPZPN pominięty.";
+    } else if (!lnp.ok) {
+      statsNote = `mPZPN API: ${lnp.reason ?? "błąd pobierania"} — sprawdź token i LNP_TEAM_ID.`;
+    } else {
+      statsNote = "mPZPN zwróciło kadrę bez statystyk sezonowych (brak LNP_SEASON_ID / LNP_LEAGUE_ID?).";
+    }
+  }
+
   return {
     fetchedAt,
     leagueTeamName: LEAGUE_CONFIG.ownLeagueName,
     urls,
+    lnp: {
+      enabled: lnpConfig.enabled,
+      ok: lnp.ok,
+      skipped: lnp.skipped ?? false,
+      count: lnp.players?.length ?? 0,
+      hasAnyStats: lnp.hasAnyStats ?? false,
+      reason: lnp.reason ?? null,
+      teamId: lnpConfig.teamId || null,
+    },
     counts: {
       regiowynikiKadra: kadra.length,
       ninetyMinutStrzelcy: strzelcy.length,
       ninetyMinutBilans: bilans.length,
+      mpzpnLnp: lnp.players?.length ?? 0,
       merged: players.length,
     },
     hasAnyStats,
-    statsNote: hasAnyStats
-      ? null
-      : "Mirror B Klasy nie publikuje statystyk per zawodnik — zaimportowano kadrę (nazwiska).",
+    statsNote,
     players,
   };
 }

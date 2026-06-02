@@ -34,6 +34,7 @@ Pobiera tabelę i terminarz B Klasy Wrocław VII 2025/26 z mirrorów publicznych
 scala dane i synchronizuje do League Hub + moduł Mecze + publiczna /tabela.
 
 Źródła: 90minut.pl (tabela/wyniki), regionalnyfutbol.pl (terminarz), regiowyniki.pl (kadra).
+Statystyki zawodników: mPZPN (competition-api-pro) gdy LNP_ACCESS_TOKEN + LNP_TEAM_ID w .env.local.
 Oficjalna nazwa ligowa: GLKS Mietków → wyświetlanie: Piorun Wawrzeńczyce.
 `);
     return;
@@ -46,6 +47,11 @@ Oficjalna nazwa ligowa: GLKS Mietków → wyświetlanie: Piorun Wawrzeńczyce.
   console.log(`90minut.pl:        tabela ${fetched.ninetyMinut.tableRows}, mecze ${fetched.ninetyMinut.fixtureRows}`);
   console.log(`regionalnyfutbol:  tabela ${fetched.regionalnyFutbol.tableRows}, mecze ${fetched.regionalnyFutbol.fixtureRows}`);
   console.log(`regiowyniki:       kadra ${squadData.counts.merged} zawodników`);
+  if (squadData.lnp?.enabled) {
+    console.log(
+      `mPZPN API:         ${squadData.lnp.ok ? squadData.lnp.count + " zaw." : squadData.lnp.reason ?? "błąd"}`,
+    );
+  }
   console.log(`Scalono:           tabela z ${merged.tableSource}, ${merged.fixtures.length} meczów`);
   if (squadData.statsNote) console.log(`Uwaga:             ${squadData.statsNote}`);
 

@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Flame, Heart, Sparkles, Users, Zap } from "lucide-react";
+import { Flame, Heart, Sparkles, Users, Zap, CalendarDays, Trophy } from "lucide-react";
 
+import { PublicHomeSeasonHub } from "@/features/website/components/public-home-season-hub";
 import { CLUB_DISPLAY_CLASS, CLUB_SCENE_DARK, CLUB_SCENE_LIGHT, WEBSITE_NEWS_CATEGORY_LABELS } from "@/lib/website/constants";
 import { cn } from "@/lib/utils";
-import type { PublicNewsPreviewItem, PublicTeamCardWithMedia } from "@/types/website";
+import type { LeagueTableEntry } from "@/types/matches";
+import type { PublicNewsPreviewItem, PublicMatchSummary, PublicPlayer, PublicTeamCardWithMedia, PublicTeamStats } from "@/types/website";
 
 const VALUES = [
   { icon: Heart, title: "Pasja", text: "Gra z sercem na każdym treningu i meczu." },
@@ -21,18 +23,30 @@ function formatNewsDate(iso: string | null | undefined): string {
 
 export function PublicLandingHome({
   clubName,
+  officialName,
   heroTitle,
   heroSubtitle,
   coverImageUrl,
   news,
   teams,
+  nextMatch,
+  recentResults,
+  league,
+  teamStats,
+  topScorers,
 }: {
   clubName: string;
+  officialName: string;
   heroTitle: string;
   heroSubtitle: string | null;
   coverImageUrl?: string | null;
   news: PublicNewsPreviewItem[];
   teams: PublicTeamCardWithMedia[];
+  nextMatch: PublicMatchSummary | null;
+  recentResults: PublicMatchSummary[];
+  league: { entries: LeagueTableEntry[]; ownTeamName: string; competition: string; season: string };
+  teamStats: PublicTeamStats | null;
+  topScorers: PublicPlayer[];
 }) {
   const newsCards = news.slice(0, 4);
   const teamCards = teams.filter((t) => t.imageUrl).slice(0, 5);
@@ -60,21 +74,40 @@ export function PublicLandingHome({
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/#akademia"
+              href="/mecze"
               className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-[var(--club-secondary)] px-6 text-sm font-bold uppercase tracking-wide text-[var(--club-primary)] shadow-lg hover:brightness-105"
             >
-              Dowiedz się więcej
-              <ArrowRight className="size-4" />
+              <CalendarDays className="size-4" />
+              Mecze
+            </Link>
+            <Link
+              href="/tabela"
+              className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-white/30 px-6 text-sm font-semibold text-white hover:bg-white/10"
+            >
+              <Trophy className="size-4" />
+              Tabela
             </Link>
             <Link
               href="/aktualnosci"
-              className="inline-flex min-h-12 items-center rounded-lg border border-white/30 px-6 text-sm font-semibold text-white hover:bg-white/10"
+              className="inline-flex min-h-12 items-center rounded-lg border border-white/20 px-6 text-sm font-semibold text-white/90 hover:bg-white/10"
             >
               Aktualności
             </Link>
           </div>
         </div>
       </section>
+
+      <PublicHomeSeasonHub
+        nextMatch={nextMatch}
+        recentResults={recentResults}
+        leagueEntries={league.entries}
+        competition={league.competition}
+        season={league.season}
+        ownTeamName={league.ownTeamName}
+        officialTeamName={officialName}
+        teamStats={teamStats}
+        topScorers={topScorers}
+      />
 
       {/* Wartości */}
       <section className={cn(CLUB_SCENE_DARK, "py-10 sm:py-12")} aria-label="Wartości klubu">

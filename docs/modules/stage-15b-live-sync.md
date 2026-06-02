@@ -20,9 +20,8 @@ Konfiguracja w `league_teams`: `league_name = GLKS Mietków`, `display_name = Pi
 | **90minut.pl** (`liga14526`) | Tabela, wyniki kolejek | ★★★★★ | Deklaruje źródło mPZPN + laczynaspilka.pl |
 | **regionalnyfutbol.pl** | Tabela, pełny terminarz | ★★★★☆ | Mirror ŁNP, stabilny HTML |
 | dzpn.pl (WWW) | — | ★☆☆☆☆ | Brak live API ligowego |
-| mPZPN / competition-api-pro | — | ★★★★★ | Wymaga credentials (wniosek wysłany) |
 | **regiowyniki.pl** (`GLKS_Mietkow/kadra`) | Kadra sezonowa (29 zaw.) | ★★★★☆ | Statystyki per zawodnik często puste w B Klasie |
-| sprytne.pl | — | ★★☆☆☆ | Opóźnione — nie używamy |
+| **mPZPN / competition-api-pro** | Kadra + statystyki M/G/ŻK | ★★★★★ | `LNP_ACCESS_TOKEN` + `LNP_TEAM_ID` w `.env.local` |
 
 **Strategia scalania:** tabela z 90minut (primary), terminarz z regionalnyfutbol + wyniki z 90minut. Konflikty punktów logowane w `league_sync_jobs.metadata`.
 
@@ -57,10 +56,13 @@ npm run sync:league-live
 |------|------|
 | `scripts/lib/league-live-sources.mjs` | Pobieranie + parsery + merge |
 | `scripts/lib/league-live-pipeline.mjs` | Import do Supabase |
-| `scripts/lib/league-squad-sources.mjs` | Kadra + statystyki z mirrorów |
+| `scripts/lib/league-squad-sources.mjs` | Kadra (mirror) + merge statystyk mPZPN |
+| `scripts/lib/league-lnp-sources.mjs` | Adapter competition-api-pro |
 | `scripts/sync-league-live.mjs` | CLI |
 | `src/app/api/cron/league-sync/route.ts` | Cron API |
 
 ## Docelowo
 
-Po uzyskaniu credentials `competition-api-pro.laczynaspilka.pl` — zastąpić mirror adapterem LNP API (bez scrapingu).
+Adapter mPZPN (`league-lnp-sources.mjs`) jest podpięty do syncu kadr — wystarczy dodać credentials w `.env.local` / Vercel i ponownie uruchomić `npm run sync:league-live`.
+
+Test po tokenie: `node scripts/probe-lnp-team-players.mjs`
