@@ -145,7 +145,12 @@ export const getPublicMatches = cache(
     if (filter === "upcoming") {
       query = query.in("status", ["planned", "in_progress"]).gte("match_date", new Date().toISOString().slice(0, 10));
     } else if (filter === "results") {
-      query = query.eq("status", "completed");
+      const today = new Date().toISOString().slice(0, 10);
+      query = query
+        .eq("status", "completed")
+        .lte("match_date", today)
+        .order("match_date", { ascending: false })
+        .order("round_number", { ascending: false });
     }
 
     const { data, error } = await query;

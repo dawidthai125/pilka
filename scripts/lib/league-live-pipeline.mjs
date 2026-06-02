@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stableFixtureExternalId } from "./league-import-parsers.mjs";
-import { LEAGUE_CONFIG } from "./league-live-sources.mjs";
+import { LEAGUE_CONFIG, normalizeTeamName } from "./league-live-sources.mjs";
 import {
   buildSeasonStatsNotes,
   normalizeName,
@@ -42,15 +42,18 @@ function isValidDate(value) {
 }
 
 function resolveDisplayName(teamName, teams) {
-  const n = teamName.trim().toLowerCase();
+  const normalized = normalizeTeamName(teamName);
+  const n = normalized.trim().toLowerCase();
   for (const t of teams) {
-    if (n === String(t.league_name).trim().toLowerCase()) return String(t.display_name);
-    if (n === String(t.display_name).trim().toLowerCase()) return String(t.display_name);
-    if (teamName.includes(String(t.league_name))) {
-      return teamName.replace(String(t.league_name), String(t.display_name));
+    const league = normalizeTeamName(String(t.league_name));
+    const display = normalizeTeamName(String(t.display_name));
+    if (n === league.trim().toLowerCase()) return display;
+    if (n === display.trim().toLowerCase()) return display;
+    if (normalized.includes(league)) {
+      return normalized.replace(league, display);
     }
   }
-  return teamName;
+  return normalized;
 }
 
 function isOwnTeam(teamName, teams) {
@@ -155,7 +158,7 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
 
     const { data: existing } = await supabase
       .from("league_matches")
-      .select("id, home_score, away_score, sync_status, match_id")
+      .select("id, home_score, away_score, sync_status, match_id, match_date, match_time, round_number")
       .eq("club_id", clubId)
       .eq("competition_id", competitionId)
       .eq("external_key", externalKey)
@@ -163,7 +166,13 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
 
     const scoresChanged =
       existing && homeScore != null && (existing.home_score !== homeScore || existing.away_score !== awayScore);
-    const syncStatus = !existing || scoresChanged ? "pending" : existing.sync_status === "synced" ? "synced" : "pending";
+    const metaChanged =
+      existing &&
+      (String(existing.match_date) !== String(row.matchDate) ||
+        String(existing.match_time ?? "11:00").slice(0, 5) !== String(row.matchTime ?? "11:00").slice(0, 5) ||
+        Number(existing.round_number ?? 0) !== Number(row.roundNumber ?? 0));
+    const syncStatus =
+      !existing || scoresChanged || metaChanged ? "pending" : existing.sync_status === "synced" ? "synced" : "pending";
 
     const { error } = await supabase.from("league_matches").upsert(
       {
@@ -262,25 +271,238 @@ export async function syncTableToPublicModule(supabase) {
   return processed;
 }
 
-export async function syncMatchesToModule(supabase, jobId) {
-  const { clubId, competitionId } = LEAGUE_CONFIG;
+function normalizeTeamKey(name) {
+  return normalizeTeamName(String(name ?? "")).toLowerCase();
+}
 
+function moduleMatchGroupKey(match) {
+  return [
+    match.round_number ?? "x",
+    normalizeTeamKey(match.home_team_name),
+    normalizeTeamKey(match.away_team_name),
+    match.home_score ?? "x",
+    match.away_score ?? "x",
+  ].join("|");
+}
+
+async function loadCompetitionMeta(supabase) {
+  const { clubId, competitionId } = LEAGUE_CONFIG;
   const { data: comp } = await supabase
     .from("league_competitions")
     .select("name, season:league_seasons(name)")
     .eq("id", competitionId)
     .eq("club_id", clubId)
     .maybeSingle();
-  if (!comp) return { processed: 0, failed: 0 };
+  if (!comp) return null;
+  return {
+    clubId,
+    competitionId,
+    competitionName: String(comp.name),
+    seasonName: comp.season?.name ?? "",
+  };
+}
 
-  const seasonName = comp.season?.name ?? "";
-  const competitionName = String(comp.name);
+function pickBestLeagueRow(candidates) {
+  if (!candidates.length) return null;
+  const withoutBulkPlaceholder = candidates.filter((lm) => String(lm.match_date) !== "2026-06-07");
+  const pool = withoutBulkPlaceholder.length ? withoutBulkPlaceholder : candidates;
+  return pool.sort((a, b) => String(a.match_date).localeCompare(String(b.match_date)))[0];
+}
+
+function findLeagueRowForModuleMatch(moduleMatch, leagueRows, teams) {
+  const homeKey = normalizeTeamKey(moduleMatch.home_team_name);
+  const awayKey = normalizeTeamKey(moduleMatch.away_team_name);
+  const round = moduleMatch.round_number;
+
+  const candidates = (leagueRows ?? []).filter((lm) => {
+    if (round != null && Number(lm.round_number) !== Number(round)) return false;
+    const lh = normalizeTeamKey(resolveDisplayName(String(lm.home_team_name), teams));
+    const la = normalizeTeamKey(resolveDisplayName(String(lm.away_team_name), teams));
+    if (lh !== homeKey || la !== awayKey) return false;
+    if (moduleMatch.home_score == null || moduleMatch.away_score == null) return true;
+    return Number(lm.home_score) === Number(moduleMatch.home_score) && Number(lm.away_score) === Number(moduleMatch.away_score);
+  });
+
+  return pickBestLeagueRow(candidates);
+}
+
+function pickCanonicalModuleMatch(candidates, leagueRow) {
+  if (candidates.length === 1) return candidates[0];
+
+  if (leagueRow?.match_date && String(leagueRow.match_date) !== "2026-06-07") {
+    const byLeagueDate = candidates.find((m) => String(m.match_date) === String(leagueRow.match_date));
+    if (byLeagueDate) return byLeagueDate;
+  }
+
+  if (leagueRow?.match_id) {
+    const linked = candidates.find((m) => m.id === leagueRow.match_id);
+    if (linked && String(linked.match_date) !== "2026-06-07") return linked;
+  }
+
+  const withoutBulkPlaceholder = candidates.filter((m) => String(m.match_date) !== "2026-06-07");
+  if (withoutBulkPlaceholder.length) {
+    return withoutBulkPlaceholder.sort((a, b) => String(a.match_date).localeCompare(String(b.match_date)))[0];
+  }
+
+  return candidates.sort((a, b) => String(a.match_date).localeCompare(String(b.match_date)))[0];
+}
+
+/** Usuwa duplikaty meczów (np. błędna data 2026-06-07) i synchronizuje daty z league_matches. */
+export async function repairDuplicateModuleMatches(supabase) {
+  const meta = await loadCompetitionMeta(supabase);
+  if (!meta) return { removed: 0, updated: 0 };
 
   const { data: teamsRaw } = await supabase
     .from("league_teams")
     .select("*")
-    .eq("club_id", clubId)
-    .eq("competition_id", competitionId);
+    .eq("club_id", meta.clubId)
+    .eq("competition_id", meta.competitionId);
+  const teams = teamsRaw ?? [];
+
+  const [{ data: leagueRows }, { data: moduleMatches }] = await Promise.all([
+    supabase
+      .from("league_matches")
+      .select("id, match_id, match_date, match_time, round_number, home_team_name, away_team_name, home_score, away_score, status")
+      .eq("club_id", meta.clubId)
+      .eq("competition_id", meta.competitionId),
+    supabase
+      .from("matches")
+      .select("id, match_date, match_time, round_number, home_team_name, away_team_name, home_score, away_score, status")
+      .eq("club_id", meta.clubId)
+      .eq("competition", meta.competitionName)
+      .eq("season", meta.seasonName)
+      .eq("status", "completed"),
+  ]);
+
+  const groups = new Map();
+  for (const match of moduleMatches ?? []) {
+    const key = moduleMatchGroupKey(match);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(match);
+  }
+
+  let removed = 0;
+  let updated = 0;
+
+  for (const list of groups.values()) {
+    const leagueRow = findLeagueRowForModuleMatch(list[0], leagueRows, teams);
+    const keeper = pickCanonicalModuleMatch(list, leagueRow);
+    const duplicates = list.filter((m) => m.id !== keeper.id);
+
+    for (const dup of duplicates) {
+      await supabase.from("league_matches").update({ match_id: keeper.id, sync_status: "synced" }).eq("match_id", dup.id);
+      await supabase.from("matches").delete().eq("id", dup.id);
+      removed += 1;
+    }
+
+    if (leagueRow) {
+      const leagueDate = String(leagueRow.match_date);
+      const leagueTime = String(leagueRow.match_time ?? "11:00").slice(0, 5);
+      const leagueRound = leagueRow.round_number != null ? Number(leagueRow.round_number) : null;
+      const displayHome = resolveDisplayName(String(leagueRow.home_team_name), teams);
+      const displayAway = resolveDisplayName(String(leagueRow.away_team_name), teams);
+      const needsUpdate =
+        String(keeper.match_date) !== leagueDate ||
+        String(keeper.match_time ?? "").slice(0, 5) !== leagueTime ||
+        (leagueRound != null && Number(keeper.round_number) !== leagueRound) ||
+        keeper.home_team_name !== displayHome ||
+        keeper.away_team_name !== displayAway;
+
+      if (needsUpdate) {
+        await supabase
+          .from("matches")
+          .update({
+            match_date: leagueDate,
+            match_time: leagueTime,
+            round_number: leagueRound,
+            home_team_name: displayHome,
+            away_team_name: displayAway,
+          })
+          .eq("id", keeper.id);
+        updated += 1;
+      }
+
+      await supabase
+        .from("league_matches")
+        .update({ match_id: keeper.id, sync_status: "synced" })
+        .eq("id", leagueRow.id);
+
+      const sameFixtureRows = (leagueRows ?? []).filter((lm) => {
+        if (leagueRound != null && Number(lm.round_number) !== leagueRound) return false;
+        const lh = normalizeTeamKey(resolveDisplayName(String(lm.home_team_name), teams));
+        const la = normalizeTeamKey(resolveDisplayName(String(lm.away_team_name), teams));
+        if (lh !== normalizeTeamKey(keeper.home_team_name) || la !== normalizeTeamKey(keeper.away_team_name)) {
+          return false;
+        }
+        if (keeper.home_score == null || keeper.away_score == null) return true;
+        return Number(lm.home_score) === Number(keeper.home_score) && Number(lm.away_score) === Number(keeper.away_score);
+      });
+
+      for (const lm of sameFixtureRows) {
+        if (lm.id === leagueRow.id) continue;
+        await supabase.from("league_matches").delete().eq("id", lm.id);
+      }
+    }
+  }
+
+  return { removed, updated };
+}
+
+async function findExistingModuleMatch(supabase, meta, row, displayHome, displayAway) {
+  const baseQuery = () =>
+    supabase
+      .from("matches")
+      .select("id, home_score, away_score, match_date, match_time, round_number")
+      .eq("club_id", meta.clubId)
+      .eq("competition", meta.competitionName)
+      .eq("season", meta.seasonName)
+      .eq("home_team_name", displayHome)
+      .eq("away_team_name", displayAway);
+
+  if (row.match_id) {
+    const { data: linked } = await supabase
+      .from("matches")
+      .select("id, home_score, away_score, match_date, match_time, round_number")
+      .eq("id", row.match_id)
+      .eq("club_id", meta.clubId)
+      .maybeSingle();
+    if (linked) return linked;
+  }
+
+  if (row.round_number != null) {
+    const { data } = await baseQuery().eq("round_number", Number(row.round_number)).maybeSingle();
+    if (data) return data;
+  }
+
+  const { data } = await baseQuery().eq("match_date", String(row.match_date)).maybeSingle();
+  return data ?? null;
+}
+
+async function applyLeagueRowToModuleMatch(supabase, matchId, row, displayHome, displayAway, matchStatus, extHome, extAway) {
+  await supabase
+    .from("matches")
+    .update({
+      match_date: String(row.match_date),
+      match_time: String(row.match_time ?? "11:00").slice(0, 5),
+      round_number: row.round_number != null ? Number(row.round_number) : null,
+      home_team_name: displayHome,
+      away_team_name: displayAway,
+      home_score: extHome,
+      away_score: extAway,
+      status: matchStatus,
+    })
+    .eq("id", matchId);
+}
+
+export async function syncMatchesToModule(supabase, jobId) {
+  const meta = await loadCompetitionMeta(supabase);
+  if (!meta) return { processed: 0, failed: 0 };
+
+  const { data: teamsRaw } = await supabase
+    .from("league_teams")
+    .select("*")
+    .eq("club_id", meta.clubId)
+    .eq("competition_id", meta.competitionId);
 
   const teams = teamsRaw ?? [];
   const ownTeam = teams.find((t) => t.is_own_club);
@@ -289,8 +511,8 @@ export async function syncMatchesToModule(supabase, jobId) {
   const { data: pending } = await supabase
     .from("league_matches")
     .select("*")
-    .eq("club_id", clubId)
-    .eq("competition_id", competitionId)
+    .eq("club_id", meta.clubId)
+    .eq("competition_id", meta.competitionId)
     .in("sync_status", ["pending", "conflict"]);
 
   let processed = 0;
@@ -310,24 +532,19 @@ export async function syncMatchesToModule(supabase, jobId) {
     const extHome = row.home_score != null ? Number(row.home_score) : null;
     const extAway = row.away_score != null ? Number(row.away_score) : null;
 
-    const { data: duplicate } = await supabase
-      .from("matches")
-      .select("id, home_score, away_score")
-      .eq("club_id", clubId)
-      .eq("competition", competitionName)
-      .eq("season", seasonName)
-      .eq("match_date", String(row.match_date))
-      .eq("home_team_name", displayHome)
-      .eq("away_team_name", displayAway)
-      .maybeSingle();
+    const duplicate = await findExistingModuleMatch(supabase, meta, row, displayHome, displayAway);
 
     if (duplicate) {
-      if (extHome != null && (duplicate.home_score !== extHome || duplicate.away_score !== extAway)) {
-        await supabase
-          .from("matches")
-          .update({ home_score: extHome, away_score: extAway, status: matchStatus })
-          .eq("id", duplicate.id);
-      }
+      await applyLeagueRowToModuleMatch(
+        supabase,
+        duplicate.id,
+        row,
+        displayHome,
+        displayAway,
+        matchStatus,
+        extHome,
+        extAway,
+      );
       await supabase
         .from("league_matches")
         .update({ sync_status: "synced", match_id: duplicate.id })
@@ -344,10 +561,10 @@ export async function syncMatchesToModule(supabase, jobId) {
     const { data: inserted, error } = await supabase
       .from("matches")
       .insert({
-        club_id: clubId,
+        club_id: meta.clubId,
         team_id: defaultTeamId,
-        competition: competitionName,
-        season: seasonName,
+        competition: meta.competitionName,
+        season: meta.seasonName,
         round_number: row.round_number != null ? Number(row.round_number) : null,
         match_date: String(row.match_date),
         match_time: String(row.match_time ?? "11:00").slice(0, 5),
@@ -374,7 +591,7 @@ export async function syncMatchesToModule(supabase, jobId) {
   }
 
   await supabase.from("league_sync_logs").insert({
-    club_id: clubId,
+    club_id: meta.clubId,
     job_id: jobId,
     level: "info",
     message: `Sync meczów → moduł Mecze: ${processed} OK, ${failed} błędów.`,
@@ -687,6 +904,7 @@ export async function runLivePipeline(merged, fetchMeta, squadData = null) {
       merged,
       metadata: fetchMeta,
     });
+    const repair = await repairDuplicateModuleMatches(supabase);
     const tableSynced = await syncTableToPublicModule(supabase);
     const matchSync = await syncMatchesToModule(supabase, jobId);
     const squadSync = squadData ? await syncSquadToRegistry(supabase, { jobId, squadData }) : { processed: 0, failed: 0, matched: 0, skipped: true };
@@ -712,6 +930,7 @@ export async function runLivePipeline(merged, fetchMeta, squadData = null) {
       ok: true,
       jobId,
       ingest,
+      repair,
       tableSynced,
       matchSync,
       squadSync,

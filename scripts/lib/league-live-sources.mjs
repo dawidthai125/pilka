@@ -74,6 +74,7 @@ export function normalizeTeamName(name) {
     .replace(/Sadk.w/i, "Sadków")
     .replace(/Sob.tka/i, "Sobótka")
     .replace(/Pustk.w/i, "Pustków")
+    .replace(/Pustków\s+[óo]?urawski/i, "Pustków Żurawski")
     .trim();
 }
 
