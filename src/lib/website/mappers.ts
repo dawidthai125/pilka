@@ -119,20 +119,33 @@ export function mapWebsiteMedia(row: Record<string, unknown>): WebsiteMediaItem 
   };
 }
 
+function readMatchRowField(row: Record<string, unknown>, snake: string, camel: string): unknown {
+  return row[snake] ?? row[camel];
+}
+
 export function mapPublicMatch(row: Record<string, unknown>): PublicMatchSummary {
+  const matchDate = readMatchRowField(row, "match_date", "matchDate");
+  const matchTime = readMatchRowField(row, "match_time", "matchTime");
+  const homeScore = readMatchRowField(row, "home_score", "homeScore");
+  const awayScore = readMatchRowField(row, "away_score", "awayScore");
+  const roundNumber = readMatchRowField(row, "round_number", "roundNumber");
+  const coachNotes = readMatchRowField(row, "coach_notes", "coachNotes");
+
   return {
-    id: String(row.id),
-    matchDate: String(row.match_date),
-    matchTime: String(row.match_time ?? "00:00"),
-    homeTeamName: String(row.home_team_name),
-    awayTeamName: String(row.away_team_name),
-    homeScore: row.home_score != null ? Number(row.home_score) : null,
-    awayScore: row.away_score != null ? Number(row.away_score) : null,
-    stadium: row.stadium ? String(row.stadium) : null,
-    competition: String(row.competition),
-    roundNumber: row.round_number != null ? Number(row.round_number) : null,
-    status: String(row.status),
-    coachNotes: row.coach_notes ? String(row.coach_notes) : null,
+    id: String(row.id ?? ""),
+    matchDate: matchDate != null ? String(matchDate) : "",
+    matchTime: matchTime != null ? String(matchTime) : "00:00",
+    homeTeamName: String(readMatchRowField(row, "home_team_name", "homeTeamName") ?? ""),
+    awayTeamName: String(readMatchRowField(row, "away_team_name", "awayTeamName") ?? ""),
+    homeScore: homeScore != null ? Number(homeScore) : null,
+    awayScore: awayScore != null ? Number(awayScore) : null,
+    stadium: readMatchRowField(row, "stadium", "stadium") ? String(readMatchRowField(row, "stadium", "stadium")) : null,
+    competition: readMatchRowField(row, "competition", "competition")
+      ? String(readMatchRowField(row, "competition", "competition"))
+      : "",
+    roundNumber: roundNumber != null ? Number(roundNumber) : null,
+    status: String(readMatchRowField(row, "status", "status") ?? "planned"),
+    coachNotes: coachNotes ? String(coachNotes) : null,
   };
 }
 

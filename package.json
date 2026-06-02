@@ -8,6 +8,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "validate:env": "node scripts/validate-env.mjs",
+    "fetch:club-media": "node scripts/fetch-club-demo-photos.mjs",
     "audit:security": "node scripts/security-audit.mjs",
     "audit:stage13": "node scripts/audit-stage13-security.mjs",
     "audit:stage14": "node scripts/audit-stage14-security.mjs",

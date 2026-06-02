@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { MapPin } from "lucide-react";
 
 import { ClubLogo } from "@/components/club/club-logo";
-import { PUBLIC_NAV_LINKS, WEBSITE_SOCIAL_PLATFORM_LABELS } from "@/lib/website/constants";
+import { PUBLIC_NAV_LINKS, WEBSITE_SOCIAL_PLATFORM_LABELS, CLUB_DISPLAY_CLASS } from "@/lib/website/constants";
 import { cn } from "@/lib/utils";
 import type { WebsiteSettings, WebsiteSocialIntegration } from "@/types/website";
 
@@ -78,9 +79,15 @@ export function ClubSiteShell({
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
           <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
             <div>
-              <p className="text-lg font-bold">{clubName}</p>
+              <p className={cn(CLUB_DISPLAY_CLASS, "text-lg font-bold")}>{clubName}</p>
               <p className="mt-1 text-sm text-white/70">{officialName}</p>
-              <p className="mt-4 text-sm text-white/80">Dołącz do nas — treningi, mecze i wspólnota klubu.</p>
+              {settings.contactAddress ? (
+                <p className="mt-3 flex items-start gap-2 text-sm text-white/80">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-[var(--club-secondary)]" />
+                  {settings.contactAddress}
+                </p>
+              ) : null}
+              <p className="mt-4 text-sm text-white/75">Dołącz do nas — treningi, mecze i wspólnota klubu.</p>
             </div>
             <div className="space-y-2 text-sm text-white/85">
               {settings.contactAddress ? <p>{settings.contactAddress}</p> : null}

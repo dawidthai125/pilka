@@ -2,7 +2,9 @@ import Link from "next/link";
 import { ArrowRight, ChevronRight, MapPin, Phone, Trophy } from "lucide-react";
 
 import { ClubLogo } from "@/components/club/club-logo";
+import { HeroPhotoRotator } from "@/features/website/components/hero-photo-rotator";
 import {
+  CLUB_DISPLAY_CLASS,
   CLUB_SCENE_DARK,
   CLUB_SCENE_LIGHT,
   WEBSITE_NEWS_CATEGORY_LABELS,
@@ -11,6 +13,7 @@ import {
   formatPublicMatchKickoff,
   formatPublicMatchScore,
   formatPublicMatchTime,
+  isDisplayablePublicMatch,
 } from "@/lib/website/match-display";
 import { cn } from "@/lib/utils";
 import type { LeagueTableEntry } from "@/types/matches";
@@ -67,12 +70,9 @@ function PublicSectionHeader({
   );
 }
 
-const HERO_SLOT_ORDER = ["team", "match", "stadium"] as const;
+const CLUB_DISPLAY = CLUB_DISPLAY_CLASS;
 
-function orderHeroImages(images: PublicHeroMediaImage[]): PublicHeroMediaImage[] {
-  const bySlot = new Map(images.map((item) => [item.slotKey, item]));
-  return HERO_SLOT_ORDER.map((slot) => bySlot.get(slot)).filter(Boolean) as PublicHeroMediaImage[];
-}
+const HERO_SLOT_ORDER = ["team", "match", "stadium"] as const;
 
 function MatchEmptyState({ label }: { label: string }) {
   return (
@@ -110,7 +110,7 @@ function MatchCard({
       )}
     >
       <p className="text-xs font-semibold uppercase tracking-wide text-[var(--club-primary)]">{label}</p>
-      <p className="mt-2 text-xs text-muted-foreground">{kickoff}</p>
+      <p className="mt-2 text-xs text-muted-foreground">{kickoff ?? "Termin meczu wkrótce"}</p>
       {match.competition ? (
         <p className="mt-1 text-xs text-muted-foreground">
           {match.competition}
@@ -138,146 +138,195 @@ export function PublicHeroSection({
   title,
   subtitle,
   heroImages,
-  clubStats,
-  competitionLevel,
+  localityLine,
+  communityLine,
+  contactPhone,
+  academyPreviewUrl,
 }: {
   clubName: string;
   logoUrl?: string | null;
   title: string;
   subtitle: string | null;
   heroImages: PublicHeroMediaImage[];
-  clubStats?: PublicClubStats | null;
-  competitionLevel?: string | null;
+  localityLine?: string | null;
+  communityLine?: string | null;
+  contactPhone?: string | null;
+  academyPreviewUrl?: string | null;
 }) {
-  const collage = orderHeroImages(heroImages.filter((item) => item.url));
-  const displayImages =
-    collage.length > 0
-      ? collage
-      : HERO_SLOT_ORDER.map((slotKey) => ({ slotKey, url: null, caption: null }));
+  const bySlot = new Map(heroImages.filter((item) => item.url).map((item) => [item.slotKey, item]));
+  const heroSlides = HERO_SLOT_ORDER.map((slot) => bySlot.get(slot)).filter(Boolean) as PublicHeroMediaImage[];
 
-  const statsLine = [
-    clubStats && clubStats.teamsCount > 0 ? `${clubStats.teamsCount} drużyn` : null,
-    clubStats && clubStats.playersCount > 0 ? `${clubStats.playersCount} zawodników` : null,
-    competitionLevel,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const slides = [
+    ...heroSlides.map((item) => ({
+      url: item.url!,
+      alt: item.caption ?? clubName,
+    })),
+    ...(academyPreviewUrl ? [{ url: academyPreviewUrl, alt: `Akademia ${clubName}` }] : []),
+  ];
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[#062820] text-white" aria-label="Strona główna klubu">
-      <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 lg:grid-cols-3 lg:grid-rows-1">
-        {displayImages.map((item, index) => (
-          <div
-            key={item.slotKey}
-            className={cn(
-              "relative overflow-hidden",
-              index === 0 ? "col-span-2 row-span-1 lg:col-span-1 lg:row-span-1" : "",
-              index === 1 ? "lg:col-span-1" : "",
-              index === 2 ? "lg:col-span-1" : "",
-            )}
-          >
-            {item.url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.url} alt={item.caption ?? clubName} className="size-full object-cover" />
-            ) : (
-              <div className="size-full bg-gradient-to-br from-[var(--club-primary)] to-[#0a4a38]" />
-            )}
-          </div>
-        ))}
+      <div className="absolute inset-0">
+        <HeroPhotoRotator slides={slides} className="size-full" />
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-[#062820] via-[#062820]/85 to-[#062820]/35" aria-hidden />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#062820] via-[#062820]/80 to-[#062820]/25" aria-hidden />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-4 pb-10 pt-28 sm:px-6 sm:pb-14 lg:pb-16">
-        <div className="max-w-3xl space-y-5">
-          <div className="flex items-center gap-4">
-            <ClubLogo logoUrl={logoUrl} clubName={clubName} size="xl" onDark className="ring-2 ring-white/25" />
-            <div>
-              <p className="text-sm font-medium text-[var(--club-secondary)] sm:text-base">{clubName}</p>
-              {statsLine ? <p className="mt-1 text-xs text-white/70 sm:text-sm">{statsLine}</p> : null}
+      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-4 pb-24 pt-28 sm:px-6 sm:pb-28 lg:pb-32">
+        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="max-w-3xl space-y-5">
+            <div className="flex items-center gap-4">
+              <ClubLogo logoUrl={logoUrl} clubName={clubName} size="xl" onDark className="ring-2 ring-white/25" />
+              <div>
+                <p className={cn(CLUB_DISPLAY, "text-lg font-semibold uppercase tracking-wide text-[var(--club-secondary)] sm:text-xl")}>
+                  {clubName}
+                </p>
+                {localityLine ? (
+                  <p className="mt-1 flex items-center gap-1.5 text-sm text-white/80">
+                    <MapPin className="size-4 shrink-0 text-[var(--club-secondary)]" />
+                    {localityLine}
+                  </p>
+                ) : null}
+              </div>
             </div>
+
+            <h1 className={cn(CLUB_DISPLAY, "text-4xl font-bold uppercase leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl")}>
+              {title}
+            </h1>
+
+            {subtitle ? (
+              <p className="max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">{subtitle}</p>
+            ) : null}
+
+            {communityLine ? <p className="text-sm text-white/70">{communityLine}</p> : null}
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link
+                href="/#akademia"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-[var(--club-secondary)] px-6 text-sm font-bold text-[var(--club-primary)] sm:text-base"
+              >
+                Zapisz dziecko
+              </Link>
+              <Link
+                href="/mecze"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg border-2 border-white/40 px-6 text-sm font-semibold text-white backdrop-blur-sm sm:text-base"
+              >
+                Sobotni mecz
+              </Link>
+            </div>
+
+            {contactPhone ? (
+              <p className="flex items-center gap-2 text-sm sm:text-base">
+                <Phone className="size-4 text-[var(--club-secondary)]" />
+                <a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="font-semibold tabular-nums hover:underline">
+                  {contactPhone}
+                </a>
+              </p>
+            ) : null}
           </div>
 
-          <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">{title}</h1>
-
-          {subtitle ? (
-            <p className="max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg lg:text-xl">{subtitle}</p>
-          ) : null}
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          {academyPreviewUrl ? (
             <Link
               href="/#akademia"
-              className="inline-flex min-h-12 items-center justify-center rounded-lg bg-[var(--club-secondary)] px-6 text-sm font-bold text-[var(--club-primary)] sm:text-base"
+              className="group relative hidden w-44 overflow-hidden rounded-2xl ring-2 ring-[var(--club-secondary)]/40 lg:block xl:w-52"
             >
-              Zapisz dziecko do akademii
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={academyPreviewUrl} alt="Akademia klubu" className="aspect-[3/4] size-full object-cover transition group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#062820] to-transparent" />
+              <p className="absolute bottom-3 left-3 right-3 text-xs font-bold text-[var(--club-secondary)]">Akademia · zapisz dziecko</p>
             </Link>
-            <Link
-              href="/mecze"
-              className="inline-flex min-h-12 items-center justify-center rounded-lg border-2 border-white/40 px-6 text-sm font-semibold text-white backdrop-blur-sm sm:text-base"
-            >
-              Najbliższy mecz
-            </Link>
-          </div>
+          ) : null}
         </div>
       </div>
     </section>
   );
 }
 
+function matchdayHeadline(match: PublicMatchSummary): string {
+  const parsed = new Date(`${match.matchDate}T12:00:00`);
+  if (!Number.isNaN(parsed.getTime()) && parsed.getDay() === 6) {
+    return "W sobotę gramy";
+  }
+  return "Następny mecz";
+}
+
 function MatchdayPoster({
   match,
   ownTeamName,
   href,
+  localityLine,
 }: {
   match: PublicMatchSummary;
   ownTeamName: string;
   href: string;
+  localityLine?: string | null;
 }) {
   const kickoff = formatPublicMatchKickoff(match);
   const isHome = match.homeTeamName.toLowerCase().includes(ownTeamName.toLowerCase().slice(0, 6));
+  const venue = match.stadium ?? localityLine;
 
   return (
     <Link href={href} className="group relative block overflow-hidden rounded-2xl bg-[#0B3D2E] p-6 sm:p-8 lg:p-10">
       <div className="absolute inset-0 bg-gradient-to-br from-[var(--club-primary)] via-[#0a4a38] to-[#062820] opacity-90" aria-hidden />
       <div className="relative space-y-4">
-        <p className="text-sm font-semibold text-[var(--club-secondary)]">Następny mecz</p>
+        <p className={cn(CLUB_DISPLAY, "text-sm font-semibold uppercase tracking-wide text-[var(--club-secondary)]")}>
+          {matchdayHeadline(match)}
+        </p>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6">
           <p className="text-right text-base font-bold leading-tight sm:text-xl lg:text-2xl">{match.homeTeamName}</p>
           <div className="flex flex-col items-center">
-            <span className="text-3xl font-black text-[var(--club-secondary)] sm:text-4xl lg:text-5xl">VS</span>
+            <span className={cn(CLUB_DISPLAY, "text-3xl font-black text-[var(--club-secondary)] sm:text-4xl lg:text-5xl")}>VS</span>
             <span className="mt-1 text-lg font-bold tabular-nums text-white/90 sm:text-xl">
               {formatPublicMatchTime(match.matchTime) ?? "—"}
             </span>
           </div>
           <p className="text-left text-base font-bold leading-tight sm:text-xl lg:text-2xl">{match.awayTeamName}</p>
         </div>
-        <p className="text-sm text-white/85">{kickoff}</p>
+        {kickoff ? <p className="text-sm text-white/85">{kickoff}</p> : null}
         {match.competition ? (
           <p className="text-xs text-white/65">
             {match.competition}
             {match.roundNumber ? ` · kolejka ${match.roundNumber}` : ""}
           </p>
         ) : null}
-        {match.stadium ? <p className="text-xs text-white/65">{isHome ? "U nas" : "Wyjazd"} · {match.stadium}</p> : null}
+        {venue ? <p className="text-xs text-white/65">{isHome ? "U nas" : "Wyjazd"} · {venue}</p> : null}
         <span className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--club-secondary)] group-hover:underline">
-          Szczegóły meczu <ArrowRight className="size-4" />
+          Terminarz meczów <ArrowRight className="size-4" />
         </span>
       </div>
     </Link>
   );
 }
 
-function LastResultBlock({ match, href }: { match: PublicMatchSummary; href: string }) {
+function LastResultBlock({
+  match,
+  href,
+  matchImageUrl,
+}: {
+  match: PublicMatchSummary;
+  href: string;
+  matchImageUrl?: string | null;
+}) {
   const score = formatPublicMatchScore(match);
+  const kickoff = formatPublicMatchKickoff(match);
 
   return (
-    <Link href={href} className="group block rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-sm sm:p-8">
-      <p className="text-sm font-semibold text-[var(--club-secondary)]">Ostatni wynik</p>
-      <p className="mt-4 text-5xl font-black tabular-nums tracking-tight sm:text-6xl">{score ?? "—"}</p>
-      <p className="mt-3 text-sm font-semibold text-white/90">
-        {match.homeTeamName} — {match.awayTeamName}
-      </p>
-      <p className="mt-1 text-xs text-white/60">{formatPublicMatchKickoff(match)}</p>
+    <Link href={href} className="group relative block overflow-hidden rounded-2xl border border-white/15 bg-white/5 backdrop-blur-sm">
+      {matchImageUrl ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={matchImageUrl} alt="" className="absolute inset-0 size-full object-cover opacity-40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#062820] via-[#062820]/90 to-[#062820]/50" />
+        </>
+      ) : null}
+      <div className="relative p-6 sm:p-8">
+        <p className="text-sm font-semibold text-[var(--club-secondary)]">Ostatni wynik</p>
+        <p className={cn(CLUB_DISPLAY, "mt-4 text-5xl font-black tabular-nums tracking-tight sm:text-6xl")}>{score ?? "—"}</p>
+        <p className="mt-3 text-sm font-semibold text-white/90">
+          {match.homeTeamName} — {match.awayTeamName}
+        </p>
+        {kickoff ? <p className="mt-1 text-xs text-white/60">{kickoff}</p> : null}
+      </div>
     </Link>
   );
 }
@@ -287,13 +336,19 @@ export function PublicMatchCenterSection({
   lastResult,
   leagueEntries,
   ownTeamName,
+  localityLine,
+  matchImageUrl,
 }: {
   nextMatch: PublicMatchSummary | null;
   lastResult: PublicMatchSummary | null;
   leagueEntries: LeagueTableEntry[];
   ownTeamName: string;
+  localityLine?: string | null;
+  matchImageUrl?: string | null;
 }) {
   const tablePreview = leagueEntries.slice(0, 5);
+  const displayNext = isDisplayablePublicMatch(nextMatch) ? nextMatch : null;
+  const displayLast = isDisplayablePublicMatch(lastResult) ? lastResult : null;
 
   return (
     <section className={cn(CLUB_SCENE_DARK, "py-12 sm:py-16 lg:py-20")} aria-label="Matchday">
@@ -307,13 +362,13 @@ export function PublicMatchCenterSection({
         />
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr] lg:gap-6">
-          {nextMatch ? (
-            <MatchdayPoster match={nextMatch} ownTeamName={ownTeamName} href="/mecze" />
+          {displayNext ? (
+            <MatchdayPoster match={displayNext} ownTeamName={ownTeamName} href="/mecze" localityLine={localityLine} />
           ) : (
             <MatchEmptyState label="Brak zaplanowanego meczu" />
           )}
-          {lastResult ? (
-            <LastResultBlock match={lastResult} href="/mecze" />
+          {displayLast && (!displayNext || displayLast.id !== displayNext.id) ? (
+            <LastResultBlock match={displayLast} href="/mecze" matchImageUrl={matchImageUrl} />
           ) : (
             <MatchEmptyState label="Brak ostatniego wyniku" />
           )}
@@ -436,7 +491,7 @@ export function PublicAcademySection({
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <PublicSectionHeader
           title={clubName ? `Akademia ${clubName}` : "Akademia klubu"}
-          subtitle="Od najmłodszych grup po pierwszą drużynę seniorską."
+          subtitle="Od najmłodszych grup po pierwszą drużynę seniorską — pierwszy kontakt z piłką."
           href="/kontakt"
           linkLabel="Zapisz dziecko"
         />
@@ -640,29 +695,34 @@ export function PublicSponsorsSection({ sponsors }: { sponsors: PublicSponsor[] 
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <PublicSectionHeader
           theme="dark"
-          title="Sponsorzy i partnerzy"
+          title="Partnerzy klubu"
+          subtitle="Dziękujemy firmom, które wspierają rozwój naszych zawodników i społeczności."
           href="/sponsorzy"
-          linkLabel="Wszyscy partnerzy"
+          linkLabel="Zostań partnerem"
         />
 
         {mainSponsors.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {mainSponsors.map((sponsor) => (
               <div
                 key={sponsor.id}
-                className="mx-auto flex w-full max-w-3xl flex-col items-center rounded-2xl border border-[var(--club-secondary)]/25 bg-white/5 px-8 py-10 text-center sm:py-12 lg:max-w-none lg:w-1/2"
+                className="mx-auto flex w-full flex-col items-center rounded-2xl border-2 border-[var(--club-secondary)]/35 bg-gradient-to-b from-white/10 to-white/5 px-8 py-12 text-center shadow-[0_0_60px_rgba(244,196,48,0.08)] sm:py-14 lg:w-1/2"
               >
                 {sponsor.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={sponsor.logoUrl} alt={sponsor.companyName} className="max-h-20 max-w-[280px] object-contain sm:max-h-24" />
+                  <img
+                    src={sponsor.logoUrl}
+                    alt={sponsor.companyName}
+                    className="max-h-24 max-w-[320px] object-contain sm:max-h-28"
+                  />
                 ) : (
-                  <span className="text-2xl font-bold text-white">{sponsor.companyName}</span>
+                  <span className={cn(CLUB_DISPLAY, "text-3xl font-bold text-white")}>{sponsor.companyName}</span>
                 )}
-                <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-[var(--club-secondary)]">
-                  Sponsor główny
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--club-secondary)]">
+                  Sponsor główny · jak na koszulce
                 </p>
                 {sponsor.publicDescription ? (
-                  <p className="mt-4 max-w-md text-sm text-white/75">{sponsor.publicDescription}</p>
+                  <p className="mt-5 max-w-md text-base leading-relaxed text-white/80">{sponsor.publicDescription}</p>
                 ) : null}
               </div>
             ))}
@@ -670,20 +730,24 @@ export function PublicSponsorsSection({ sponsors }: { sponsors: PublicSponsor[] 
         ) : null}
 
         {otherSponsors.length > 0 ? (
-          <div className={cn(mainSponsors.length > 0 && "mt-10 border-t border-white/10 pt-10")}>
-            <p className="mb-5 text-center text-xs font-semibold uppercase tracking-widest text-white/50">Partnerzy</p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className={cn(mainSponsors.length > 0 && "mt-12 border-t border-white/10 pt-12")}>
+            <p className="mb-6 text-center text-sm text-white/60">Partnerzy wspierający klub</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
               {otherSponsors.map((sponsor) => (
-                <div
-                  key={sponsor.id}
-                  className="flex min-h-[72px] items-center justify-center rounded-xl bg-white/5 px-4 py-5"
-                >
-                  {sponsor.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={sponsor.logoUrl} alt={sponsor.companyName} className="max-h-10 max-w-full object-contain opacity-90" />
-                  ) : (
-                    <span className="text-center text-xs font-semibold text-white/80">{sponsor.companyName}</span>
-                  )}
+                <div key={sponsor.id} className="flex flex-col items-center gap-3 text-center">
+                  <div className="flex min-h-[56px] w-full items-center justify-center px-2">
+                    {sponsor.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={sponsor.logoUrl}
+                        alt={sponsor.companyName}
+                        className="max-h-10 max-w-full object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold text-white/75">{sponsor.companyName}</span>
+                    )}
+                  </div>
+                  <p className="text-[11px] uppercase tracking-wide text-white/45">{sponsor.companyName}</p>
                 </div>
               ))}
             </div>

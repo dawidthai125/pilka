@@ -10,6 +10,8 @@ import {
   PublicTeamsSection,
   loadClubHomepageData,
 } from "@/features/website/components/club-site-page";
+import { PublicMobileSignupBar } from "@/features/website/components/public-mobile-signup-bar";
+import { buildClubCommunityLine, buildClubLocalityLine } from "@/lib/website/locality";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,6 +23,22 @@ export default async function ClubHomePage() {
     await loadClubHomepageData();
   if (!home) return null;
 
+  const localityLine = buildClubLocalityLine({
+    contactAddress: home.settings.contactAddress,
+    competitionLevel: home.club.competitionLevel,
+    voivodeship: home.club.voivodeship,
+  });
+
+  const communityLine = buildClubCommunityLine({
+    playersCount: clubStats?.playersCount,
+    teamsCount: clubStats?.teamsCount,
+  });
+
+  const academyPreviewUrl =
+    academyImages.find((item) => item.slotKey === "kids")?.url ?? academyImages[0]?.url ?? null;
+
+  const matchImageUrl = heroImages.find((item) => item.slotKey === "match")?.url ?? galleryItems[0]?.url ?? null;
+
   return (
     <>
       <PublicHeroSection
@@ -29,8 +47,10 @@ export default async function ClubHomePage() {
         title={home.settings.heroTitle ?? home.club.publicName}
         subtitle={home.settings.heroSubtitle}
         heroImages={heroImages}
-        clubStats={clubStats}
-        competitionLevel={home.club.competitionLevel}
+        localityLine={localityLine}
+        communityLine={communityLine}
+        contactPhone={home.settings.contactPhone}
+        academyPreviewUrl={academyPreviewUrl}
       />
 
       <PublicMatchCenterSection
@@ -38,9 +58,9 @@ export default async function ClubHomePage() {
         lastResult={home.lastResult}
         leagueEntries={league.entries}
         ownTeamName={league.ownTeamName}
+        localityLine={localityLine}
+        matchImageUrl={matchImageUrl}
       />
-
-      <PublicTeamsSection teams={teams} />
 
       <PublicAcademySection
         teams={teams}
@@ -50,11 +70,15 @@ export default async function ClubHomePage() {
         clubName={home.club.publicName}
       />
 
+      <PublicTeamsSection teams={teams} />
+
       <PublicGallerySection items={galleryItems} />
 
       <PublicNewsSection news={news} />
 
       <PublicSponsorsSection sponsors={sponsors} />
+
+      <PublicMobileSignupBar phone={home.settings.contactPhone} />
     </>
   );
 }
