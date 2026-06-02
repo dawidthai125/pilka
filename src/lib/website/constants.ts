@@ -58,14 +58,14 @@ export const DEFAULT_WEBSITE_COLORS = {
   accent: "#FFFFFF",
 } as const;
 
+/** Blueprint 3.0 — skrócona nawigacja publiczna */
 export const PUBLIC_NAV_LINKS = [
-  { href: "/", label: "Strona główna" },
-  { href: "/aktualnosci", label: "Aktualności" },
   { href: "/mecze", label: "Mecze" },
-  { href: "/druzyna", label: "Drużyna" },
-  { href: "/tabela", label: "Tabela" },
-  { href: "/sponsorzy", label: "Sponsorzy" },
+  { href: "/#akademia", label: "Akademia" },
+  { href: "/aktualnosci", label: "Aktualności" },
   { href: "/galeria", label: "Galeria" },
   { href: "/kontakt", label: "Kontakt" },
-  { href: "/kibic", label: "Panel kibica" },
 ] as const;
+
+export const CLUB_SCENE_DARK = "bg-[#062820] text-white";
+export const CLUB_SCENE_LIGHT = "bg-[#f7f5f0] text-[#0B3D2E]";

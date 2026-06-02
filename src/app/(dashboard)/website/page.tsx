@@ -19,6 +19,7 @@ export default async function WebsiteCmsPage() {
       </div>
       <div className="flex flex-wrap gap-2">
         <Link href="/website/news" className={cn(buttonVariants({ variant: "outline" }))}>Aktualności</Link>
+        <Link href="/website/media" className={cn(buttonVariants({ variant: "outline" }))}>Media</Link>
         <Link href="/website/gallery" className={cn(buttonVariants({ variant: "outline" }))}>Galeria</Link>
         <Link href="/website/branding" className={cn(buttonVariants({ variant: "outline" }))}>Branding</Link>
         <Link href="/website/social" className={cn(buttonVariants({ variant: "outline" }))}>Social media</Link>

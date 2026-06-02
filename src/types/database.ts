@@ -2364,6 +2364,26 @@ export type Database = {
         Update: Record<string, unknown>;
         Relationships: [];
       };
+      website_media: {
+        Row: {
+          id: string;
+          club_id: string;
+          section: Database["public"]["Enums"]["website_media_section"];
+          slot_key: string;
+          team_id: string | null;
+          news_id: string | null;
+          storage_path: string | null;
+          demo_asset_key: string | null;
+          caption: string | null;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
       website_social_integrations: {
         Row: {
           id: string;
@@ -2889,6 +2909,10 @@ export type Database = {
         Args: { p_club_slug: string };
         Returns: Json;
       };
+      coach_team_ids: {
+        Args: { p_club_id: string };
+        Returns: string[];
+      };
       get_public_players: {
         Args: { p_club_slug: string };
         Returns: Json;
@@ -3087,6 +3111,7 @@ export type Database = {
       website_news_category: "matches" | "club" | "transfers" | "academy" | "sponsors" | "other";
       website_news_status: "draft" | "pending_review" | "published" | "archived";
       website_gallery_category: "matches" | "trainings" | "club" | "events";
+      website_media_section: "hero" | "team" | "academy" | "gallery" | "news";
       website_sponsor_tier: "main" | "supporting" | "partner";
       website_social_platform: "facebook" | "instagram" | "tiktok" | "youtube";
       notification_event_type:

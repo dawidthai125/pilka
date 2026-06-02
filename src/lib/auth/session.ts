@@ -84,7 +84,7 @@ import {
   mapAiReportCategory,
   mapAiSuggestion,
 } from "@/lib/ai/mappers";
-import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canReadCommunication, canReadAttendance, canReadCrm, canManageCrm, canAccessCrmPortal, canReadEquipment, canManageEquipment, canAccessEquipmentPortal, canReadInjuries, canManageInjuryStaff, canManageInjuryConfig, canAccessInjuryPortal, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
+import { canManageSponsors, canManageTrainings, canReadAi, canReadFinance, canReadInventory, canReadSponsors, canReadVideos, canReadContent, canReadCommunication, canReadAttendance, canReadCrm, canManageCrm, canAccessCrmPortal, canReadEquipment, canManageEquipment, canAccessEquipmentPortal, canReadInjuries, canManageInjuryStaff, canManageInjuryConfig, canAccessInjuryPortal, canAccessFinancePortal, canAccessInventoryPortal, canReadWebsite, canManageWebsite, canAccessWebsiteMediaCms, canReadIntegrations, canManageIntegrations, canReadLeague, canManageLeague } from "@/config/permissions";
 import { resolveOwnPlayerIds } from "@/lib/players/access";
 import { sanitizeIlikeTerm } from "@/lib/ai/sanitize";
 import type {
@@ -126,6 +126,7 @@ import type {
   WebsiteNews,
   WebsiteSettings,
   WebsiteSocialIntegration,
+  WebsiteMediaItem,
 } from "@/types/website";
 import type {
   ExternalTeam,
@@ -165,10 +166,12 @@ import {
 } from "@/lib/inventory/mappers";
 import {
   mapWebsiteGalleryAlbum,
+  mapWebsiteMedia,
   mapWebsiteNews,
   mapWebsiteSettings,
   mapWebsiteSocialIntegration,
 } from "@/lib/website/mappers";
+import { resolveWebsiteMediaUrls } from "@/lib/website/media";
 import {
   mapExternalTeam,
   mapIntegration,
@@ -2787,6 +2790,10 @@ export function requireWebsiteManageAccess(access: UserAccessContext) {
   if (!canManageWebsite(access.roles)) redirect("/website");
 }
 
+export function requireWebsiteMediaAccess(access: UserAccessContext) {
+  if (!canAccessWebsiteMediaCms(access.roles)) redirect("/dashboard");
+}
+
 export const getWebsiteSettingsForCms = cache(
   async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteSettings | null> => {
     const supabase = await createClient();
@@ -2820,6 +2827,30 @@ export const getWebsiteGalleryAlbumsForCms = cache(
       .order("sort_order");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapWebsiteGalleryAlbum(row as Record<string, unknown>));
+  },
+);
+
+export const getCoachTeamIds = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<string[]> => {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("coach_team_ids", { p_club_id: clubId });
+  if (error) return [];
+  return (data ?? []).map((id) => String(id));
+});
+
+export const getWebsiteMediaForCms = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteMediaItem[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("website_media")
+      .select("*, team:team_id(name), news:news_id(title)")
+      .eq("club_id", clubId)
+      .order("section")
+      .order("sort_order");
+
+    if (error) throw new Error(error.message);
+    const items = (data ?? []).map((row) => mapWebsiteMedia(row as Record<string, unknown>));
+    const urlMap = await resolveWebsiteMediaUrls(items);
+    return items.map((item) => ({ ...item, imageUrl: urlMap.get(item.id) ?? null }));
   },
 );
 

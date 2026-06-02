@@ -10,6 +10,7 @@ import type {
   WebsiteNews,
   WebsiteSettings,
   WebsiteSocialIntegration,
+  WebsiteMediaItem,
 } from "@/types/website";
 
 export function mapWebsiteSettings(row: Record<string, unknown>): WebsiteSettings {
@@ -92,6 +93,29 @@ export function mapWebsiteSocialIntegration(row: Record<string, unknown>): Websi
     isEnabled: Boolean(row.is_enabled),
     apiConnected: Boolean(row.api_connected),
     lastSyncAt: row.last_sync_at ? String(row.last_sync_at) : null,
+  };
+}
+
+export function mapWebsiteMedia(row: Record<string, unknown>): WebsiteMediaItem {
+  const team = row.team as Record<string, unknown> | null | undefined;
+  const news = row.news as Record<string, unknown> | null | undefined;
+
+  return {
+    id: String(row.id),
+    clubId: String(row.club_id),
+    section: row.section as WebsiteMediaItem["section"],
+    slotKey: String(row.slot_key),
+    teamId: row.team_id ? String(row.team_id) : null,
+    newsId: row.news_id ? String(row.news_id) : null,
+    storagePath: row.storage_path ? String(row.storage_path) : null,
+    demoAssetKey: row.demo_asset_key ? String(row.demo_asset_key) : null,
+    caption: row.caption ? String(row.caption) : null,
+    sortOrder: Number(row.sort_order ?? 0),
+    isActive: Boolean(row.is_active ?? true),
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+    teamName: team?.name ? String(team.name) : null,
+    newsTitle: news?.title ? String(news.title) : null,
   };
 }
 

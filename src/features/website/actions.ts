@@ -6,6 +6,9 @@ import {
   canCreateWebsiteNews,
   canManageWebsite,
   canPublishWebsiteNews,
+  canAccessWebsiteMediaCms,
+  canManageWebsiteMediaSection,
+  canManageWebsiteTeamMedia,
 } from "@/config/permissions";
 import { getClub, requireAccessContext } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
@@ -18,10 +21,17 @@ import {
   buildWebsiteHeroPath,
   buildWebsiteLogoPath,
   buildWebsiteNewsImagePath,
+  buildWebsiteMediaPath,
   validateWebsiteImage,
 } from "@/lib/website/uploads";
 import { createClient } from "@/lib/supabase/server";
-import type { WebsiteGalleryCategory, WebsiteNewsCategory, WebsiteSocialPlatform } from "@/types/website";
+import { syncWebsiteHeroMediaSlot } from "@/lib/website/media-sync";
+import type {
+  WebsiteGalleryCategory,
+  WebsiteMediaSection,
+  WebsiteNewsCategory,
+  WebsiteSocialPlatform,
+} from "@/types/website";
 
 export type WebsiteActionState = { error?: string; success?: string; id?: string };
 
@@ -32,6 +42,7 @@ function revalidateWebsitePaths() {
     "/website/gallery",
     "/website/branding",
     "/website/social",
+    "/website/media",
     "/",
     "/aktualnosci",
     "/mecze",
@@ -101,6 +112,9 @@ export async function updateWebsiteBranding(
     });
     if (uploadError) return { error: uploadError.message };
     Object.assign(payload, { hero_image_path: path });
+
+    const { error: heroMediaError } = await syncWebsiteHeroMediaSlot(supabase, access.clubId, path);
+    if (heroMediaError) return { error: heroMediaError };
   }
 
   const { error } = await supabase.from("website_settings").upsert({
@@ -367,4 +381,174 @@ export async function deleteWebsiteNews(
   if (error) return { error: error.message };
   revalidateWebsitePaths();
   return { success: "Wpis usunięty." };
+}
+
+async function getCoachTeamIdsForAccess(clubId: string): Promise<string[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("coach_team_ids", { p_club_id: clubId });
+  if (error) return [];
+  return (data ?? []).map((id) => String(id));
+}
+
+async function assertWebsiteMediaAccess(
+  access: Awaited<ReturnType<typeof requireAccessContext>>,
+  section: WebsiteMediaSection,
+  teamId?: string | null,
+): Promise<string | null> {
+  if (!canAccessWebsiteMediaCms(access.roles)) return "Brak uprawnień.";
+  if (canManageWebsite(access.roles)) return null;
+  if (!canManageWebsiteMediaSection(access.roles, section)) {
+    return "Brak uprawnień do tej sekcji mediów.";
+  }
+  if (section === "team") {
+    if (!teamId) return "Brak identyfikatora drużyny.";
+    const coachTeamIds = await getCoachTeamIdsForAccess(access.clubId);
+    if (!canManageWebsiteTeamMedia(access.roles, coachTeamIds, teamId)) {
+      return "Możesz zarządzać tylko zdjęciami swojej drużyny.";
+    }
+  }
+  return null;
+}
+
+export async function uploadWebsiteMedia(
+  _prev: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
+  const access = await requireAccessContext();
+  const section = readString(formData, "section") as WebsiteMediaSection;
+  const slotKey = readString(formData, "slotKey") || "default";
+  const teamId = readString(formData, "teamId") || null;
+  const newsId = readString(formData, "newsId") || null;
+  const mediaId = readString(formData, "id") || crypto.randomUUID();
+
+  const permissionError = await assertWebsiteMediaAccess(access, section, teamId);
+  if (permissionError) return { error: permissionError };
+
+  const file = formData.get("photo");
+  if (!(file instanceof File) || file.size === 0) return { error: "Wybierz zdjęcie." };
+
+  const validation = validateWebsiteImage(file);
+  if (validation) return { error: validation };
+
+  const path = buildWebsiteMediaPath(access.clubId, section, mediaId, file.name, teamId);
+  const supabase = await createClient();
+
+  const { error: uploadError } = await supabase.storage.from("club-assets").upload(path, file, {
+    contentType: file.type,
+    upsert: true,
+  });
+  if (uploadError) return { error: uploadError.message };
+
+  const payload = {
+    id: mediaId,
+    club_id: access.clubId,
+    section,
+    slot_key: slotKey,
+    team_id: teamId,
+    news_id: newsId,
+    storage_path: path,
+    caption: readString(formData, "caption") || null,
+    sort_order: Number(readString(formData, "sortOrder") || "0"),
+    is_active: true,
+  };
+
+  const { error } = await supabase.from("website_media").upsert(payload);
+  if (error) return { error: error.message };
+
+  revalidateWebsitePaths();
+  return { success: "Zdjęcie zapisane.", id: mediaId };
+}
+
+export async function deleteWebsiteMedia(
+  _prev: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
+  const access = await requireAccessContext();
+  const mediaId = readString(formData, "mediaId");
+  if (!mediaId) return { error: "Brak identyfikatora." };
+
+  const supabase = await createClient();
+  const { data: media, error: fetchError } = await supabase
+    .from("website_media")
+    .select("*")
+    .eq("id", mediaId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+
+  if (fetchError || !media) return { error: "Nie znaleziono zdjęcia." };
+
+  const permissionError = await assertWebsiteMediaAccess(
+    access,
+    media.section as WebsiteMediaSection,
+    media.team_id ? String(media.team_id) : null,
+  );
+  if (permissionError) return { error: permissionError };
+
+  if (media.section === "gallery") {
+    if (media.storage_path) {
+      await supabase.storage.from("club-assets").remove([String(media.storage_path)]);
+    }
+    const { error } = await supabase.from("website_media").delete().eq("id", mediaId);
+    if (error) return { error: error.message };
+  } else {
+    if (media.storage_path) {
+      await supabase.storage.from("club-assets").remove([String(media.storage_path)]);
+    }
+    const { error } = await supabase
+      .from("website_media")
+      .update({ storage_path: null })
+      .eq("id", mediaId);
+    if (error) return { error: error.message };
+  }
+
+  revalidateWebsitePaths();
+  return { success: media.section === "gallery" ? "Zdjęcie usunięte z galerii." : "Przywrócono media demo." };
+}
+
+export async function reorderWebsiteMedia(
+  _prev: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
+  const access = await requireAccessContext();
+  if (!canManageWebsite(access.roles)) return { error: "Brak uprawnień." };
+
+  const orderedIds = readString(formData, "orderedIds")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  if (orderedIds.length === 0) return { error: "Brak kolejności." };
+
+  const supabase = await createClient();
+  for (let index = 0; index < orderedIds.length; index += 1) {
+    const mediaId = orderedIds[index];
+    if (!mediaId) continue;
+    const { error } = await supabase
+      .from("website_media")
+      .update({ sort_order: index + 1 })
+      .eq("id", mediaId)
+      .eq("club_id", access.clubId)
+      .eq("section", "gallery");
+    if (error) return { error: error.message };
+  }
+
+  revalidateWebsitePaths();
+  return { success: "Kolejność galerii zapisana." };
+}
+
+export async function addWebsiteGalleryMedia(
+  _prev: WebsiteActionState,
+  formData: FormData,
+): Promise<WebsiteActionState> {
+  const access = await requireAccessContext();
+  if (!canManageWebsite(access.roles)) return { error: "Brak uprawnień." };
+
+  const mediaId = crypto.randomUUID();
+  const slotKey = `gallery-${mediaId.slice(0, 8)}`;
+  formData.set("section", "gallery");
+  formData.set("slotKey", slotKey);
+  formData.set("id", mediaId);
+  formData.set("sortOrder", readString(formData, "sortOrder") || "999");
+
+  return uploadWebsiteMedia(_prev, formData);
 }

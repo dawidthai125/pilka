@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import {
   PublicAcademySection,
-  PublicClubStatsSection,
   PublicGallerySection,
   PublicHeroSection,
   PublicMatchCenterSection,
@@ -18,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ClubHomePage() {
-  const { home, news, league, sponsors, teams, clubStats, galleryItems, heroImageUrl, logoUrl } =
+  const { home, news, league, sponsors, teams, clubStats, galleryItems, heroImages, academyImages, logoUrl } =
     await loadClubHomepageData();
   if (!home) return null;
 
@@ -29,9 +28,9 @@ export default async function ClubHomePage() {
         logoUrl={logoUrl}
         title={home.settings.heroTitle ?? home.club.publicName}
         subtitle={home.settings.heroSubtitle}
-        heroImageUrl={heroImageUrl}
-        teams={teams}
-        nextMatch={home.nextMatch}
+        heroImages={heroImages}
+        clubStats={clubStats}
+        competitionLevel={home.club.competitionLevel}
       />
 
       <PublicMatchCenterSection
@@ -43,15 +42,19 @@ export default async function ClubHomePage() {
 
       <PublicTeamsSection teams={teams} />
 
-      <PublicAcademySection teams={teams} />
+      <PublicAcademySection
+        teams={teams}
+        academyImages={academyImages}
+        contactPhone={home.settings.contactPhone}
+        contactAddress={home.settings.contactAddress}
+        clubName={home.club.publicName}
+      />
 
       <PublicGallerySection items={galleryItems} />
 
       <PublicNewsSection news={news} />
 
       <PublicSponsorsSection sponsors={sponsors} />
-
-      <PublicClubStatsSection stats={clubStats} />
     </>
   );
 }

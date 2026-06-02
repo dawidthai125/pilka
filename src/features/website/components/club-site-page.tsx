@@ -1,13 +1,15 @@
 import { getWebsiteAssetUrl } from "@/lib/website/assets";
+import { buildPublicWebsiteMediaBundle } from "@/lib/website/media";
 import {
   getPublicClubId,
   getPublicClubStats,
-  getPublicGalleryAlbums,
   getPublicLeagueTable,
   getPublicNews,
+  getPublicSocialIntegrations,
   getPublicSponsors,
   getPublicTeams,
   getPublicWebsiteHome,
+  getPublicWebsiteMedia,
 } from "@/lib/website/public-data";
 import { ClubSiteShell } from "@/features/website/components/club-site-shell";
 
@@ -27,7 +29,10 @@ export async function ClubSitePageWrapper({
     );
   }
 
-  const logoUrl = await getWebsiteAssetUrl(home.settings.logoPath);
+  const [logoUrl, socialLinks] = await Promise.all([
+    getWebsiteAssetUrl(home.settings.logoPath),
+    getPublicSocialIntegrations(home.club.id),
+  ]);
 
   return (
     <ClubSiteShell
@@ -35,6 +40,7 @@ export async function ClubSitePageWrapper({
       officialName={home.club.officialName}
       settings={home.settings}
       logoUrl={logoUrl}
+      socialLinks={socialLinks}
     >
       {children}
     </ClubSiteShell>
@@ -43,40 +49,31 @@ export async function ClubSitePageWrapper({
 
 export async function loadClubHomepageData() {
   const clubId = await getPublicClubId();
-  const [home, news, league, sponsors, teams, clubStats, albums] = await Promise.all([
+  const [home, news, league, sponsors, teams, clubStats, mediaItems] = await Promise.all([
     getPublicWebsiteHome(),
     getPublicNews(clubId, { limit: 6 }),
     getPublicLeagueTable(clubId),
     getPublicSponsors(),
     getPublicTeams(),
     getPublicClubStats(),
-    getPublicGalleryAlbums(clubId),
+    getPublicWebsiteMedia(clubId),
   ]);
 
-  const [heroImageUrl, logoUrl] = await Promise.all([
-    home?.settings.heroImagePath ? getWebsiteAssetUrl(home.settings.heroImagePath) : null,
-    home?.settings.logoPath ? getWebsiteAssetUrl(home.settings.logoPath) : null,
-  ]);
+  const logoUrl = home?.settings.logoPath ? await getWebsiteAssetUrl(home.settings.logoPath) : null;
+  const mediaBundle = await buildPublicWebsiteMediaBundle(mediaItems);
 
-  const [newsImageUrls, galleryCoverUrls] = await Promise.all([
-    Promise.all(
-      news.map((item) => (item.featuredImagePath ? getWebsiteAssetUrl(item.featuredImagePath) : null)),
-    ),
-    Promise.all(
-      albums.map((album) => (album.coverImagePath ? getWebsiteAssetUrl(album.coverImagePath) : null)),
-    ),
-  ]);
+  const newsWithImages = await Promise.all(
+    news.map(async (item) => ({
+      ...item,
+      featuredImageUrl:
+        mediaBundle.newsImages[item.id] ??
+        (item.featuredImagePath ? await getWebsiteAssetUrl(item.featuredImagePath) : null),
+    })),
+  );
 
-  const newsWithImages = news.map((item, index) => ({
-    ...item,
-    featuredImageUrl: newsImageUrls[index] ?? null,
-  }));
-
-  const galleryItems = albums.map((album, index) => ({
-    slug: album.slug,
-    title: album.title,
-    category: album.category,
-    coverImageUrl: galleryCoverUrls[index] ?? null,
+  const teamsWithMedia = teams.map((team) => ({
+    ...team,
+    imageUrl: mediaBundle.teamImages[team.id] ?? null,
   }));
 
   return {
@@ -84,10 +81,11 @@ export async function loadClubHomepageData() {
     news: newsWithImages,
     league,
     sponsors,
-    teams,
+    teams: teamsWithMedia,
     clubStats,
-    galleryItems,
-    heroImageUrl,
+    heroImages: mediaBundle.heroImages,
+    academyImages: mediaBundle.academyImages,
+    galleryItems: mediaBundle.galleryImages,
     logoUrl,
   };
 }

@@ -25,6 +25,20 @@ export function buildWebsiteGalleryPhotoPath(
   return `${clubId}/website/gallery/${albumId}/${photoId}.${ext}`;
 }
 
+export function buildWebsiteMediaPath(
+  clubId: string,
+  section: string,
+  mediaId: string,
+  fileName: string,
+  teamId?: string | null,
+): string {
+  const ext = fileName.split(".").pop()?.toLowerCase() || "jpg";
+  if (section === "team" && teamId) {
+    return `${clubId}/website/media/team/${teamId}/${mediaId}.${ext}`;
+  }
+  return `${clubId}/website/media/${section}/${mediaId}.${ext}`;
+}
+
 export function validateWebsiteImage(file: File): string | null {
   return validateClubAssetFile(file, CLUB_ASSET_PHOTO_MIME_TYPES);
 }

@@ -467,6 +467,23 @@ export function canPublishWebsiteNews(roles: ClubRole[]): boolean {
   return canManageWebsite(roles);
 }
 
+export function canAccessWebsiteMediaCms(roles: ClubRole[]): boolean {
+  return canManageWebsite(roles) || roles.includes("coach");
+}
+
+export function canManageWebsiteMediaSection(
+  roles: ClubRole[],
+  section: "hero" | "team" | "academy" | "gallery" | "news",
+): boolean {
+  if (canManageWebsite(roles)) return true;
+  return section === "team" && roles.includes("coach");
+}
+
+export function canManageWebsiteTeamMedia(roles: ClubRole[], coachTeamIds: string[], teamId: string): boolean {
+  if (canManageWebsite(roles)) return true;
+  return roles.includes("coach") && coachTeamIds.includes(teamId);
+}
+
 export function canReadIntegrations(roles: ClubRole[]): boolean {
   return roles.some((role) =>
     (["owner", "president", "sports_director", "coach"] as ClubRole[]).includes(role),

@@ -198,3 +198,48 @@ export type PublicGalleryPreviewItem = {
 export type PublicNewsPreviewItem = WebsiteNews & {
   featuredImageUrl: string | null;
 };
+
+export const WEBSITE_MEDIA_SECTIONS = ["hero", "team", "academy", "gallery", "news"] as const;
+
+export type WebsiteMediaSection = (typeof WEBSITE_MEDIA_SECTIONS)[number];
+
+export type WebsiteMediaItem = {
+  id: string;
+  clubId: string;
+  section: WebsiteMediaSection;
+  slotKey: string;
+  teamId: string | null;
+  newsId: string | null;
+  storagePath: string | null;
+  demoAssetKey: string | null;
+  caption: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  teamName?: string | null;
+  newsTitle?: string | null;
+  imageUrl?: string | null;
+};
+
+export type PublicHeroMediaImage = {
+  slotKey: string;
+  url: string | null;
+  caption: string | null;
+};
+
+export type PublicAcademyMediaImage = {
+  slotKey: string;
+  url: string | null;
+  caption: string | null;
+};
+
+export type PublicGalleryMediaItem = {
+  id: string;
+  url: string | null;
+  caption: string | null;
+};
+
+export type PublicTeamCardWithMedia = PublicTeamCard & {
+  imageUrl: string | null;
+};

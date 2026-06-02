@@ -21,6 +21,7 @@ import type {
   WebsiteNewsCategory,
   WebsiteSettings,
   WebsiteSocialIntegration,
+  WebsiteMediaItem,
 } from "@/types/website";
 import {
   mapPublicMatch,
@@ -33,6 +34,7 @@ import {
   mapWebsiteNews,
   mapWebsiteSettings,
   mapWebsiteSocialIntegration,
+  mapWebsiteMedia,
 } from "@/lib/website/mappers";
 
 export const DEFAULT_PUBLIC_CLUB_SLUG = siteConfig.defaultClubSlug;
@@ -418,3 +420,18 @@ export async function getPublicClubId(slug: string = DEFAULT_PUBLIC_CLUB_SLUG): 
   const id = await resolvePublicClubId(slug);
   return id ?? DEFAULT_CLUB_ID;
 }
+
+export const getPublicWebsiteMedia = cache(
+  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteMediaItem[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("website_media")
+      .select("*")
+      .eq("club_id", clubId)
+      .eq("is_active", true)
+      .order("sort_order");
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((row) => mapWebsiteMedia(row as Record<string, unknown>));
+  },
+);
