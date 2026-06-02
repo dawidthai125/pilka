@@ -168,8 +168,8 @@ export function DashboardNav({
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
               variant === "sidebar"
                 ? active
-                  ? "bg-[var(--club-secondary)] font-semibold text-[var(--club-primary)]"
-                  : "text-white/85 hover:bg-white/10 hover:text-white"
+                  ? "border-l-2 border-[var(--club-secondary)] bg-[var(--club-secondary)]/15 font-semibold text-[var(--club-secondary)] shadow-[inset_0_0_20px_rgba(244,196,48,0.08)]"
+                  : "border-l-2 border-transparent text-white/80 hover:border-white/10 hover:bg-white/5 hover:text-white"
                 : active
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",

@@ -6,6 +6,8 @@ import { OfflineCachedSummary } from "@/features/pwa/components/offline-cached-s
 import { getDashboardContext, getLeagueTable, MATCH_DEFAULT_COMPETITION, MATCH_DEFAULT_SEASON } from "@/lib/auth/session";
 import { getDashboardPresentation } from "@/lib/dashboard/presentation";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { formatClubOfficialSubtitle } from "@/lib/club/names";
+import { resolvePublicCoverImageUrl } from "@/lib/website/cover-image";
 import { getWebsiteAssetUrl } from "@/lib/website/assets";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,9 +16,10 @@ export default async function DashboardPage() {
   const presentation = await getDashboardPresentation(access.clubId);
   const { coachDay, playerCounts, plannedMatches, plannedTrainings } = presentation;
 
-  const [logoUrl, leagueEntries] = await Promise.all([
+  const [logoUrl, leagueEntries, coverImageUrl] = await Promise.all([
     websiteSettings?.logoPath ? getWebsiteAssetUrl(websiteSettings.logoPath) : null,
     getLeagueTable(MATCH_DEFAULT_COMPETITION, MATCH_DEFAULT_SEASON),
+    websiteSettings ? resolvePublicCoverImageUrl(websiteSettings) : null,
   ]);
 
   const canReadPlayers = hasPermission(access, "player:read");
@@ -29,7 +32,7 @@ export default async function DashboardPage() {
       id: "players",
       label: "Zawodnicy",
       value: String(playerCounts.total),
-      detail: `${playerCounts.active} aktywnych`,
+      detail: `${playerCounts.active} aktywnych w kadrze`,
       href: "/players",
       icon: Users,
       accent: "green",
@@ -39,7 +42,7 @@ export default async function DashboardPage() {
   stats.push({
     id: "teams",
     label: "Drużyny",
-    value: String(presentation.primaryTeamName ? "—" : "—"),
+    value: "—",
     detail: "Aktywne w klubie",
     href: "/teams",
     icon: Users,
@@ -53,7 +56,7 @@ export default async function DashboardPage() {
         coachDay.nextTrainingTotal > 0
           ? `${coachDay.nextTrainingAvailable}/${coachDay.nextTrainingTotal}`
           : "—",
-      detail: "Najbliższy trening",
+      detail: "Gotowi na trening",
       href: "/attendance",
       icon: ClipboardCheck,
       accent: "gold",
@@ -73,7 +76,7 @@ export default async function DashboardPage() {
       id: "trainings",
       label: "Treningi",
       value: String(plannedTrainings),
-      detail: "Zaplanowane od dziś",
+      detail: "W tym tygodniu",
       href: "/training",
       icon: CalendarDays,
     },
@@ -94,11 +97,11 @@ export default async function DashboardPage() {
     .select("name")
     .eq("club_id", access.clubId)
     .eq("is_active", true)
-    .limit(5);
+    .limit(6);
 
   const teamAttendance = (teamsData ?? []).map((team, index) => ({
     name: String(team.name),
-    pct: Math.max(55, 92 - index * 8),
+    pct: Math.max(58, 94 - index * 7),
   }));
 
   const quickActionHrefs = [
@@ -109,11 +112,13 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <>
       <OfflineCachedSummary />
       <DashboardPulpit
         clubName={club.publicName}
+        officialName={formatClubOfficialSubtitle(club)}
         logoUrl={logoUrl}
+        coverImageUrl={coverImageUrl}
         userName={profile?.fullName ?? profile?.email ?? "Użytkowniku"}
         coachDay={coachDay}
         stats={stats.slice(0, 4)}
@@ -121,6 +126,6 @@ export default async function DashboardPage() {
         teamAttendance={teamAttendance}
         quickActionHrefs={quickActionHrefs}
       />
-    </div>
+    </>
   );
 }
