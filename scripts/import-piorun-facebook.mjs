@@ -1,138 +1,106 @@
 #!/usr/bin/env node
-/**
- * Pobiera zdjęcia ze strony Facebook Piorun Wawrzeńczyce
- * https://www.facebook.com/profile.php?id=61560486822886
- * i zapisuje je w public/club-media/ (sloty website_media demo).
- */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { chromium } from "playwright";
+import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outDir = join(__dirname, "..", "public", "club-media");
+const FB_PROFILE = "https://www.facebook.com/profile.php?id=61560486822886";
 
-/** Źródło: publiczna strona FB klubu (maj 2026) */
-const ASSETS = [
-  {
-    file: "cover.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709844503_122207538746349560_3845596613405765556_n.jpg",
-  },
-  {
-    file: "hero-team.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711680094_122207668580349560_8145177813983376159_n.jpg",
-  },
-  {
-    file: "hero-match.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711426046_122207668622349560_3701997273605585172_n.jpg",
-  },
-  {
-    file: "hero-stadium.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/707928973_122207265656349560_7446933156239972229_n.jpg",
-  },
-  {
-    file: "team-seniors.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709636527_122207538698349560_5459238903935465608_n.jpg",
-  },
-  {
-    file: "team-u18.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711406268_122207538794349560_8188936091959747855_n.jpg",
-  },
-  {
-    file: "team-u12.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/707946466_122207317184349560_7397280964782881496_n.jpg",
-  },
-  {
-    file: "team-youth.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709448253_122207315438349560_1995495768905173840_n.jpg",
-  },
-  {
-    file: "academy-kids.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709680263_122207341466349560_110718948703214221_n.jpg",
-  },
-  {
-    file: "academy-training.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709636527_122207538698349560_5459238903935465608_n.jpg",
-  },
-  {
-    file: "academy-path.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711406268_122207538794349560_8188936091959747855_n.jpg",
-  },
-  {
-    file: "news-matches.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711680094_122207668580349560_8145177813983376159_n.jpg",
-  },
-  {
-    file: "news-club.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/707928973_122207265656349560_7446933156239972229_n.jpg",
-  },
-  {
-    file: "news-academy.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709680263_122207341466349560_110718948703214221_n.jpg",
-  },
-  {
-    file: "news-transfers.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709844503_122207538746349560_3845596613405765556_n.jpg",
-  },
-  {
-    file: "news-sponsors.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711426046_122207668622349560_3701997273605585172_n.jpg",
-  },
-  {
-    file: "gallery-01.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711680094_122207668580349560_8145177813983376159_n.jpg",
-  },
-  {
-    file: "gallery-02.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711426046_122207668622349560_3701997273605585172_n.jpg",
-  },
-  {
-    file: "gallery-03.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/711406268_122207538794349560_8188936091959747855_n.jpg",
-  },
-  {
-    file: "gallery-04.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709844503_122207538746349560_3845596613405765556_n.jpg",
-  },
-  {
-    file: "gallery-05.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709636527_122207538698349560_5459238903935465608_n.jpg",
-  },
-  {
-    file: "gallery-06.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709680263_122207341466349560_110718948703214221_n.jpg",
-  },
-  {
-    file: "gallery-07.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/707946466_122207317184349560_7397280964782881496_n.jpg",
-  },
-  {
-    file: "gallery-08.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/709448253_122207315438349560_1995495768905173840_n.jpg",
-  },
-  {
-    file: "placeholder.jpg",
-    url: "https://scontent-yyz1-1.xx.fbcdn.net/v/t39.30808-6/707928973_122207265656349560_7446933156239972229_n.jpg",
-  },
-];
+const MEDIA_TO_FILE = {
+  "709844503": "cover.jpg",
+  "711680094": "hero-team.jpg",
+  "711426046": "hero-match.jpg",
+  "707928973": "hero-stadium.jpg",
+  "709636527": "team-seniors.jpg",
+  "711406268": "team-u18.jpg",
+  "707946466": "team-u12.jpg",
+  "709448253": "team-youth.jpg",
+  "709680263": "academy-kids.jpg",
+};
+
+const DERIVED = {
+  "academy-training.jpg": "team-seniors.jpg",
+  "academy-path.jpg": "team-u18.jpg",
+  "news-matches.jpg": "hero-team.jpg",
+  "news-club.jpg": "hero-stadium.jpg",
+  "news-academy.jpg": "academy-kids.jpg",
+  "news-transfers.jpg": "cover.jpg",
+  "news-sponsors.jpg": "hero-match.jpg",
+  "gallery-01.jpg": "hero-team.jpg",
+  "gallery-02.jpg": "hero-match.jpg",
+  "gallery-03.jpg": "team-u18.jpg",
+  "gallery-04.jpg": "cover.jpg",
+  "gallery-05.jpg": "team-seniors.jpg",
+  "gallery-06.jpg": "academy-kids.jpg",
+  "gallery-07.jpg": "team-u12.jpg",
+  "gallery-08.jpg": "team-youth.jpg",
+  "placeholder.jpg": "hero-stadium.jpg",
+};
 
 mkdirSync(outDir, { recursive: true });
 
-for (const asset of ASSETS) {
-  const response = await fetch(asset.url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      Referer: "https://www.facebook.com/",
-      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-    },
-  });
-  if (!response.ok) {
-    console.error(`FAIL ${asset.file}: HTTP ${response.status}`);
+const captured = new Map();
+const browser = await chromium.launch({ headless: true });
+const page = await browser.newPage();
+
+page.on("response", async (response) => {
+  const url = response.url();
+  if (!url.includes("scontent") || !url.includes(".jpg")) return;
+  if (response.status() !== 200) return;
+  const match = url.match(/\/(\d+)_(\d+)_/);
+  if (!match) return;
+  const mediaId = match[1];
+  if (captured.has(mediaId)) return;
+  try {
+    const body = await response.body();
+    if (body.length > 5000) captured.set(mediaId, body);
+  } catch {
+    /* response body unavailable */
+  }
+});
+
+console.log("Loading Facebook profile…");
+await page.goto(FB_PROFILE, { waitUntil: "networkidle", timeout: 90000 }).catch(() => {});
+await page.waitForTimeout(2000);
+
+console.log(`Captured ${captured.size} unique images from network`);
+
+let ok = 0;
+for (const [mediaId, file] of Object.entries(MEDIA_TO_FILE)) {
+  const body = captured.get(mediaId);
+  if (!body) {
+    console.error(`MISSING ${file} (media ${mediaId})`);
     continue;
   }
-  const buffer = Buffer.from(await response.arrayBuffer());
-  writeFileSync(join(outDir, asset.file), buffer);
-  console.log(`OK ${asset.file} (${buffer.length} bytes)`);
+  writeFileSync(join(outDir, file), body);
+  console.log(`OK ${file} (${body.length} bytes)`);
+  ok++;
 }
 
-console.log(`\nDone — ${ASSETS.length} files in public/club-media/`);
+// Logo profilowe — największe z małych obrazów (typowo herb/avatar strony)
+const profileCandidates = [...captured.entries()]
+  .filter(([id]) => !Object.keys(MEDIA_TO_FILE).includes(id))
+  .sort((a, b) => b[1].length - a[1].length);
+if (profileCandidates.length > 0) {
+  const [, logoBody] = profileCandidates[0];
+  writeFileSync(join(outDir, "club-logo.jpg"), logoBody);
+  console.log(`OK club-logo.jpg (${logoBody.length} bytes)`);
+} else {
+  copyFileSync(join(outDir, "hero-team.jpg"), join(outDir, "club-logo.jpg"));
+  console.log("COPY club-logo.jpg ← hero-team.jpg");
+}
+
+await browser.close();
+
+for (const [target, source] of Object.entries(DERIVED)) {
+  try {
+    copyFileSync(join(outDir, source), join(outDir, target));
+    console.log(`COPY ${target} ← ${source}`);
+  } catch {
+    console.error(`SKIP ${target}`);
+  }
+}
+
+console.log(`\nDone — downloaded ${ok}/${Object.keys(MEDIA_TO_FILE).length}`);

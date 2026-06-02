@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function getWebsiteAssetUrl(path: string | null | undefined): Promise<string | null> {
   if (!path || path.includes("..") || path.startsWith("/")) return null;
+  if (path.startsWith("club-media/")) return `/${path}`;
   const supabase = await createClient();
   const { data, error } = await supabase.storage.from("club-assets").createSignedUrl(path, 3600);
   if (error || !data?.signedUrl) return null;
