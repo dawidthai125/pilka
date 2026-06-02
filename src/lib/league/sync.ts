@@ -253,14 +253,33 @@ export async function syncLeagueTableToMatchesModule(
     .eq("competition_id", competitionId)
     .eq("snapshot_at", latest.snapshot_at);
 
+  const { data: teamsRaw } = await supabase
+    .from("league_teams")
+    .select("league_name, display_name, is_own_club")
+    .eq("club_id", meta.clubId)
+    .eq("competition_id", competitionId);
+
+  const leagueTeams = (teamsRaw ?? []).map((r) => ({
+    id: "",
+    clubId: meta.clubId,
+    competitionId,
+    teamId: null,
+    displayName: String(r.display_name),
+    leagueName: String(r.league_name),
+    externalId: null,
+    isOwnClub: Boolean(r.is_own_club),
+    provider: null,
+  }));
+
   let processed = 0;
   for (const row of rows ?? []) {
+    const publicTeamName = resolveLeagueDisplayName(String(row.team_name), leagueTeams);
     const { error } = await supabase.from("league_table_entries").upsert(
       {
         club_id: meta.clubId,
         competition: meta.competitionName,
         season: meta.seasonName,
-        team_name: String(row.team_name),
+        team_name: publicTeamName,
         played: Number(row.played),
         won: Number(row.won),
         drawn: Number(row.drawn),

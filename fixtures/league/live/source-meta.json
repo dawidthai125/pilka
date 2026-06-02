@@ -1,22 +1,3010 @@
 {
-  "fetchedAt": "2026-06-01T17:12:31.986Z",
-  "source": "regionalnyfutbol.pl",
-  "sourceUrl": "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html",
-  "note": "Dane lustrzane mPZPN/ŁNP — NIE z pliku DZPN. Oficjalny kanał: wniosek API PZPN.",
-  "dzpnPublicFiles": [
-    "https://dzpn.pl/wp-content/uploads/2026/04/Kalkulator-wymiaru-ekwiwalentu.xlsx"
-  ],
-  "tableTeams": 12,
-  "fixtures": 131,
-  "glksMietkow": {
-    "position": 11,
-    "teamName": "GLKS Mietków",
-    "played": 20,
-    "points": 14,
-    "won": 4,
-    "drawn": 2,
-    "lost": 14,
-    "goalsFor": 24,
-    "goalsAgainst": 63
+  "fetchedAt": "2026-06-02T19:14:54.463Z",
+  "regionalnyFutbol": {
+    "key": "regionalnyfutbol",
+    "label": "regionalnyfutbol.pl",
+    "reliability": 8,
+    "pageUrl": "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html",
+    "tableRows": 12,
+    "fixtureRows": 131
+  },
+  "ninetyMinut": {
+    "key": "90minut",
+    "label": "90minut.pl",
+    "reliability": 9,
+    "tableUrl": "http://www.90minut.pl/liga/1/liga14526.html",
+    "tableRows": 12,
+    "fixtureRows": 72
+  },
+  "merged": {
+    "table": [
+      {
+        "position": 1,
+        "teamName": "KS Magnice",
+        "played": 20,
+        "points": 47,
+        "won": 14,
+        "drawn": 5,
+        "lost": 1,
+        "goalsFor": 69,
+        "goalsAgainst": 32
+      },
+      {
+        "position": 2,
+        "teamName": "Orzeó Sadowice",
+        "played": 20,
+        "points": 43,
+        "won": 14,
+        "drawn": 1,
+        "lost": 5,
+        "goalsFor": 80,
+        "goalsAgainst": 40
+      },
+      {
+        "position": 3,
+        "teamName": "LKS Sadków",
+        "played": 20,
+        "points": 40,
+        "won": 13,
+        "drawn": 1,
+        "lost": 6,
+        "goalsFor": 50,
+        "goalsAgainst": 37
+      },
+      {
+        "position": 4,
+        "teamName": "KP II Kóty Wrocóawskie",
+        "played": 20,
+        "points": 35,
+        "won": 11,
+        "drawn": 2,
+        "lost": 7,
+        "goalsFor": 79,
+        "goalsAgainst": 63
+      },
+      {
+        "position": 5,
+        "teamName": "Tarant Krzyżowice",
+        "played": 20,
+        "points": 34,
+        "won": 10,
+        "drawn": 4,
+        "lost": 6,
+        "goalsFor": 62,
+        "goalsAgainst": 43
+      },
+      {
+        "position": 6,
+        "teamName": "Polonia Jaksonów",
+        "played": 20,
+        "points": 30,
+        "won": 9,
+        "drawn": 3,
+        "lost": 8,
+        "goalsFor": 64,
+        "goalsAgainst": 54
+      },
+      {
+        "position": 7,
+        "teamName": "KS Piotrowice",
+        "played": 20,
+        "points": 30,
+        "won": 8,
+        "drawn": 6,
+        "lost": 6,
+        "goalsFor": 58,
+        "goalsAgainst": 56
+      },
+      {
+        "position": 8,
+        "teamName": "Sparta Pustków óurawski",
+        "played": 20,
+        "points": 23,
+        "won": 7,
+        "drawn": 2,
+        "lost": 11,
+        "goalsFor": 51,
+        "goalsAgainst": 66
+      },
+      {
+        "position": 9,
+        "teamName": "Zachód Sobótka",
+        "played": 20,
+        "points": 22,
+        "won": 7,
+        "drawn": 1,
+        "lost": 12,
+        "goalsFor": 35,
+        "goalsAgainst": 62
+      },
+      {
+        "position": 10,
+        "teamName": "KP II Kobierzyce",
+        "played": 20,
+        "points": 17,
+        "won": 5,
+        "drawn": 2,
+        "lost": 13,
+        "goalsFor": 42,
+        "goalsAgainst": 63
+      },
+      {
+        "position": 11,
+        "teamName": "GLKS Mietków",
+        "played": 20,
+        "points": 14,
+        "won": 4,
+        "drawn": 2,
+        "lost": 14,
+        "goalsFor": 24,
+        "goalsAgainst": 63
+      },
+      {
+        "position": 12,
+        "teamName": "Wicher Domasław",
+        "played": 20,
+        "points": 9,
+        "won": 2,
+        "drawn": 3,
+        "lost": 15,
+        "goalsFor": 23,
+        "goalsAgainst": 58
+      }
+    ],
+    "tableSource": "90minut",
+    "tableConflicts": [
+      {
+        "team": "Polonia Jaksonów",
+        "primary": "30pkt 64:54",
+        "secondary": "27pkt 62:57"
+      },
+      {
+        "team": "Zachód Sobótka",
+        "primary": "22pkt 35:62",
+        "secondary": "25pkt 38:60"
+      }
+    ],
+    "fixtures": [
+      {
+        "roundNumber": 1,
+        "matchDate": "2025-08-24",
+        "matchTime": "17:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2025-08-24",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2025-08-24",
+        "matchTime": "17:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 1,
+        "awayScore": 6,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2025-08-24",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 7,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2025-08-24",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 5,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2025-08-24",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2025-08-31",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2025-08-31",
+        "matchTime": "14:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2025-08-31",
+        "matchTime": "16:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2025-08-31",
+        "matchTime": "14:30",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 5,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2025-08-31",
+        "matchTime": "14:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 0,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2025-08-31",
+        "matchTime": "13:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 3,
+        "matchDate": "2025-09-07",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 0,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 3,
+        "matchDate": "2025-09-07",
+        "matchTime": "13:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 3,
+        "matchDate": "2025-09-07",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 4,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 3,
+        "matchDate": "2025-09-07",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 2,
+        "awayScore": 11,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 3,
+        "matchDate": "2025-09-07",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 3,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 3,
+        "matchDate": "2025-09-07",
+        "matchTime": "16:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 4,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 4,
+        "matchDate": "2025-09-14",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 4,
+        "matchDate": "2025-09-14",
+        "matchTime": "14:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 1,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 4,
+        "matchDate": "2025-09-14",
+        "matchTime": "16:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 6,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 4,
+        "matchDate": "2025-09-14",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 6,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 4,
+        "matchDate": "2025-09-14",
+        "matchTime": "16:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 4,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 4,
+        "matchDate": "2025-09-14",
+        "matchTime": "14:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 5,
+        "matchDate": "2025-09-21",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 1,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 5,
+        "matchDate": "2025-09-21",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 5,
+        "matchDate": "2025-09-21",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 5,
+        "matchDate": "2025-09-21",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 3,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 5,
+        "matchDate": "2025-09-21",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 5,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 5,
+        "matchDate": "2025-09-21",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 6,
+        "matchDate": "2025-09-28",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 3,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 6,
+        "matchDate": "2025-09-28",
+        "matchTime": "15:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 5,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 6,
+        "matchDate": "2025-09-28",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 4,
+        "awayScore": 10,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 6,
+        "matchDate": "2025-09-28",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 1,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 6,
+        "matchDate": "2025-09-28",
+        "matchTime": "14:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 1,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 6,
+        "matchDate": "2025-09-28",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 5,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 7,
+        "matchDate": "2025-10-05",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 7,
+        "matchDate": "2025-10-05",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 7,
+        "matchDate": "2025-10-05",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 7,
+        "matchDate": "2025-10-05",
+        "matchTime": "16:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 6,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 7,
+        "matchDate": "2025-10-05",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 3,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 7,
+        "matchDate": "2025-10-05",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 0,
+        "awayScore": 7,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 8,
+        "matchDate": "2025-10-12",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 8,
+        "matchDate": "2025-10-12",
+        "matchTime": "15:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 8,
+        "matchDate": "2025-10-12",
+        "matchTime": "15:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 3,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 8,
+        "matchDate": "2025-10-12",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 3,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 8,
+        "matchDate": "2025-10-12",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 1,
+        "awayScore": 6,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 8,
+        "matchDate": "2025-10-12",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 9,
+        "matchDate": "2025-10-19",
+        "matchTime": "10:45",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 9,
+        "matchDate": "2025-10-19",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 1,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 9,
+        "matchDate": "2025-10-19",
+        "matchTime": "14:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 9,
+        "matchDate": "2025-10-19",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 8,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 9,
+        "matchDate": "2025-10-19",
+        "matchTime": "14:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 9,
+        "matchDate": "2025-10-19",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 3,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 10,
+        "matchDate": "2025-10-26",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 1,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 10,
+        "matchDate": "2025-10-26",
+        "matchTime": "14:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 5,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 10,
+        "matchDate": "2025-10-26",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 3,
+        "awayScore": 6,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 10,
+        "matchDate": "2025-10-26",
+        "matchTime": "14:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 2,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 10,
+        "matchDate": "2025-10-26",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 4,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 10,
+        "matchDate": "2025-10-26",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 3,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2025-11-08",
+        "matchTime": "14:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2025-11-09",
+        "matchTime": "10:45",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 1,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2025-11-09",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 4,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2025-11-09",
+        "matchTime": "13:30",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2025-11-09",
+        "matchTime": "13:30",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 6,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2025-11-09",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 7,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-28",
+        "matchTime": "15:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "KP II Kóty Wrocóawskie",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-28",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Orzeó Sadowice",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-28",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Sparta Pustków óurawski",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-28",
+        "matchTime": "13:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 3,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-28",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "KS Magnice",
+        "homeScore": 6,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-28",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-29",
+        "matchTime": "15:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-29",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-29",
+        "matchTime": "13:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 3,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-29",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 6,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-29",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 12,
+        "matchDate": "2026-03-29",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-11",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 1,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-11",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 3,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-11",
+        "matchTime": "14:00",
+        "homeTeamName": "KS Magnice",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-11",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-11",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków óurawski",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-11",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeó Sadowice",
+        "awayTeamName": "KP II Kóty Wrocóawskie",
+        "homeScore": 7,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-12",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 3,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-12",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-12",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 7,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-12",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 1,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-12",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 13,
+        "matchDate": "2026-04-12",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-18",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Orzeó Sadowice",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-18",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kóty Wrocóawskie",
+        "awayTeamName": "Sparta Pustków óurawski",
+        "homeScore": 3,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-18",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 4,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-18",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "KS Magnice",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-18",
+        "matchTime": "15:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 1,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-18",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 2,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-19",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 2,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-19",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-19",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-19",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 3,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-19",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 4,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 14,
+        "matchDate": "2026-04-19",
+        "matchTime": "15:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 1,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-25",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-25",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 1,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-25",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-25",
+        "matchTime": "14:00",
+        "homeTeamName": "KS Magnice",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-25",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "KP II Kóty Wrocóawskie",
+        "homeScore": 2,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-25",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków óurawski",
+        "awayTeamName": "Orzeó Sadowice",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-26",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-26",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-26",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 2,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-26",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-26",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 1,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 15,
+        "matchDate": "2026-04-26",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-04-29",
+        "matchTime": "18:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 5,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-01",
+        "matchTime": "11:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 3,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-02",
+        "matchTime": "18:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Sparta Pustków óurawski",
+        "homeScore": 5,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-02",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeó Sadowice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 6,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-02",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kóty Wrocóawskie",
+        "awayTeamName": "KS Magnice",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-02",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-02",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-02",
+        "matchTime": "11:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 3,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-03",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 6,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-03",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-03",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 16,
+        "matchDate": "2026-05-03",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-09",
+        "matchTime": "17:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 8,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "regionalnyfutbol",
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-09",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-09",
+        "matchTime": "16:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 2,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-09",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "KP II Kóty Wrocóawskie",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-09",
+        "matchTime": "14:00",
+        "homeTeamName": "KS Magnice",
+        "awayTeamName": "Orzeó Sadowice",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-09",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Sparta Pustków óurawski",
+        "homeScore": 3,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-10",
+        "matchTime": "16:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 2,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-10",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-10",
+        "matchTime": "14:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 0,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-10",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 17,
+        "matchDate": "2026-05-10",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 3,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-16",
+        "matchTime": "15:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-16",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków óurawski",
+        "awayTeamName": "KS Magnice",
+        "homeScore": 3,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-16",
+        "matchTime": "10:00",
+        "homeTeamName": "Orzeó Sadowice",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 3,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-16",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kóty Wrocóawskie",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 9,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-16",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-16",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-17",
+        "matchTime": "15:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-17",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 9,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-17",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 2,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-17",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-17",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 3,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 18,
+        "matchDate": "2026-05-17",
+        "matchTime": "10:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 3,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-23",
+        "matchTime": "17:30",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": 6,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-23",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-23",
+        "matchTime": "18:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 1,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-23",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "KP II Kóty Wrocóawskie",
+        "homeScore": 4,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-23",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Orzeó Sadowice",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-23",
+        "matchTime": "17:30",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "Sparta Pustków óurawski",
+        "homeScore": 6,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-23",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Magnice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-24",
+        "matchTime": "18:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 1,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-24",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": 4,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-24",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 19,
+        "matchDate": "2026-05-24",
+        "matchTime": "11:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-30",
+        "matchTime": "16:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-30",
+        "matchTime": "15:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "KS Magnice",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-30",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 0,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-30",
+        "matchTime": "16:00",
+        "homeTeamName": "Sparta Pustków óurawski",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-30",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeó Sadowice",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 9,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-30",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kóty Wrocóawskie",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 4,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-30",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-31",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 9,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-31",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 4,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-31",
+        "matchTime": "15:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-31",
+        "matchTime": "11:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 3,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 20,
+        "matchDate": "2026-05-31",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 3,
+        "awayScore": 1,
+        "status": "completed",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 21,
+        "matchDate": "2026-06-07",
+        "matchTime": "18:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 21,
+        "matchDate": "2026-06-07",
+        "matchTime": "11:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "KP II Kąty Wrocławskie",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 21,
+        "matchDate": "2026-06-07",
+        "matchTime": "11:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Orzeł Sadowice",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 21,
+        "matchDate": "2026-06-07",
+        "matchTime": "11:00",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 21,
+        "matchDate": "2026-06-07",
+        "matchTime": "17:30",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "MKS Magnice",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 21,
+        "matchDate": "2026-06-07",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Sparta Pustków Żurawski",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 22,
+        "matchDate": "2026-06-14",
+        "matchTime": "11:00",
+        "homeTeamName": "MKS Magnice",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 22,
+        "matchDate": "2026-06-14",
+        "matchTime": "11:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 22,
+        "matchDate": "2026-06-14",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków Żurawski",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 22,
+        "matchDate": "2026-06-14",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeł Sadowice",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 22,
+        "matchDate": "2026-06-14",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kąty Wrocławskie",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 22,
+        "matchDate": "2026-06-14",
+        "matchTime": "11:00",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": null,
+        "awayScore": null,
+        "status": "scheduled",
+        "source": "regionalnyfutbol",
+        "sources": [
+          "regionalnyfutbol"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2026-08-23",
+        "matchTime": "17:00",
+        "homeTeamName": "KP II Kóty Wrocóawskie",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 1,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2026-08-23",
+        "matchTime": "11:00",
+        "homeTeamName": "Orzeó Sadowice",
+        "awayTeamName": "LKS Sadków",
+        "homeScore": 5,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2026-08-23",
+        "matchTime": "11:00",
+        "homeTeamName": "Sparta Pustków óurawski",
+        "awayTeamName": "Wicher Domasław",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2026-08-23",
+        "matchTime": "17:00",
+        "homeTeamName": "Zachód Sobótka",
+        "awayTeamName": "Tarant Krzyżowice",
+        "homeScore": 1,
+        "awayScore": 6,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2026-08-23",
+        "matchTime": "14:00",
+        "homeTeamName": "KS Magnice",
+        "awayTeamName": "KS Piotrowice",
+        "homeScore": 7,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 1,
+        "matchDate": "2026-08-23",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2026-08-30",
+        "matchTime": "14:30",
+        "homeTeamName": "KP II Kobierzyce",
+        "awayTeamName": "GLKS Mietków",
+        "homeScore": 5,
+        "awayScore": 0,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2026-08-30",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Polonia Jaksonów",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2026-08-30",
+        "matchTime": "14:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "KS Magnice",
+        "homeScore": 0,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2026-08-30",
+        "matchTime": "13:00",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 1,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2026-08-30",
+        "matchTime": "14:00",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "Sparta Pustków óurawski",
+        "homeScore": 2,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 2,
+        "matchDate": "2026-08-30",
+        "matchTime": "16:00",
+        "homeTeamName": "KP II Kóty Wrocóawskie",
+        "awayTeamName": "Orzeó Sadowice",
+        "homeScore": 3,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2026-11-08",
+        "matchTime": "11:00",
+        "homeTeamName": "Polonia Jaksonów",
+        "awayTeamName": "KP II Kobierzyce",
+        "homeScore": 7,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2026-11-08",
+        "matchTime": "10:45",
+        "homeTeamName": "GLKS Mietków",
+        "awayTeamName": "KS Magnice",
+        "homeScore": 1,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2026-11-08",
+        "matchTime": "11:00",
+        "homeTeamName": "KS Piotrowice",
+        "awayTeamName": "Zachód Sobótka",
+        "homeScore": 4,
+        "awayScore": 4,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2026-11-08",
+        "matchTime": "14:00",
+        "homeTeamName": "Tarant Krzyżowice",
+        "awayTeamName": "Sparta Pustków óurawski",
+        "homeScore": 2,
+        "awayScore": 2,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2026-11-08",
+        "matchTime": "13:30",
+        "homeTeamName": "Wicher Domasław",
+        "awayTeamName": "Orzeó Sadowice",
+        "homeScore": 2,
+        "awayScore": 5,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      },
+      {
+        "roundNumber": 11,
+        "matchDate": "2026-11-08",
+        "matchTime": "13:30",
+        "homeTeamName": "LKS Sadków",
+        "awayTeamName": "KP II Kóty Wrocóawskie",
+        "homeScore": 6,
+        "awayScore": 3,
+        "status": "completed",
+        "source": "90minut",
+        "sources": [
+          "90minut"
+        ]
+      }
+    ],
+    "glksMietkow": {
+      "position": 11,
+      "teamName": "GLKS Mietków",
+      "played": 20,
+      "points": 14,
+      "won": 4,
+      "drawn": 2,
+      "lost": 14,
+      "goalsFor": 24,
+      "goalsAgainst": 63
+    }
   }
 }
