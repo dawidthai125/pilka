@@ -58,11 +58,12 @@ export const DEFAULT_WEBSITE_COLORS = {
   accent: "#FFFFFF",
 } as const;
 
-/** Blueprint 3.0 — skrócona nawigacja publiczna */
+/** Nawigacja publiczna — zgodna z mockupem landing page */
 export const PUBLIC_NAV_LINKS = [
-  { href: "/mecze", label: "Mecze" },
-  { href: "/#akademia", label: "Akademia" },
   { href: "/aktualnosci", label: "Aktualności" },
+  { href: "/druzyna", label: "Drużyny" },
+  { href: "/#akademia", label: "Akademia" },
+  { href: "/mecze", label: "Mecze" },
   { href: "/galeria", label: "Galeria" },
   { href: "/kontakt", label: "Kontakt" },
 ] as const;

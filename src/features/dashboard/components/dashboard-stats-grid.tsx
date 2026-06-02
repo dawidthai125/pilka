@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-type StatItem = {
+export type StatItem = {
   id: string;
   label: string;
   value: string;
@@ -68,5 +68,3 @@ export function DashboardStatsGrid({
     </section>
   );
 }
-
-export type { StatItem };

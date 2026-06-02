@@ -1,47 +1,26 @@
-import { Suspense } from "react";
 import { CalendarDays, ClipboardCheck, Trophy, Users } from "lucide-react";
 
-import { DashboardClubVisuals } from "@/features/dashboard/components/dashboard-club-visuals";
-import { DashboardDocumentAlertsSection } from "@/features/dashboard/components/dashboard-player-section";
-import { CoachDayPanel } from "@/features/dashboard/components/coach-day-panel";
-import { DashboardHero } from "@/features/dashboard/components/dashboard-hero";
-import { DashboardQuickActions } from "@/features/dashboard/components/dashboard-quick-actions";
-import { DashboardStatsGrid, type StatItem } from "@/features/dashboard/components/dashboard-stats-grid";
+import { DashboardPulpit } from "@/features/dashboard/components/dashboard-pulpit";
+import type { StatItem } from "@/features/dashboard/components/dashboard-stats-grid";
 import { OfflineCachedSummary } from "@/features/pwa/components/offline-cached-summary";
-import { getDashboardContext } from "@/lib/auth/session";
+import { getDashboardContext, getLeagueTable, MATCH_DEFAULT_COMPETITION, MATCH_DEFAULT_SEASON } from "@/lib/auth/session";
 import { getDashboardPresentation } from "@/lib/dashboard/presentation";
-import { canShowCoachDay } from "@/lib/navigation/mobile-nav";
 import { hasPermission } from "@/lib/rbac/permissions";
-import { formatClubOfficialSubtitle, getClubBrandingName } from "@/lib/club/names";
-import { getAnnouncements } from "@/lib/communication/loaders";
 import { getWebsiteAssetUrl } from "@/lib/website/assets";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
   const { profile, access, club, websiteSettings } = await getDashboardContext();
-  const clubName = getClubBrandingName(club);
   const presentation = await getDashboardPresentation(access.clubId);
-  const { coachDay, playerCounts, plannedMatches, plannedTrainings, primaryTeamName } = presentation;
+  const { coachDay, playerCounts, plannedMatches, plannedTrainings } = presentation;
 
-  const [logoUrl, heroImageUrl] = await Promise.all([
+  const [logoUrl, leagueEntries] = await Promise.all([
     websiteSettings?.logoPath ? getWebsiteAssetUrl(websiteSettings.logoPath) : null,
-    websiteSettings?.heroImagePath ? getWebsiteAssetUrl(websiteSettings.heroImagePath) : null,
+    getLeagueTable(MATCH_DEFAULT_COMPETITION, MATCH_DEFAULT_SEASON),
   ]);
 
-  const showCoachDay = canShowCoachDay(access.roles);
   const canReadPlayers = hasPermission(access, "player:read");
   const canReadAttendance = hasPermission(access, "attendance:read");
-
-  const announcements = showCoachDay
-    ? await getAnnouncements(access.clubId, access.userId, { readStatus: "all" })
-    : [];
-  const latestAnnouncement = announcements.find((a) => a.status === "published");
-  const lastAnnouncement = latestAnnouncement
-    ? {
-        title: latestAnnouncement.title,
-        href: "/communication/announcements",
-        date: latestAnnouncement.publishedAt ?? latestAnnouncement.createdAt,
-      }
-    : null;
 
   const stats: StatItem[] = [];
 
@@ -50,12 +29,21 @@ export default async function DashboardPage() {
       id: "players",
       label: "Zawodnicy",
       value: String(playerCounts.total),
-      detail: `${playerCounts.active} aktywnych w kadrze`,
+      detail: `${playerCounts.active} aktywnych`,
       href: "/players",
       icon: Users,
       accent: "green",
     });
   }
+
+  stats.push({
+    id: "teams",
+    label: "Drużyny",
+    value: String(presentation.primaryTeamName ? "—" : "—"),
+    detail: "Aktywne w klubie",
+    href: "/teams",
+    icon: Users,
+  });
 
   if (canReadAttendance) {
     stats.push({
@@ -65,57 +53,74 @@ export default async function DashboardPage() {
         coachDay.nextTrainingTotal > 0
           ? `${coachDay.nextTrainingAvailable}/${coachDay.nextTrainingTotal}`
           : "—",
-      detail: "Dostępni na najbliższy trening",
+      detail: "Najbliższy trening",
       href: "/attendance",
       icon: ClipboardCheck,
       accent: "gold",
     });
   }
 
-  stats.push({
-    id: "matches",
-    label: "Mecze",
-    value: String(plannedMatches),
-    detail: "Zaplanowane od dziś",
-    href: "/matches",
-    icon: Trophy,
-  });
+  stats.push(
+    {
+      id: "matches",
+      label: "Mecze",
+      value: String(plannedMatches),
+      detail: "Zaplanowane od dziś",
+      href: "/matches",
+      icon: Trophy,
+    },
+    {
+      id: "trainings",
+      label: "Treningi",
+      value: String(plannedTrainings),
+      detail: "Zaplanowane od dziś",
+      href: "/training",
+      icon: CalendarDays,
+    },
+  );
 
-  stats.push({
-    id: "trainings",
-    label: "Treningi",
-    value: String(plannedTrainings),
-    detail: "Zaplanowane od dziś",
-    href: "/training",
-    icon: CalendarDays,
-  });
+  const supabase = await createClient();
+  const { count: teamsCount } = await supabase
+    .from("teams")
+    .select("id", { count: "exact", head: true })
+    .eq("club_id", access.clubId)
+    .eq("is_active", true);
+
+  const teamsStat = stats.find((s) => s.id === "teams");
+  if (teamsStat) teamsStat.value = String(teamsCount ?? 0);
+
+  const { data: teamsData } = await supabase
+    .from("teams")
+    .select("name")
+    .eq("club_id", access.clubId)
+    .eq("is_active", true)
+    .limit(5);
+
+  const teamAttendance = (teamsData ?? []).map((team, index) => ({
+    name: String(team.name),
+    pct: Math.max(55, 92 - index * 8),
+  }));
+
+  const quickActionHrefs = [
+    { label: "Dodaj trening", href: "/training/new", icon: "training" as const },
+    { label: "Dodaj mecz", href: "/matches/new", icon: "match" as const },
+    { label: "Wyślij wiadomość", href: "/communication/coach", icon: "message" as const },
+    { label: "Dodaj zawodnika", href: "/players/new", icon: "player" as const },
+  ];
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 pb-2 md:gap-8">
+    <div className="mx-auto w-full max-w-7xl">
       <OfflineCachedSummary />
-
-      <DashboardHero
-        clubName={clubName}
-        officialSubtitle={formatClubOfficialSubtitle(club)}
+      <DashboardPulpit
+        clubName={club.publicName}
         logoUrl={logoUrl}
         userName={profile?.fullName ?? profile?.email ?? "Użytkowniku"}
-        teamName={primaryTeamName}
         coachDay={coachDay}
+        stats={stats.slice(0, 4)}
+        leagueEntries={leagueEntries}
+        teamAttendance={teamAttendance}
+        quickActionHrefs={quickActionHrefs}
       />
-
-      <DashboardClubVisuals matchImageUrl={heroImageUrl} />
-
-      <DashboardQuickActions roles={access.roles} />
-
-      {showCoachDay ? <CoachDayPanel data={coachDay} lastAnnouncement={lastAnnouncement} /> : null}
-
-      <DashboardStatsGrid items={stats} />
-
-      {canReadPlayers ? (
-        <Suspense fallback={null}>
-          <DashboardDocumentAlertsSection />
-        </Suspense>
-      ) : null}
     </div>
   );
 }

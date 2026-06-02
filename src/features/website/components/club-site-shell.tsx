@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ExternalLink, Phone, UserPlus } from "lucide-react";
+import { Mail, MapPin, Phone, User, UserPlus } from "lucide-react";
 
 import { ClubLogo } from "@/components/club/club-logo";
-import { PublicSiteNav } from "@/features/website/components/public-site-nav";
-import { CLUB_DISPLAY_CLASS, WEBSITE_SOCIAL_PLATFORM_LABELS } from "@/lib/website/constants";
+import { PublicClubNav } from "@/features/website/components/public-club-nav";
 import { formatPublicSiteFooter } from "@/config/product";
+import { CLUB_DISPLAY_CLASS, PUBLIC_NAV_LINKS, WEBSITE_SOCIAL_PLATFORM_LABELS } from "@/lib/website/constants";
 import { cn } from "@/lib/utils";
 import type { WebsiteSettings, WebsiteSocialIntegration } from "@/types/website";
 
@@ -18,16 +18,11 @@ type ClubSiteShellProps = {
   children: React.ReactNode;
 };
 
-function formatFacebookLabel(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
-}
-
 export function ClubSiteShell({
   clubName,
   officialName,
   settings,
   logoUrl,
-  coverImageUrl,
   socialLinks = [],
   children,
 }: ClubSiteShellProps) {
@@ -38,111 +33,121 @@ export function ClubSiteShell({
   } as React.CSSProperties;
 
   const activeSocial = socialLinks.filter((item) => item.isEnabled && item.profileUrl);
-  const facebookLink = activeSocial.find((item) => item.platform === "facebook");
-  const hasCoverPhoto = Boolean(coverImageUrl);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f0f2f5]" style={style}>
-      <header className="relative">
-        <div className="relative h-[200px] overflow-hidden sm:h-[220px] md:h-[248px]">
-          {hasCoverPhoto ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={coverImageUrl!} alt="" className="size-full object-cover object-center" />
-          ) : (
-            <div
-              className="size-full bg-gradient-to-br from-[var(--club-primary)] via-[color-mix(in_srgb,var(--club-primary)_88%,#000)] to-[#041810]"
-              aria-hidden
-            />
-          )}
-          <div
-            className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/10"
-            aria-hidden
-          />
-
-          <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-6xl items-end justify-between gap-3 px-4 pb-4 sm:px-6 sm:pb-5">
-            <div className="flex min-w-0 items-end gap-3 sm:gap-4">
-              <ClubLogo
-                logoUrl={logoUrl}
-                clubName={clubName}
-                variant="profile"
-                className="size-[88px] shrink-0 border-[3px] border-white bg-white shadow-lg sm:size-[96px] md:size-[104px]"
-              />
-              <div className="min-w-0 pb-0.5 text-white">
-                <h1
-                  className={cn(
-                    CLUB_DISPLAY_CLASS,
-                    "truncate text-xl font-bold leading-tight drop-shadow-sm sm:text-2xl md:text-[1.75rem]",
-                  )}
+    <div className="flex min-h-screen flex-col bg-[#f4f4f2]" style={style}>
+      <header className="sticky top-0 z-50 shadow-md">
+        {/* Pasek social */}
+        {activeSocial.length > 0 ? (
+          <div className="bg-[#041810] px-4 py-1.5 text-xs text-white/70 sm:px-6">
+            <div className="mx-auto flex max-w-6xl justify-end gap-3">
+              {activeSocial.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.profileUrl!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold hover:text-[var(--club-secondary)]"
                 >
-                  {clubName}
-                </h1>
-                <p className="mt-0.5 truncate text-sm text-white/95 sm:text-base">{officialName}</p>
-                <div className="mt-2 flex flex-col gap-1 text-xs text-white/90 sm:flex-row sm:flex-wrap sm:gap-x-4">
-                  {settings.contactPhone ? (
-                    <a
-                      href={`tel:${settings.contactPhone.replace(/\s/g, "")}`}
-                      className="inline-flex items-center gap-1.5 hover:underline"
-                    >
-                      <Phone className="size-3.5 shrink-0" />
-                      {settings.contactPhone}
-                    </a>
-                  ) : null}
-                  {facebookLink?.profileUrl ? (
-                    <a
-                      href={facebookLink.profileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 hover:underline"
-                    >
-                      <ExternalLink className="size-3.5 shrink-0" />
-                      {formatFacebookLabel(facebookLink.profileUrl)}
-                    </a>
-                  ) : null}
-                </div>
-              </div>
+                  {WEBSITE_SOCIAL_PLATFORM_LABELS[item.platform]}
+                </a>
+              ))}
             </div>
-
-            <Link
-              href="/#akademia"
-              className="mb-0.5 inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--club-secondary)] px-4 text-sm font-bold text-[var(--club-primary)] shadow-md hover:brightness-105 sm:min-h-11 sm:px-5"
-            >
-              <UserPlus className="size-4" />
-              <span className="hidden sm:inline">Zapisz dziecko</span>
-              <span className="sm:hidden">Zapisz</span>
-            </Link>
           </div>
+        ) : null}
+
+        {/* Nawigacja główna */}
+        <div className="bg-[var(--club-primary)]">
+          <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
+            <Link href="/" className="flex shrink-0 items-center gap-3">
+              <ClubLogo logoUrl={logoUrl} clubName={clubName} size="md" onDark className="size-11 sm:size-12" />
+              <span className={cn(CLUB_DISPLAY_CLASS, "hidden text-lg font-bold text-white sm:inline")}>{clubName}</span>
+            </Link>
+
+            <PublicClubNav variant="desktop" />
+
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <Link
+                href="/#akademia"
+                className="hidden min-h-10 items-center gap-1.5 rounded-lg bg-[var(--club-secondary)] px-4 text-xs font-bold uppercase tracking-wide text-[var(--club-primary)] hover:brightness-105 sm:inline-flex"
+              >
+                <UserPlus className="size-4" />
+                Zapisz dziecko
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-white/25 px-3 text-xs font-semibold text-white hover:bg-white/10"
+              >
+                <User className="size-4" />
+                <span className="hidden sm:inline">Panel klubu</span>
+              </Link>
+            </div>
+          </div>
+
+          <PublicClubNav variant="mobile" />
         </div>
       </header>
 
-      <PublicSiteNav />
-
       <main id="main-content" className="flex-1">{children}</main>
 
-      <footer className="mt-6 border-t border-black/5 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className={cn(CLUB_DISPLAY_CLASS, "font-bold text-[var(--club-primary)]")}>{clubName}</p>
-              <p className="text-sm text-muted-foreground">{officialName}</p>
-            </div>
-            {activeSocial.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {activeSocial.map((item) => (
-                  <a
-                    key={item.id}
-                    href={item.profileUrl!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full border px-3 py-1.5 text-xs font-semibold text-[var(--club-primary)] hover:bg-[var(--club-primary)] hover:text-white"
-                  >
-                    {WEBSITE_SOCIAL_PLATFORM_LABELS[item.platform]}
+      {/* Footer */}
+      <footer className={cn(CLUB_DISPLAY_CLASS, "bg-[#041810] text-white")}>
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+          <div className="lg:col-span-1">
+            <ClubLogo logoUrl={logoUrl} clubName={clubName} size="lg" onDark className="mb-3" />
+            <p className="font-bold">{clubName}</p>
+            <p className="text-sm text-white/70">{officialName}</p>
+          </div>
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[var(--club-secondary)]">Kontakt</p>
+            <ul className="space-y-2 text-sm text-white/80">
+              {settings.contactPhone ? (
+                <li>
+                  <a href={`tel:${settings.contactPhone.replace(/\s/g, "")}`} className="flex items-center gap-2 hover:text-white">
+                    <Phone className="size-4 shrink-0 text-[var(--club-secondary)]" />
+                    {settings.contactPhone}
                   </a>
-                ))}
-              </div>
-            ) : null}
+                </li>
+              ) : null}
+              {settings.contactEmail ? (
+                <li>
+                  <a href={`mailto:${settings.contactEmail}`} className="flex items-center gap-2 hover:text-white">
+                    <Mail className="size-4 shrink-0 text-[var(--club-secondary)]" />
+                    {settings.contactEmail}
+                  </a>
+                </li>
+              ) : null}
+              {settings.contactAddress ? (
+                <li className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-[var(--club-secondary)]" />
+                  {settings.contactAddress}
+                </li>
+              ) : null}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[var(--club-secondary)]">Strona</p>
+            <ul className="space-y-1.5 text-sm text-white/80">
+              {PUBLIC_NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:text-[var(--club-secondary)]">
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[var(--club-secondary)]">Klub</p>
+            <ul className="space-y-1.5 text-sm text-white/80">
+              <li><Link href="/druzyna" className="hover:text-[var(--club-secondary)]">Drużyny</Link></li>
+              <li><Link href="/mecze" className="hover:text-[var(--club-secondary)]">Terminarz</Link></li>
+              <li><Link href="/tabela" className="hover:text-[var(--club-secondary)]">Tabela</Link></li>
+              <li><Link href="/login" className="hover:text-[var(--club-secondary)]">Panel klubowy</Link></li>
+            </ul>
           </div>
         </div>
-        <div className="border-t py-3 text-center text-[11px] text-muted-foreground">
+        <div className="border-t border-white/10 py-4 text-center text-[11px] text-white/45">
           {formatPublicSiteFooter(clubName)}
         </div>
       </footer>

@@ -2,8 +2,25 @@ import Link from "next/link";
 
 import { ClubLogo } from "@/components/club/club-logo";
 import { ClubThemeStyles } from "@/components/club/club-theme-styles";
-import { formatProductAttribution } from "@/config/product";
+import { formatProductAttribution, productConfig } from "@/config/product";
 import { getAuthClubBranding } from "@/lib/club/branding-loader";
+
+function LightningBackdrop() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <svg
+        viewBox="0 0 200 280"
+        className="absolute left-1/2 top-8 size-[min(420px,90vw)] -translate-x-1/2 opacity-[0.12]"
+        fill="none"
+      >
+        <path
+          d="M110 8 L148 108 L198 108 L158 168 L178 268 L98 188 L38 268 L58 168 L18 108 L68 108 Z"
+          fill="white"
+        />
+      </svg>
+    </div>
+  );
+}
 
 export default async function AuthLayout({
   children,
@@ -15,45 +32,29 @@ export default async function AuthLayout({
   return (
     <>
       <ClubThemeStyles theme={branding.theme} />
-      <div className="flex min-h-screen">
-        <aside className="relative hidden max-w-md flex-col justify-between bg-[var(--club-primary)] p-10 text-[var(--club-accent)] lg:flex xl:max-w-lg">
-          <div>
-            <div className="flex items-center gap-4">
-              <ClubLogo logoUrl={branding.logoUrl} clubName={branding.clubName} size="xl" onDark />
-              <div>
-                <p className="text-sm font-medium uppercase tracking-wide text-white/70">Panel klubowy</p>
-                <h1 className="text-2xl font-bold leading-tight">{branding.panelTitle}</h1>
-              </div>
-            </div>
-            {branding.officialName && branding.officialName !== branding.clubName ? (
-              <p className="mt-6 text-sm text-white/80">{branding.officialName}</p>
-            ) : null}
-            <p className="mt-8 max-w-sm text-sm leading-relaxed text-white/75">
-              Zarządzaj treningami, frekwencją, komunikacją i codzienną pracą klubu w jednym miejscu.
+      <div className="relative flex min-h-screen flex-col items-center justify-center bg-[var(--club-primary,#0B3D2E)] px-4 py-10">
+        <LightningBackdrop />
+
+        <div className="relative w-full max-w-md">
+          <div className="mb-8 text-center text-white">
+            <ClubLogo logoUrl={branding.logoUrl} clubName={branding.clubName} size="xl" onDark className="mx-auto" />
+            <p className="mt-4 text-sm font-semibold uppercase tracking-[0.15em] text-white/70">
+              {productConfig.name}
             </p>
+            <h1 className="mt-1 text-xl font-bold">Panel klubowy</h1>
+            <p className="mt-1 text-sm text-white/75">{branding.panelTitle}</p>
           </div>
-          <p className="text-xs text-white/50">
+
+          <div className="rounded-2xl border border-white/10 bg-[#041810]/80 p-6 shadow-2xl backdrop-blur-sm sm:p-8">
+            {children}
+          </div>
+
+          <p className="mt-6 text-center text-xs text-white/50">
             <Link href="/" className="underline underline-offset-2 hover:text-white/80">
               Wróć na stronę klubu
             </Link>
-            <span className="mt-3 block text-white/40">{formatProductAttribution()}</span>
           </p>
-        </aside>
-
-        <div className="flex flex-1 flex-col bg-background">
-          <div className="border-b border-sidebar-border/30 bg-[var(--club-primary)] px-6 py-5 text-[var(--club-accent)] lg:hidden">
-            <div className="mx-auto flex max-w-md items-center gap-3">
-              <ClubLogo logoUrl={branding.logoUrl} clubName={branding.clubName} size="md" onDark />
-              <div className="min-w-0">
-                <p className="truncate text-xs uppercase tracking-wide text-white/70">Panel klubowy</p>
-                <p className="truncate font-semibold">{branding.panelTitle}</p>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-1 flex-col items-center justify-center px-6 py-8">
-            <div className="w-full max-w-md">{children}</div>
-            <p className="mt-8 text-center text-[11px] text-muted-foreground">{formatProductAttribution()}</p>
-          </div>
+          <p className="mt-3 text-center text-[11px] text-white/40">{formatProductAttribution()}</p>
         </div>
       </div>
     </>

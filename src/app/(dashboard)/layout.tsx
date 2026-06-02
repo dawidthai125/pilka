@@ -1,4 +1,3 @@
-import { CLUB_DASHBOARD_COVER } from "@/lib/website/constants";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { DashboardNav } from "@/components/layout/dashboard-nav";
 import { ClubLogo } from "@/components/club/club-logo";
@@ -51,15 +50,7 @@ export default async function DashboardLayout({
           </div>
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="relative h-24 overflow-hidden border-b print:hidden sm:h-28">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={CLUB_DASHBOARD_COVER} alt="" className="size-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[var(--club-primary)]/90 to-[var(--club-primary)]/55" />
-            <div className="absolute inset-0 flex items-end px-4 pb-3 sm:px-6">
-              <p className="text-sm font-semibold text-white sm:text-base">Panel {clubName}</p>
-            </div>
-          </div>
+        <div className="flex min-w-0 flex-1 flex-col bg-[#f4f4f2]">
           <div className="print:hidden">
             <DashboardHeader
               profile={profile}
