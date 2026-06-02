@@ -120,3 +120,7 @@ Aktualizuje `hero_subtitle` klubu demo na: *„Od Skrzata do Seniora — jedna r
 **Nie wdrożono w tym kroku** — wymaga commit + push + migracja SQL na produkcji.
 
 Po deploy sprawdzić: https://pilka-mu.vercel.app — sekcja Matchday, rotator hero, kolejność Akademia przed Drużynami.
+
+---
+
+*Football Club OS · Dawid Thai Thanh*

@@ -10,7 +10,7 @@ export default async function ClubPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Profil klubu</h1>
         <p className="text-sm text-muted-foreground">
-          Dane klubu {getClubBrandingName(club)} w systemie Football Club OS.
+          Dane klubu {getClubBrandingName(club)} w systemie Football Club OS · Dawid Thai Thanh.
         </p>
       </div>
       <ClubProfileForm club={club} roles={access.roles} />

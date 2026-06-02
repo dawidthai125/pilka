@@ -2,6 +2,8 @@
 
 Nowoczesny system operacyjny do zarządzania klubami piłkarskimi (SaaS Multi-Tenant).
 
+**Produkt:** Football Club OS (FC OS) · **Autor:** Dawid Thai Thanh
+
 ## Stack
 
 - Next.js 15 (App Router)

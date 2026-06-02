@@ -1,5 +1,7 @@
 # Football Club OS
 
+**Autor systemu:** Dawid Thai Thanh
+
 ## Cel projektu
 
 Stworzenie nowoczesnego systemu do zarządzania klubami piłkarskimi od B Klasy do poziomu półprofesjonalnego.
@@ -13,7 +15,7 @@ System ma wspierać:
 - Sponsorów
 - Kibiców
 
-Docelowo ma być to kompleksowy system operacyjny klubu piłkarskiego wykorzystujący sztuczną inteligencję do automatyzacji codziennych zadań.
+Docelowo ma być to kompleksowy system operacyjny klubu piłkarskiego wspierający automatyzację codziennych zadań klubu.
 
 ## Technologia
 
@@ -40,7 +42,7 @@ Przechowywanie plików:
 Realtime:
 - Supabase Realtime
 
-AI:
+Integracje asystenta klubu:
 - OpenAI API
 
 Hosting:
@@ -51,7 +53,7 @@ Hosting:
 
 - Core: klub, zespoły, członkowie, ustawienia
 - Zawodnicy, treningi, mecze
-- AI Assistant + AI Club Manager (agent)
+- Asystent klubu + Agent operacyjny klubu
 - PWA (offline, push, sync)
 - Sponsorzy, finanse, magazyn
 - Strona publiczna (CMS)

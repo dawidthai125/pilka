@@ -575,4 +575,4 @@ Projekty większego zakresu (osobne iteracje po pilocie UX):
 
 ---
 
-*Raport przygotowany na podstawie analizy kodu źródłowego FC OS 15.10A. Bez zmian w repozytorium.*
+*Football Club OS · Dawid Thai Thanh*

@@ -564,4 +564,4 @@ _________________________________
 
 ---
 
-*Dokument przygotowany na start pilota użytkowników FC OS 15.10A. Bez implementacji zmian w kodzie.*
+*Football Club OS · Dawid Thai Thanh*

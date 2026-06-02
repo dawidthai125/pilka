@@ -1,4 +1,4 @@
-# Dokumentacja — Football Club OS
+# Dokumentacja — Football Club OS · Dawid Thai Thanh
 
 ## Spis treści
 

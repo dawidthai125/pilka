@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ClubLogo } from "@/components/club/club-logo";
 import { ClubThemeStyles } from "@/components/club/club-theme-styles";
+import { formatProductAttribution } from "@/config/product";
 import { getAuthClubBranding } from "@/lib/club/branding-loader";
 
 export default async function AuthLayout({
@@ -35,6 +36,7 @@ export default async function AuthLayout({
             <Link href="/" className="underline underline-offset-2 hover:text-white/80">
               Wróć na stronę klubu
             </Link>
+            <span className="mt-3 block text-white/40">{formatProductAttribution()}</span>
           </p>
         </aside>
 
@@ -48,8 +50,9 @@ export default async function AuthLayout({
               </div>
             </div>
           </div>
-          <div className="flex flex-1 items-center justify-center px-6 py-8">
+          <div className="flex flex-1 flex-col items-center justify-center px-6 py-8">
             <div className="w-full max-w-md">{children}</div>
+            <p className="mt-8 text-center text-[11px] text-muted-foreground">{formatProductAttribution()}</p>
           </div>
         </div>
       </div>

@@ -54,3 +54,7 @@ Te elementy nie blokują zgodności **układu** — wymagają uploadu mediów CM
 ## Werdykt
 
 **Układ ≥ 90% zgodny z mockupem → commit + deploy dozwolony.**
+
+---
+
+*Football Club OS · Dawid Thai Thanh*

@@ -8,6 +8,7 @@ import {
   CLUB_DISPLAY_CLASS,
   WEBSITE_SOCIAL_PLATFORM_LABELS,
 } from "@/lib/website/constants";
+import { formatPublicSiteFooter } from "@/config/product";
 import { cn } from "@/lib/utils";
 import type { WebsiteSettings, WebsiteSocialIntegration } from "@/types/website";
 
@@ -124,7 +125,7 @@ export function ClubSiteShell({
           </div>
         </div>
         <div className="border-t py-3 text-center text-[11px] text-muted-foreground">
-          © {new Date().getFullYear()} {clubName} · Football Club OS
+          {formatPublicSiteFooter(clubName)}
         </div>
       </footer>
     </div>

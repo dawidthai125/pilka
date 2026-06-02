@@ -316,4 +316,4 @@ Dopóki www nie pokaże **tych samych twarzy i boiska** co FB — właściciel s
 
 ---
 
-*Dokument przygotowany bez implementacji. Następny krok: PUBLIC WEBSITE 4.0 VISUAL CONCEPT.*
+*Football Club OS · Dawid Thai Thanh*
