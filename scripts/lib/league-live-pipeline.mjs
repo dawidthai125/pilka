@@ -399,6 +399,80 @@ function matchClubPlayer(leaguePlayerName, clubPlayers) {
 
 const DEMO_REGISTRY_NAMES = ["Kowalski J.", "Nowak P."];
 
+async function syncPlayerSeasonStats(supabase, { clubId, seasonId }) {
+  const { data: season } = await supabase
+    .from("league_seasons")
+    .select("name")
+    .eq("id", seasonId)
+    .maybeSingle();
+  const seasonName = String(season?.name ?? "2025/2026");
+
+  const { data: registry } = await supabase
+    .from("league_player_registry")
+    .select("player_id, notes")
+    .eq("club_id", clubId)
+    .not("player_id", "is", null);
+
+  let updated = 0;
+  let failed = 0;
+
+  for (const row of registry ?? []) {
+    const playerId = String(row.player_id);
+    let leagueStats = { appearances: 0, goals: 0, assists: 0, yellowCards: 0, redCards: 0, minutes: 0 };
+    try {
+      const parsed = JSON.parse(String(row.notes ?? "{}"));
+      if (parsed.stats && typeof parsed.stats === "object") {
+        leagueStats = { ...leagueStats, ...parsed.stats };
+      }
+    } catch {
+      // ignore invalid notes JSON
+    }
+
+    const { data: matchRows } = await supabase
+      .from("match_player_stats")
+      .select("goals, assists, minutes_played, yellow_cards, red_cards, match:matches!inner(season, status)")
+      .eq("club_id", clubId)
+      .eq("player_id", playerId)
+      .eq("match.season", seasonName)
+      .eq("match.status", "completed");
+
+    let mGoals = 0;
+    let mAssists = 0;
+    let mMinutes = 0;
+    let mYellow = 0;
+    let mRed = 0;
+    let mMatches = 0;
+    for (const ms of matchRows ?? []) {
+      mGoals += Number(ms.goals ?? 0);
+      mAssists += Number(ms.assists ?? 0);
+      mMinutes += Number(ms.minutes_played ?? 0);
+      mYellow += Number(ms.yellow_cards ?? 0);
+      mRed += Number(ms.red_cards ?? 0);
+      mMatches += 1;
+    }
+
+    const { error } = await supabase.from("player_stats").upsert(
+      {
+        club_id: clubId,
+        player_id: playerId,
+        season: seasonName,
+        matches_played: Math.max(Number(leagueStats.appearances ?? 0), mMatches),
+        goals: Math.max(Number(leagueStats.goals ?? 0), mGoals),
+        assists: Math.max(Number(leagueStats.assists ?? 0), mAssists),
+        yellow_cards: Math.max(Number(leagueStats.yellowCards ?? 0), mYellow),
+        red_cards: Math.max(Number(leagueStats.redCards ?? 0), mRed),
+        minutes_played: Math.max(Number(leagueStats.minutes ?? 0), mMinutes),
+      },
+      { onConflict: "player_id,season" },
+    );
+
+    if (error) failed += 1;
+    else updated += 1;
+  }
+
+  return { updated, failed, seasonName };
+}
+
 async function syncSquadToPlayersModule(supabase, { jobId, squadData, competitionId, seasonId }) {
   const { clubId } = LEAGUE_CONFIG;
 
@@ -495,14 +569,16 @@ async function syncSquadToPlayersModule(supabase, { jobId, squadData, competitio
     .eq("season_id", seasonId)
     .in("league_player_name", DEMO_REGISTRY_NAMES);
 
+  const statsSync = await syncPlayerSeasonStats(supabase, { clubId, seasonId });
+
   await supabase.from("league_sync_logs").insert({
     club_id: clubId,
     job_id: jobId,
     level: failed ? "warn" : "info",
-    message: `Kadra FC OS: ${created} nowych zawodników, ${linked} powiązań, ${deactivated} demo ustawionych jako nieaktywni.`,
+    message: `Kadra FC OS: ${created} nowych zawodników, ${linked} powiązań, ${deactivated} demo nieaktywnych, statystyki: ${statsSync.updated}.`,
   });
 
-  return { created, linked, deactivated, failed };
+  return { created, linked, deactivated, failed, statsSync };
 }
 
 export async function syncSquadToRegistry(supabase, { jobId, squadData }) {

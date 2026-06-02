@@ -140,7 +140,7 @@ export function ClubSiteShell({
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[var(--club-secondary)]">Klub</p>
             <ul className="space-y-1.5 text-sm text-white/80">
-              <li><Link href="/druzyna" className="hover:text-[var(--club-secondary)]">Drużyny</Link></li>
+              <li><Link href="/druzyna" className="hover:text-[var(--club-secondary)]">Kadra</Link></li>
               <li><Link href="/mecze" className="hover:text-[var(--club-secondary)]">Terminarz</Link></li>
               <li><Link href="/tabela" className="hover:text-[var(--club-secondary)]">Tabela</Link></li>
               <li><Link href="/login" className="hover:text-[var(--club-secondary)]">Panel klubowy</Link></li>

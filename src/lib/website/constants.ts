@@ -61,7 +61,7 @@ export const DEFAULT_WEBSITE_COLORS = {
 /** Nawigacja publiczna — zgodna z mockupem landing page */
 export const PUBLIC_NAV_LINKS = [
   { href: "/aktualnosci", label: "Aktualności" },
-  { href: "/druzyna", label: "Drużyny" },
+  { href: "/druzyna", label: "Kadra" },
   { href: "/#akademia", label: "Akademia" },
   { href: "/mecze", label: "Mecze" },
   { href: "/galeria", label: "Galeria" },

@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
 
 import { PublicPageShell } from "@/features/website/components/public-page-shell";
+import { PLAYER_POSITION_LABELS } from "@/lib/players/constants";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
 import { getPublicPlayers } from "@/lib/website/public-data";
+import type { PlayerPosition } from "@/types/players";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildPublicPageMetadata("Drużyna", "/druzyna");
+  return buildPublicPageMetadata("Kadra", "/druzyna");
+}
+
+function formatPosition(position: string | null | undefined) {
+  if (!position) return "—";
+  return PLAYER_POSITION_LABELS[position as PlayerPosition] ?? position;
 }
 
 export default async function TeamPublicPage() {
@@ -32,7 +39,7 @@ export default async function TeamPublicPage() {
                 <td className="px-4 py-3">
                   {p.firstName} {p.lastName}
                 </td>
-                <td className="px-4 py-3 capitalize">{p.position ?? "—"}</td>
+                <td className="px-4 py-3">{formatPosition(p.position)}</td>
                 <td className="px-4 py-3">{p.matchesPlayed}</td>
                 <td className="px-4 py-3">{p.goals}</td>
                 <td className="px-4 py-3">{p.assists}</td>

@@ -97,7 +97,7 @@ Oficjalna nazwa ligowa: GLKS Mietków → wyświetlanie: Piorun Wawrzeńczyce.
   if (result.squadSync.playersSync) {
     const ps = result.squadSync.playersSync;
     console.log(
-      `Zawodnicy FC OS: ${ps.created} utworzonych, ${ps.linked} powiązanych, ${ps.deactivated} demo nieaktywnych`,
+      `Zawodnicy FC OS: ${ps.created} utworzonych, ${ps.linked} powiązanych, ${ps.deactivated} demo nieaktywnych, statystyki: ${ps.statsSync?.updated ?? 0}`,
     );
   }
   console.log(`Job ID: ${result.jobId}`);
