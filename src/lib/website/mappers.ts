@@ -3,6 +3,8 @@ import type {
   PublicMatchSummary,
   PublicPlayer,
   PublicSponsor,
+  PublicTeamCard,
+  PublicClubStats,
   WebsiteGalleryAlbum,
   WebsiteGalleryPhoto,
   WebsiteNews,
@@ -158,6 +160,28 @@ export function mapPublicSponsorFromRpc(row: Record<string, unknown>): PublicSpo
     website: row.website ? String(row.website) : null,
     publicTier: row.publicTier as PublicSponsor["publicTier"],
     publicDescription: row.publicDescription ? String(row.publicDescription) : null,
+  };
+}
+
+export function mapPublicTeamFromRpc(row: Record<string, unknown>): PublicTeamCard {
+  return {
+    id: String(row.id),
+    name: String(row.name ?? ""),
+    category: String(row.category ?? ""),
+    season: row.season ? String(row.season) : null,
+    playersCount: Number(row.playersCount ?? 0),
+    coachName: row.coachName ? String(row.coachName) : null,
+    description: row.description ? String(row.description) : null,
+    ageGroup: row.ageGroup ? String(row.ageGroup) : null,
+  };
+}
+
+export function mapPublicClubStats(row: Record<string, unknown>): PublicClubStats {
+  return {
+    playersCount: Number(row.playersCount ?? 0),
+    teamsCount: Number(row.teamsCount ?? 0),
+    matchesPlayed: Number(row.matchesPlayed ?? 0),
+    yearsActive: Number(row.yearsActive ?? 1),
   };
 }
 

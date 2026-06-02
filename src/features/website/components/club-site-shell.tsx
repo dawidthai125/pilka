@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ClubLogo } from "@/components/club/club-logo";
 import { buttonVariants } from "@/components/ui/button";
 import { PUBLIC_NAV_LINKS } from "@/lib/website/constants";
 import { cn } from "@/lib/utils";
@@ -31,20 +32,7 @@ export function ClubSiteShell({
       <header className="sticky top-0 z-40 border-b bg-[var(--club-primary)] text-[var(--club-accent)] shadow-md">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link href="/" className="flex min-w-0 items-center gap-3">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={logoUrl}
-                alt={clubName}
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : (
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--club-secondary)] text-sm font-bold text-[var(--club-primary)]">
-                PW
-              </span>
-            )}
+            <ClubLogo logoUrl={logoUrl} clubName={clubName} size="md" onDark />
             <div className="min-w-0">
               <p className="truncate font-semibold leading-tight">{clubName}</p>
               <p className="truncate text-xs opacity-80">{officialName}</p>

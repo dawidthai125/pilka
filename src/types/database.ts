@@ -2881,6 +2881,14 @@ export type Database = {
         Args: { p_club_slug: string };
         Returns: Json;
       };
+      get_public_teams: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
+      get_public_club_stats: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
       get_public_players: {
         Args: { p_club_slug: string };
         Returns: Json;

@@ -12,6 +12,8 @@ import type {
   PublicPlayer,
   PublicSponsor,
   PublicTeamStats,
+  PublicTeamCard,
+  PublicClubStats,
   PublicWebsiteHome,
   WebsiteGalleryAlbum,
   WebsiteGalleryPhoto,
@@ -24,6 +26,8 @@ import {
   mapPublicMatch,
   mapPublicPlayerFromRpc,
   mapPublicSponsorFromRpc,
+  mapPublicTeamFromRpc,
+  mapPublicClubStats,
   mapWebsiteGalleryAlbum,
   mapWebsiteGalleryPhoto,
   mapWebsiteNews,
@@ -342,6 +346,70 @@ export const getPublicTeamStats = cache(
       goals: Number(row.goals ?? 0),
       assists: Number(row.assists ?? 0),
       matchesPlayed: Number(row.matchesPlayed ?? 0),
+    };
+  },
+);
+
+export const getPublicTeams = cache(
+  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicTeamCard[]> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_public_teams", { p_club_slug: slug });
+
+    if (!error && Array.isArray(data)) {
+      return data.map((row) => mapPublicTeamFromRpc(row as Record<string, unknown>));
+    }
+
+    const clubId = await getPublicClubId(slug);
+    const { data: teams } = await supabase
+      .from("teams")
+      .select("id, name, category, season")
+      .eq("club_id", clubId)
+      .eq("is_active", true)
+      .order("name");
+
+    return (teams ?? []).map((row) =>
+      mapPublicTeamFromRpc({
+        id: row.id,
+        name: row.name,
+        category: row.category,
+        season: row.season,
+        playersCount: 0,
+        coachName: null,
+        description: null,
+        ageGroup: null,
+      }),
+    );
+  },
+);
+
+export const getPublicClubStats = cache(
+  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicClubStats | null> => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_public_club_stats", { p_club_slug: slug });
+    if (!error && data && typeof data === "object") {
+      return mapPublicClubStats(data as Record<string, unknown>);
+    }
+
+    const clubId = await getPublicClubId(slug);
+    const [teamsRes, matchesRes, stats] = await Promise.all([
+      supabase
+        .from("teams")
+        .select("id", { count: "exact", head: true })
+        .eq("club_id", clubId)
+        .eq("is_active", true),
+      supabase
+        .from("matches")
+        .select("id", { count: "exact", head: true })
+        .eq("club_id", clubId)
+        .eq("status", "completed"),
+      getPublicTeamStats(slug),
+    ]);
+
+    return {
+      playersCount: stats?.playersCount ?? 0,
+      teamsCount: teamsRes.count ?? 0,
+      matchesPlayed: matchesRes.count ?? 0,
+      yearsActive: 1,
     };
   },
 );

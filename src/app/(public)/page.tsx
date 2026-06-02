@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 
 import {
-  ClubHeroSection,
-  GalleryPreviewSection,
-  MatchHighlightCard,
-  NewsCardsSection,
-  PublicLeagueTableSection,
-  SponsorsStrip,
-  TeamStatsSection,
+  PublicAcademySection,
+  PublicClubStatsSection,
+  PublicGallerySection,
+  PublicHeroSection,
+  PublicMatchCenterSection,
+  PublicNewsSection,
+  PublicSponsorsSection,
+  PublicTeamsSection,
   loadClubHomepageData,
 } from "@/features/website/components/club-site-page";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
@@ -17,37 +18,40 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ClubHomePage() {
-  const { home, news, league, sponsors, stats, albums, heroImageUrl } = await loadClubHomepageData();
+  const { home, news, league, sponsors, teams, clubStats, galleryItems, heroImageUrl, logoUrl } =
+    await loadClubHomepageData();
   if (!home) return null;
 
   return (
     <>
-      <ClubHeroSection
+      <PublicHeroSection
+        clubName={home.club.publicName}
+        logoUrl={logoUrl}
         title={home.settings.heroTitle ?? home.club.publicName}
         subtitle={home.settings.heroSubtitle}
         heroImageUrl={heroImageUrl}
+        teams={teams}
+        nextMatch={home.nextMatch}
       />
 
-      <section className="mx-auto grid max-w-6xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-2">
-        <MatchHighlightCard label="Najbliższy mecz" match={home.nextMatch} href="/mecze" />
-        <MatchHighlightCard label="Ostatni wynik" match={home.lastResult} href="/mecze" />
-      </section>
+      <PublicMatchCenterSection
+        nextMatch={home.nextMatch}
+        lastResult={home.lastResult}
+        leagueEntries={league.entries}
+        ownTeamName={league.ownTeamName}
+      />
 
-      <NewsCardsSection news={news} />
-      <SponsorsStrip sponsors={sponsors} />
-      <PublicLeagueTableSection entries={league.entries} ownTeamName={league.ownTeamName} limit={8} />
-      <TeamStatsSection stats={stats} />
-      <GalleryPreviewSection albums={albums.map((a) => ({ slug: a.slug, title: a.title, category: a.category }))} />
+      <PublicTeamsSection teams={teams} />
 
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <div className="rounded-xl border bg-card p-8 text-center">
-          <h2 className="text-xl font-bold">Kadra drużyny</h2>
-          <p className="mt-2 text-muted-foreground">Poznaj zawodników, numery i statystyki sezonu.</p>
-          <a href="/druzyna" className="mt-4 inline-flex min-h-[44px] items-center rounded-md bg-[var(--club-primary)] px-5 text-sm font-semibold text-[var(--club-accent)]">
-            Zobacz skład
-          </a>
-        </div>
-      </section>
+      <PublicAcademySection teams={teams} />
+
+      <PublicGallerySection items={galleryItems} />
+
+      <PublicNewsSection news={news} />
+
+      <PublicSponsorsSection sponsors={sponsors} />
+
+      <PublicClubStatsSection stats={clubStats} />
     </>
   );
 }

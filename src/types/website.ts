@@ -169,3 +169,32 @@ export type PublicTeamStats = {
   assists: number;
   matchesPlayed: number;
 };
+
+export type PublicTeamCard = {
+  id: string;
+  name: string;
+  category: string;
+  season: string | null;
+  playersCount: number;
+  coachName: string | null;
+  description: string | null;
+  ageGroup: string | null;
+};
+
+export type PublicClubStats = {
+  playersCount: number;
+  teamsCount: number;
+  matchesPlayed: number;
+  yearsActive: number;
+};
+
+export type PublicGalleryPreviewItem = {
+  slug: string;
+  title: string;
+  category: WebsiteGalleryCategory;
+  coverImageUrl: string | null;
+};
+
+export type PublicNewsPreviewItem = WebsiteNews & {
+  featuredImageUrl: string | null;
+};
