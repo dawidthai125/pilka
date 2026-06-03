@@ -32,6 +32,14 @@ export const LEAGUE_MATCH_SYNC_STATUS_LABELS: Record<string, string> = {
   skipped: "Pominięto",
 };
 
+export const LEAGUE_PLAYER_MATCH_STATUS_LABELS: Record<string, string> = {
+  unmatched: "Bez dopasowania",
+  suggested: "Sugestia",
+  auto_linked: "Auto (≥95%)",
+  confirmed: "Zatwierdzone",
+  rejected: "Odrzucone",
+};
+
 export const LEAGUE_NAV = [
   { href: "/league", label: "Dashboard" },
   { href: "/league/table", label: "Tabela" },

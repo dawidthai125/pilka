@@ -8,6 +8,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stableFixtureExternalId } from "./league-import-parsers.mjs";
 import { LEAGUE_CONFIG, normalizeTeamName } from "./league-live-sources.mjs";
+import { buildMatchFields, isLockedMatchStatus, matchClubPlayer } from "./league-player-matching.mjs";
 import {
   buildSeasonStatsNotes,
   normalizeName,
@@ -641,20 +642,6 @@ export async function syncMatchesToModule(supabase, jobId) {
   return { processed, failed };
 }
 
-function matchClubPlayer(leaguePlayerName, clubPlayers) {
-  const { lastName, firstName } = parseLeaguePlayerName(leaguePlayerName);
-  const lastKey = normalizeName(lastName);
-  const firstKey = normalizeName(firstName);
-  if (!lastKey || !firstKey) return null;
-
-  const candidates = (clubPlayers ?? []).filter(
-    (p) =>
-      normalizeName(p.last_name) === lastKey && !String(p.email ?? "").endsWith("@piorun.test"),
-  );
-  const exact = candidates.filter((p) => normalizeName(p.first_name) === firstKey);
-  return exact.length === 1 ? String(exact[0].id) : null;
-}
-
 const DEMO_REGISTRY_NAMES = ["Kowalski J.", "Nowak P."];
 
 async function syncPlayerSeasonStats(supabase, { clubId, seasonId }) {
@@ -848,11 +835,11 @@ export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
   const [{ data: existing }, { data: clubPlayers }] = await Promise.all([
     supabase
       .from("league_player_registry")
-      .select("id, league_player_name, player_id")
+      .select("id, league_player_name, player_id, match_status, suggested_player_id, match_confidence")
       .eq("club_id", clubId)
       .eq("competition_id", competitionId)
       .eq("season_id", seasonId),
-    supabase.from("players").select("id, first_name, last_name").eq("club_id", clubId),
+    supabase.from("players").select("id, first_name, last_name, email").eq("club_id", clubId),
   ]);
 
   const existingByName = new Map(
@@ -866,8 +853,12 @@ export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
   for (const player of squadData.players) {
     const key = normalizeName(player.leaguePlayerName);
     const prev = existingByName.get(key);
-    const autoPlayerId = prev?.player_id ? null : matchClubPlayer(player.leaguePlayerName, clubPlayers ?? []);
-    if (autoPlayerId) matched += 1;
+    const locked = prev && isLockedMatchStatus(prev.match_status);
+    const matchFields = locked
+      ? null
+      : buildMatchFields(player.leaguePlayerName, clubPlayers ?? [], { locked: false });
+
+    if (matchFields?.match_status === "auto_linked") matched += 1;
 
     const row = {
       club_id: clubId,
@@ -877,8 +868,24 @@ export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
       league_team_name: ownLeagueName,
       jersey_number: player.jerseyNumber ?? null,
       notes: buildSeasonStatsNotes(player, squadData.fetchedAt),
-      player_id: prev?.player_id ?? autoPlayerId,
     };
+
+    if (locked) {
+      row.player_id = prev?.player_id ?? null;
+      row.suggested_player_id = prev?.suggested_player_id ?? null;
+      row.match_status = prev?.match_status ?? "unmatched";
+      row.match_confidence = prev?.match_confidence ?? null;
+    } else if (matchFields) {
+      row.player_id = matchFields.player_id;
+      row.suggested_player_id = matchFields.suggested_player_id;
+      row.match_status = matchFields.match_status;
+      row.match_confidence = matchFields.match_confidence;
+    } else {
+      row.player_id = prev?.player_id ?? null;
+      row.suggested_player_id = prev?.suggested_player_id ?? null;
+      row.match_status = prev?.match_status ?? "unmatched";
+      row.match_confidence = prev?.match_confidence ?? null;
+    }
 
     if (prev?.id) {
       const { error } = await supabase.from("league_player_registry").update(row).eq("id", prev.id);

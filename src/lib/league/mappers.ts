@@ -4,6 +4,7 @@ import type {
   LeagueConflict,
   LeagueMatch,
   LeaguePlayerRegistryEntry,
+  LeaguePlayerMatchStatus,
   LeagueSeason,
   LeagueSource,
   LeagueSyncJob,
@@ -147,17 +148,26 @@ export function mapLeagueConflict(row: Record<string, unknown>): LeagueConflict 
   };
 }
 
+function mapPlayerDisplayName(player: { first_name?: string; last_name?: string } | null | undefined) {
+  return player ? `${player.first_name ?? ""} ${player.last_name ?? ""}`.trim() : null;
+}
+
 export function mapLeaguePlayerRegistry(row: Record<string, unknown>): LeaguePlayerRegistryEntry {
   const player = row.player as { first_name?: string; last_name?: string } | null;
+  const matchStatusRaw = mapStr(row, "match_status") || "unmatched";
   return {
     id: mapStr(row, "id"),
     clubId: mapStr(row, "club_id"),
     playerId: mapOptStr(row, "player_id"),
-    playerName: player ? `${player.first_name ?? ""} ${player.last_name ?? ""}`.trim() : null,
+    playerName: mapPlayerDisplayName(player),
+    suggestedPlayerId: mapOptStr(row, "suggested_player_id"),
+    suggestedPlayerName: null,
     leaguePlayerName: mapStr(row, "league_player_name"),
     leagueTeamName: mapOptStr(row, "league_team_name"),
     externalId: mapOptStr(row, "external_id"),
     jerseyNumber: row.jersey_number != null ? mapNum(row, "jersey_number") : null,
     notes: mapOptStr(row, "notes"),
+    matchStatus: matchStatusRaw as LeaguePlayerRegistryEntry["matchStatus"],
+    matchConfidence: row.match_confidence != null ? mapNum(row, "match_confidence") : null,
   };
 }

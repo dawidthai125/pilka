@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsGrid } from "@/components/ui/stats-grid";
 import {
+  approveLeaguePlayerMatchAction,
+  assignLeaguePlayerMatchAction,
+  bulkApproveLeaguePlayerMatchesAction,
   importLeagueFileAction,
+  rejectLeaguePlayerMatchAction,
+  recomputeLeaguePlayerMatchesAction,
   resolveLeagueConflictAction,
   runLeagueSyncAction,
   upsertLeaguePlayerAction,
@@ -19,10 +24,12 @@ import {
   DZPN_LEAGUE_NOTE,
   EXTRANET_LEAGUE_NOTE,
   LEAGUE_IMPORT_TYPE_LABELS,
+  LEAGUE_PLAYER_MATCH_STATUS_LABELS,
   LEAGUE_SOURCE_ADAPTER_LABELS,
   LEAGUE_SYNC_STATUS_LABELS,
   PZPN_LEAGUE_NOTE,
 } from "@/lib/league/constants";
+import { MATCH_AUTO_THRESHOLD } from "@/lib/league/player-matching";
 import type {
   LeagueCompetition,
   LeagueConflict,
@@ -37,6 +44,7 @@ import type {
   LeagueTeam,
 } from "@/types/league";
 import type { Team } from "@/types/rbac";
+import type { Player } from "@/types/players";
 
 const initial: LeagueActionState = {};
 
@@ -416,44 +424,187 @@ export function LeaguePlayersPanel({
   entries,
   competitions,
   seasons,
+  clubPlayers,
 }: {
   canManage: boolean;
   entries: LeaguePlayerRegistryEntry[];
   competitions: LeagueCompetition[];
   seasons: LeagueSeason[];
+  clubPlayers: Player[];
 }) {
   const [state, action, pending] = useActionState(upsertLeaguePlayerAction, initial);
+  const [approveState, approveAction, approvePending] = useActionState(approveLeaguePlayerMatchAction, initial);
+  const [rejectState, rejectAction, rejectPending] = useActionState(rejectLeaguePlayerMatchAction, initial);
+  const [assignState, assignAction, assignPending] = useActionState(assignLeaguePlayerMatchAction, initial);
+  const [recomputeState, recomputeAction, recomputePending] = useActionState(
+    recomputeLeaguePlayerMatchesAction,
+    initial,
+  );
+  const [bulkState, bulkAction, bulkPending] = useActionState(bulkApproveLeaguePlayerMatchesAction, initial);
+
+  const playerNameById = new Map(
+    clubPlayers.map((p) => [p.id, `${p.firstName} ${p.lastName}`.trim()]),
+  );
+
+  const resolveFcosName = (entry: LeaguePlayerRegistryEntry) => {
+    if (entry.playerName) return entry.playerName;
+    if (entry.playerId) return playerNameById.get(entry.playerId) ?? "—";
+    if (entry.suggestedPlayerId) {
+      return playerNameById.get(entry.suggestedPlayerId) ?? "—";
+    }
+    return null;
+  };
+
+  const pendingReview = entries.filter(
+    (e) =>
+      e.matchStatus === "suggested" ||
+      (e.matchStatus === "auto_linked" && e.matchConfidence != null && e.matchConfidence >= MATCH_AUTO_THRESHOLD),
+  ).length;
+
+  const feedback = [state, approveState, rejectState, assignState, recomputeState, bulkState].find(
+    (s) => s.error || s.success,
+  );
 
   return (
     <div className="space-y-6">
+      {feedback?.error ? <p className="text-sm text-destructive">{feedback.error}</p> : null}
+      {feedback?.success ? <p className="text-sm text-green-700">{feedback.success}</p> : null}
+
+      {canManage ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Dopasowanie zawodników (16.1)</CardTitle>
+            <CardDescription>
+              Liga ↔ FC OS · auto ≥{MATCH_AUTO_THRESHOLD}% · sugestia 60–94% · {pendingReview} do przeglądu
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <form action={recomputeAction}>
+              <Button type="submit" variant="outline" disabled={recomputePending} className="min-h-[44px]">
+                {recomputePending ? "Przeliczanie…" : "Przelicz dopasowania"}
+              </Button>
+            </form>
+            <form action={bulkAction}>
+              <Button type="submit" disabled={bulkPending} className="min-h-[44px]">
+                {bulkPending ? "Zatwierdzanie…" : `Zatwierdź wszystkie ≥${MATCH_AUTO_THRESHOLD}%`}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Rejestr zawodników ligowych</CardTitle>
           <CardDescription>Powiązanie Football Club OS ↔ dane rozgrywkowe.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2">
-          {entries.map((e) => (
-            <div key={e.id} className="rounded-md border px-3 py-2 text-sm">
-              <span className="font-medium">{e.leaguePlayerName}</span>
-              {e.playerName ? (
-                <span className="text-muted-foreground"> ↔ {e.playerName}</span>
-              ) : (
-                <span className="text-muted-foreground"> (niepowiązany)</span>
-              )}
+        <CardContent>
+          {!entries.length ? (
+            <p className="text-sm text-muted-foreground">Brak wpisów.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-md border">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    {["Liga", "FC OS", "Pewność", "Status", "Akcje"].map((h) => (
+                      <th key={h} className="px-3 py-2 text-left font-medium">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map((e) => {
+                    const fcosName = resolveFcosName(e);
+                    const isSuggested = e.matchStatus === "suggested";
+                    const showActions =
+                      canManage &&
+                      (isSuggested ||
+                        e.matchStatus === "auto_linked" ||
+                        e.matchStatus === "unmatched" ||
+                        e.matchStatus === "rejected");
+
+                    return (
+                      <tr key={e.id} className="border-t">
+                        <td className="px-3 py-2 font-medium">{e.leaguePlayerName}</td>
+                        <td className="px-3 py-2 text-muted-foreground">
+                          {fcosName ?? (
+                            <span className="italic text-muted-foreground/80">niepowiązany</span>
+                          )}
+                          {isSuggested && e.suggestedPlayerId && !e.playerId ? (
+                            <Badge variant="secondary" className="ml-2">
+                              sugestia
+                            </Badge>
+                          ) : null}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums">
+                          {e.matchConfidence != null ? `${e.matchConfidence}%` : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          <Badge variant={e.matchStatus === "confirmed" ? "default" : "outline"}>
+                            {LEAGUE_PLAYER_MATCH_STATUS_LABELS[e.matchStatus] ?? e.matchStatus}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-2">
+                          {showActions ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              {(isSuggested || e.matchStatus === "auto_linked") &&
+                              (e.suggestedPlayerId || e.playerId) ? (
+                                <form action={approveAction}>
+                                  <input type="hidden" name="registryId" value={e.id} />
+                                  <Button type="submit" size="sm" disabled={approvePending}>
+                                    Zatwierdź
+                                  </Button>
+                                </form>
+                              ) : null}
+                              {isSuggested || e.matchStatus === "auto_linked" ? (
+                                <form action={rejectAction}>
+                                  <input type="hidden" name="registryId" value={e.id} />
+                                  <Button type="submit" size="sm" variant="outline" disabled={rejectPending}>
+                                    Odrzuć
+                                  </Button>
+                                </form>
+                              ) : null}
+                              <form action={assignAction} className="flex items-center gap-1">
+                                <input type="hidden" name="registryId" value={e.id} />
+                                <select
+                                  name="playerId"
+                                  className="max-w-[160px] rounded-md border px-2 py-1 text-xs"
+                                  defaultValue=""
+                                  required
+                                >
+                                  <option value="">Wybierz…</option>
+                                  {clubPlayers.map((p) => (
+                                    <option key={p.id} value={p.id}>
+                                      {p.firstName} {p.lastName}
+                                    </option>
+                                  ))}
+                                </select>
+                                <Button type="submit" size="sm" variant="secondary" disabled={assignPending}>
+                                  Przypisz
+                                </Button>
+                              </form>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          ))}
-          {!entries.length ? <p className="text-sm text-muted-foreground">Brak wpisów.</p> : null}
+          )}
         </CardContent>
       </Card>
 
       {canManage ? (
         <Card>
           <CardHeader>
-            <CardTitle>Nowe powiązanie</CardTitle>
+            <CardTitle>Nowe powiązanie (ręczne)</CardTitle>
           </CardHeader>
           <CardContent>
-            {state.error ? <p className="mb-2 text-sm text-destructive">{state.error}</p> : null}
-            {state.success ? <p className="mb-2 text-sm text-green-700">{state.success}</p> : null}
             <form action={action} className="grid gap-3 sm:grid-cols-2">
               <label className="space-y-1 text-sm sm:col-span-2">
                 Nazwa ligowa
@@ -464,12 +615,21 @@ export function LeaguePlayersPanel({
                 <input name="leagueTeamName" className="w-full min-h-[44px] rounded-md border px-2" />
               </label>
               <label className="space-y-1 text-sm">
-                ID zawodnika FC OS (UUID)
-                <input name="playerId" className="w-full min-h-[44px] rounded-md border px-2" />
+                Zawodnik FC OS
+                <select name="playerId" className="w-full min-h-[44px] rounded-md border px-2">
+                  <option value="">—</option>
+                  {clubPlayers.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.firstName} {p.lastName}
+                    </option>
+                  ))}
+                </select>
               </label>
               <input type="hidden" name="competitionId" value={competitions[0]?.id ?? ""} />
               <input type="hidden" name="seasonId" value={seasons.find((s) => s.isActive)?.id ?? ""} />
-              <Button type="submit" disabled={pending} className="min-h-[44px] sm:col-span-2">Zapisz</Button>
+              <Button type="submit" disabled={pending} className="min-h-[44px] sm:col-span-2">
+                Zapisz
+              </Button>
             </form>
           </CardContent>
         </Card>

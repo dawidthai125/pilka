@@ -128,16 +128,27 @@ export type LeagueConflict = {
   matchDate?: string;
 };
 
+export type LeaguePlayerMatchStatus =
+  | "unmatched"
+  | "suggested"
+  | "auto_linked"
+  | "confirmed"
+  | "rejected";
+
 export type LeaguePlayerRegistryEntry = {
   id: string;
   clubId: string;
   playerId: string | null;
   playerName?: string | null;
+  suggestedPlayerId: string | null;
+  suggestedPlayerName?: string | null;
   leaguePlayerName: string;
   leagueTeamName: string | null;
   externalId: string | null;
   jerseyNumber: number | null;
   notes: string | null;
+  matchStatus: LeaguePlayerMatchStatus;
+  matchConfidence: number | null;
 };
 
 export type LeagueDashboardStats = {

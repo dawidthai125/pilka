@@ -23,6 +23,11 @@ import {
   resolveLeagueConflict,
   runLeagueSyncJob,
 } from "@/lib/league/sync";
+import {
+  bulkApproveHighConfidenceMatches,
+  recomputeLeaguePlayerMatches,
+} from "@/lib/league/player-match-service";
+import { MATCH_AUTO_THRESHOLD } from "@/lib/league/player-matching";
 import { readString } from "@/lib/form-data";
 import { createClient } from "@/lib/supabase/server";
 import type { LeagueImportType, LeagueSourceAdapter } from "@/types/league";
@@ -330,6 +335,9 @@ export async function upsertLeaguePlayerAction(
         ? Number(readString(formData, "jerseyNumber"))
         : null,
       notes: readString(formData, "notes") || null,
+      suggested_player_id: null,
+      match_status: playerId ? "confirmed" : "unmatched",
+      match_confidence: playerId ? 100 : null,
     },
     { onConflict: "id" },
   );
@@ -337,6 +345,142 @@ export async function upsertLeaguePlayerAction(
   if (error) return { error: error.message };
   revalidateLeaguePaths();
   return { success: "Powiązanie zawodnika zapisane." };
+}
+
+export async function approveLeaguePlayerMatchAction(
+  _prev: LeagueActionState,
+  formData: FormData,
+): Promise<LeagueActionState> {
+  const access = await requireAccessContext();
+  if (!canManageLeague(access.roles)) return { error: "Brak uprawnień." };
+
+  const registryId = readString(formData, "registryId");
+  if (!registryId) return { error: "Brak wpisu rejestru." };
+
+  const supabase = await createClient();
+  const { data: row } = await supabase
+    .from("league_player_registry")
+    .select("id, player_id, suggested_player_id, match_confidence")
+    .eq("id", registryId)
+    .eq("club_id", access.clubId)
+    .maybeSingle();
+
+  if (!row) return { error: "Wpis nie istnieje." };
+
+  const playerId = row.player_id ?? row.suggested_player_id;
+  if (!playerId) return { error: "Brak kandydata do zatwierdzenia." };
+
+  const ok = await assertPlayerBelongsToClub(supabase, access.clubId, String(playerId));
+  if (!ok) return { error: "Zawodnik nie należy do tego klubu." };
+
+  const { error } = await supabase
+    .from("league_player_registry")
+    .update({
+      player_id: playerId,
+      suggested_player_id: null,
+      match_status: "confirmed",
+    })
+    .eq("id", registryId)
+    .eq("club_id", access.clubId);
+
+  if (error) return { error: error.message };
+  revalidateLeaguePaths();
+  return { success: "Powiązanie zatwierdzone." };
+}
+
+export async function rejectLeaguePlayerMatchAction(
+  _prev: LeagueActionState,
+  formData: FormData,
+): Promise<LeagueActionState> {
+  const access = await requireAccessContext();
+  if (!canManageLeague(access.roles)) return { error: "Brak uprawnień." };
+
+  const registryId = readString(formData, "registryId");
+  if (!registryId) return { error: "Brak wpisu rejestru." };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("league_player_registry")
+    .update({
+      player_id: null,
+      suggested_player_id: null,
+      match_status: "rejected",
+      match_confidence: null,
+    })
+    .eq("id", registryId)
+    .eq("club_id", access.clubId);
+
+  if (error) return { error: error.message };
+  revalidateLeaguePaths();
+  return { success: "Sugestia odrzucona." };
+}
+
+export async function assignLeaguePlayerMatchAction(
+  _prev: LeagueActionState,
+  formData: FormData,
+): Promise<LeagueActionState> {
+  const access = await requireAccessContext();
+  if (!canManageLeague(access.roles)) return { error: "Brak uprawnień." };
+
+  const registryId = readString(formData, "registryId");
+  const playerId = readString(formData, "playerId");
+  if (!registryId || !playerId) return { error: "Wybierz zawodnika FC OS." };
+
+  const supabase = await createClient();
+  const ok = await assertPlayerBelongsToClub(supabase, access.clubId, playerId);
+  if (!ok) return { error: "Zawodnik nie należy do tego klubu." };
+
+  const { error } = await supabase
+    .from("league_player_registry")
+    .update({
+      player_id: playerId,
+      suggested_player_id: null,
+      match_status: "confirmed",
+      match_confidence: 100,
+    })
+    .eq("id", registryId)
+    .eq("club_id", access.clubId);
+
+  if (error) return { error: error.message };
+  revalidateLeaguePaths();
+  return { success: "Ręczne powiązanie zapisane." };
+}
+
+export async function recomputeLeaguePlayerMatchesAction(
+  _prev: LeagueActionState,
+): Promise<LeagueActionState> {
+  const access = await requireAccessContext();
+  if (!canManageLeague(access.roles)) return { error: "Brak uprawnień." };
+
+  try {
+    const result = await recomputeLeaguePlayerMatches(access.clubId);
+    revalidateLeaguePaths();
+    return {
+      success: `Przeliczono ${result.updated} wpisów (${result.autoLinked} auto, ${result.suggested} sugestii, ${result.unmatched} bez dopasowania). Pominięto ${result.skipped} zatwierdzonych/odrzuconych.`,
+    };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Błąd przeliczania." };
+  }
+}
+
+export async function bulkApproveLeaguePlayerMatchesAction(
+  _prev: LeagueActionState,
+): Promise<LeagueActionState> {
+  const access = await requireAccessContext();
+  if (!canManageLeague(access.roles)) return { error: "Brak uprawnień." };
+
+  try {
+    const approved = await bulkApproveHighConfidenceMatches(access.clubId);
+    revalidateLeaguePaths();
+    return {
+      success:
+        approved > 0
+          ? `Zatwierdzono ${approved} powiązań (≥${MATCH_AUTO_THRESHOLD}%).`
+          : "Brak powiązań do zatwierdzenia z progiem ≥95%.",
+    };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Błąd zatwierdzania." };
+  }
 }
 
 export async function upsertLeagueSourceAction(
