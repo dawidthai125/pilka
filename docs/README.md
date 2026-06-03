@@ -1,9 +1,16 @@
 # Dokumentacja — Football Club OS · Dawid Thai Thanh
 
+## Dla agentów AI (START)
+
+**Przeczytaj najpierw:** [`docs/ai/README.md`](./ai/README.md) — kompletna baza wiedzy o produkcie, architekturze, trasach, stronie publicznej, panelu, lidze i zasadach pracy.
+
+Stan bieżący: [`docs/audit/project-handoff-current.md`](./audit/project-handoff-current.md)
+
 ## Spis treści
 
 | Sekcja | Opis |
 |--------|------|
+| [**ai/**](./ai/README.md) | **Dokumentacja dla agentów AI** — produkt, routing, moduły, DB, liga |
 | [architecture/](./architecture/overview.md) | Architektura systemu, warstwy, multi-tenant |
 | [database/](./database/schema-proposal.md) | Propozycja schematu bazy i migracje |
 | [environment/](./environment/setup.md) | Konfiguracja środowiska lokalnego i Vercel |
