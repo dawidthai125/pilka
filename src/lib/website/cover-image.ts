@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { getWebsiteAssetUrl } from "@/lib/website/assets";
 import { getDemoMediaUrl, type DemoMediaAssetKey } from "@/lib/website/demo-media";
 import type { WebsiteSettings } from "@/types/website";
@@ -9,7 +11,9 @@ export const CLUB_COVER_DEMO_FALLBACK_KEYS: readonly DemoMediaAssetKey[] = [
   "hero-match",
 ];
 
-export async function resolvePublicCoverImageUrl(settings: WebsiteSettings): Promise<string | null> {
+export const resolvePublicCoverImageUrl = cache(async function resolvePublicCoverImageUrl(
+  settings: WebsiteSettings,
+): Promise<string | null> {
   if (settings.heroImagePath) {
     const cmsUrl = await getWebsiteAssetUrl(settings.heroImagePath);
     if (cmsUrl) return cmsUrl;
@@ -21,4 +25,4 @@ export async function resolvePublicCoverImageUrl(settings: WebsiteSettings): Pro
   }
 
   return null;
-}
+});

@@ -1,57 +1,40 @@
 import type { Metadata } from "next";
 
-import { loadClubHomepageData } from "@/features/website/components/club-site-page";
 import { PublicLandingHome } from "@/features/website/components/public-landing-home";
 import { PublicAcademySection } from "@/features/website/components/club-home-sections";
-import { resolvePublicCoverImageUrl } from "@/lib/website/cover-image";
+import { loadHydratedPublicHomePage } from "@/lib/website/home-bundle";
 import { buildPublicPageMetadata } from "@/lib/website/seo";
-import { getPublicClubId, getPublicMatches, getPublicPlayers, getPublicTeamStats } from "@/lib/website/public-data";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildPublicPageMetadata("Strona główna", "/");
 }
 
 export default async function ClubHomePage() {
-  const clubId = await getPublicClubId();
-  const [{ home, news, teams, academyImages, league }, recentResults, teamStats, players] = await Promise.all([
-    loadClubHomepageData(),
-    getPublicMatches(clubId, "results", 8),
-    getPublicTeamStats(),
-    getPublicPlayers(),
-  ]);
+  const home = await loadHydratedPublicHomePage();
   if (!home) return null;
-
-  const coverImageUrl = await resolvePublicCoverImageUrl(home.settings);
-  const nextMatch = home.nextMatch;
-  const resultsList = recentResults;
-
-  const topScorers = [...players]
-    .filter((p) => p.goals > 0)
-    .sort((a, b) => b.goals - a.goals || b.matchesPlayed - a.matchesPlayed)
-    .slice(0, 5);
 
   return (
     <>
       <PublicLandingHome
-        clubName={home.club.publicName}
-        officialName={home.club.officialName}
-        heroTitle={home.settings.heroTitle ?? home.club.publicName}
-        heroSubtitle={home.settings.heroSubtitle ?? "Razem tworzymy historię ⚡"}
-        coverImageUrl={coverImageUrl}
-        news={news}
-        nextMatch={nextMatch}
-        recentResults={resultsList}
-        league={league}
-        teamStats={teamStats}
-        players={players}
-        topScorers={topScorers}
+        clubName={home.clubName}
+        officialName={home.officialName}
+        heroTitle={home.heroTitle}
+        heroSubtitle={home.heroSubtitle}
+        coverImageUrl={home.coverImageUrl}
+        news={home.news}
+        nextMatch={home.nextMatch}
+        recentResults={home.recentResults}
+        league={home.league}
+        teamStats={home.teamStats}
+        players={home.players}
+        topScorers={home.topScorers}
       />
       <PublicAcademySection
-        teams={teams}
-        academyImages={academyImages}
-        contactPhone={home.settings.contactPhone}
-        contactAddress={home.settings.contactAddress}
-        clubName={home.club.publicName}
+        teams={home.teams}
+        academyImages={home.academyImages}
+        contactPhone={home.contactPhone}
+        contactAddress={home.contactAddress}
+        clubName={home.clubName}
       />
     </>
   );

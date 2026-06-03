@@ -2897,6 +2897,10 @@ export type Database = {
         Args: { p_club_slug: string };
         Returns: Json;
       };
+      get_public_home_bundle: {
+        Args: { p_club_slug: string };
+        Returns: Json;
+      };
       get_public_team_stats: {
         Args: { p_club_slug: string };
         Returns: Json;
