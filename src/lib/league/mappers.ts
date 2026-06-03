@@ -154,6 +154,7 @@ function mapPlayerDisplayName(player: { first_name?: string; last_name?: string 
 
 export function mapLeaguePlayerRegistry(row: Record<string, unknown>): LeaguePlayerRegistryEntry {
   const player = row.player as { first_name?: string; last_name?: string } | null;
+  const suggestedPlayer = row.suggested_player as { first_name?: string; last_name?: string } | null;
   const matchStatusRaw = mapStr(row, "match_status") || "unmatched";
   return {
     id: mapStr(row, "id"),
@@ -161,7 +162,7 @@ export function mapLeaguePlayerRegistry(row: Record<string, unknown>): LeaguePla
     playerId: mapOptStr(row, "player_id"),
     playerName: mapPlayerDisplayName(player),
     suggestedPlayerId: mapOptStr(row, "suggested_player_id"),
-    suggestedPlayerName: null,
+    suggestedPlayerName: mapPlayerDisplayName(suggestedPlayer),
     leaguePlayerName: mapStr(row, "league_player_name"),
     leagueTeamName: mapOptStr(row, "league_team_name"),
     externalId: mapOptStr(row, "external_id"),

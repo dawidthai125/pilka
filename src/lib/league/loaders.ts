@@ -192,7 +192,9 @@ export const getLeaguePlayerRegistry = cache(async (clubId: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("league_player_registry")
-    .select("*, player:players(first_name, last_name)")
+    .select(
+      "*, player:players!player_id(first_name, last_name), suggested_player:players!suggested_player_id(first_name, last_name)",
+    )
     .eq("club_id", clubId)
     .order("league_player_name");
   return (data ?? []).map((r) => mapLeaguePlayerRegistry(r as Record<string, unknown>));
