@@ -3,14 +3,17 @@ import { Trophy } from "lucide-react";
 
 import { HomeDarkPanel, HomeDarkPanelHeader } from "@/features/website/components/public-home-dark-ui";
 import { CLUB_DISPLAY_CLASS } from "@/lib/website/constants";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import { cn } from "@/lib/utils";
 import type { LeagueTableEntry } from "@/types/matches";
 
 export function PublicHomeLeagueTable({
+  clubSlug,
   entries,
   ownPosition,
   pageMode = false,
 }: {
+  clubSlug: string;
   entries: LeagueTableEntry[];
   ownPosition: number | null;
   /** Pełna strona /tabela — bez linku „Pełna tabela”. */
@@ -18,10 +21,12 @@ export function PublicHomeLeagueTable({
 }) {
   if (entries.length === 0) return null;
 
+  const paths = buildPublicClubPaths(clubSlug);
+
   return (
     <HomeDarkPanel>
       {!pageMode ? (
-        <HomeDarkPanelHeader title="Tabela ligi" icon={Trophy} href="/tabela" linkLabel="Pełna tabela →" />
+        <HomeDarkPanelHeader title="Tabela ligi" icon={Trophy} href={paths.tabela} linkLabel="Pełna tabela →" />
       ) : null}
       <div className="overflow-x-auto">
         <div className="min-w-[520px]">
@@ -75,7 +80,7 @@ export function PublicHomeLeagueTable({
         <p className="border-t border-white/10 px-4 py-2.5 text-center text-[11px] text-white/45">
           Nasza drużyna: <span className="font-semibold text-[var(--club-secondary)]">{ownPosition}. miejsce</span>
           {" · "}
-          <Link href="/tabela" className="hover:text-white">
+          <Link href={paths.tabela} className="hover:text-white">
             szczegóły ligowe
           </Link>
         </p>

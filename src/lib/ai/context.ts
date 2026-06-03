@@ -7,7 +7,7 @@ import {
   canReadInventory,
   canReadSponsors,
 } from "@/config/permissions";
-import { DEFAULT_CLUB_ID, getClub, getTeams } from "@/lib/auth/session";
+import { getClub, getTeams } from "@/lib/auth/session";
 import { getClubBrandingName } from "@/lib/club/names";
 import { computeTeamForm, aggregateTeamStats } from "@/lib/matches/mappers";
 import { DEFAULT_SEASON } from "@/lib/matches/constants";
@@ -82,13 +82,7 @@ function scopeCacheKey(roles: ClubRole[]): string {
   return [...roles].sort().join(",");
 }
 
-export async function buildAiClubContext(
-  access: AiContextScope = {
-    userId: "system",
-    clubId: DEFAULT_CLUB_ID,
-    roles: ["owner"],
-  },
-): Promise<AiClubContext> {
+export async function buildAiClubContext(access: AiContextScope): Promise<AiClubContext> {
   const roleKey = scopeCacheKey(access.roles);
 
   return unstable_cache(

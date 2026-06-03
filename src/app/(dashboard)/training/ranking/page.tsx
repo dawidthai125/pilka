@@ -26,7 +26,7 @@ async function RankingSection({ searchParams }: { searchParams: SearchParams }) 
 
   const [stats, teams] = await Promise.all([
     getAttendanceStats(scope, undefined, teamId),
-    getTeams(),
+    getTeams(access.clubId),
   ]);
 
   return (

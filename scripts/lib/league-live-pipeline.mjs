@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stableFixtureExternalId } from "./league-import-parsers.mjs";
-import { LEAGUE_CONFIG, normalizeTeamName } from "./league-live-sources.mjs";
+import { normalizeTeamName } from "./league-live-sources.mjs";
 import { buildMatchFields, isLockedMatchStatus, matchClubPlayer } from "./league-player-matching.mjs";
 import {
   buildSeasonStatsNotes,
@@ -18,7 +18,22 @@ import {
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 dotenv.config({ path: join(root, ".env.local") });
 
-export const SOURCE_MIRROR_ID = "f9023004-0004-4000-8000-000000000004";
+let activeClubConfig = null;
+
+export function setPipelineClubConfig(config) {
+  activeClubConfig = config;
+}
+
+function clubConfig() {
+  if (!activeClubConfig?.clubId) {
+    throw new Error("Brak konfiguracji klubu dla pipeline sync — wywołaj setPipelineClubConfig().");
+  }
+  return activeClubConfig;
+}
+
+function sourceMirrorId() {
+  return clubConfig().sourceId ?? "f9023004-0004-4000-8000-000000000004";
+}
 const MAX_TEAM_NAME_LENGTH = 120;
 
 function requireEnv(name) {
@@ -83,7 +98,7 @@ export function createPipelineClient() {
 }
 
 export async function ingestMergedPayload(supabase, { jobId, merged, metadata = {} }) {
-  const { clubId, competitionId, seasonId } = LEAGUE_CONFIG;
+  const { clubId, competitionId, seasonId } = clubConfig();
   let processed = 0;
   let failed = 0;
 
@@ -109,7 +124,7 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
           club_id: clubId,
           competition_id: competitionId,
           season_id: seasonId,
-          source_id: SOURCE_MIRROR_ID,
+          source_id: sourceMirrorId(),
           sync_job_id: jobId,
           snapshot_at: snapshotAt,
           team_name: teamName,
@@ -190,7 +205,7 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
       club_id: clubId,
       competition_id: competitionId,
       season_id: seasonId,
-      source_id: SOURCE_MIRROR_ID,
+      source_id: sourceMirrorId(),
       sync_job_id: jobId,
       external_key: externalKey,
       round_number: row.roundNumber ?? null,
@@ -236,7 +251,7 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
 }
 
 export async function syncTableToPublicModule(supabase) {
-  const { clubId, competitionId } = LEAGUE_CONFIG;
+  const { clubId, competitionId } = clubConfig();
 
   const { data: comp } = await supabase
     .from("league_competitions")
@@ -311,7 +326,7 @@ function moduleMatchGroupKey(match) {
 }
 
 async function loadCompetitionMeta(supabase) {
-  const { clubId, competitionId } = LEAGUE_CONFIG;
+  const { clubId, competitionId } = clubConfig();
   const { data: comp } = await supabase
     .from("league_competitions")
     .select("name, season:league_seasons(name)")
@@ -719,7 +734,7 @@ async function syncPlayerSeasonStats(supabase, { clubId, seasonId }) {
 }
 
 async function syncSquadToPlayersModule(supabase, { jobId, squadData, competitionId, seasonId }) {
-  const { clubId } = LEAGUE_CONFIG;
+  const { clubId } = clubConfig();
 
   const { data: ownTeam } = await supabase
     .from("league_teams")
@@ -827,7 +842,7 @@ async function syncSquadToPlayersModule(supabase, { jobId, squadData, competitio
 }
 
 export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
-  const { clubId, competitionId, seasonId, ownLeagueName } = LEAGUE_CONFIG;
+  const { clubId, competitionId, seasonId, ownLeagueName } = clubConfig();
   if (!squadData?.players?.length) {
     return { processed: 0, failed: 0, matched: 0, skipped: true };
   }
@@ -915,15 +930,16 @@ export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
   return { processed, failed, matched, skipped: false, playersSync };
 }
 
-export async function runLivePipeline(merged, fetchMeta, squadData = null) {
+export async function runLivePipeline(merged, fetchMeta, squadData = null, clubConfigArg = null) {
+  if (clubConfigArg) setPipelineClubConfig(clubConfigArg);
   const supabase = createPipelineClient();
-  const { clubId, competitionId } = LEAGUE_CONFIG;
+  const { clubId, competitionId } = clubConfig();
 
   const { data: job, error: jobError } = await supabase
     .from("league_sync_jobs")
     .insert({
       club_id: clubId,
-      source_id: SOURCE_MIRROR_ID,
+      source_id: sourceMirrorId(),
       competition_id: competitionId,
       import_type: "full",
       status: "running",
@@ -960,7 +976,7 @@ export async function runLivePipeline(merged, fetchMeta, squadData = null) {
     await supabase
       .from("league_sources")
       .update({ last_sync_at: new Date().toISOString() })
-      .eq("id", SOURCE_MIRROR_ID)
+      .eq("id", sourceMirrorId())
       .eq("club_id", clubId);
 
     const status = ingest.failed > 0 && ingest.processed === 0 ? "failed" : "completed";

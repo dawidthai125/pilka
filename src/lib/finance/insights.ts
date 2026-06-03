@@ -1,29 +1,30 @@
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_CLUB_ID } from "@/lib/auth/session";
+import { resolveTenantClubId } from "@/lib/tenant/resolve";
 import { sumAmounts } from "@/lib/finance/mappers";
 import type { FinanceReportContent } from "@/types/finance";
 import { generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
 
-export async function buildFinanceAiContext(clubId: string = DEFAULT_CLUB_ID) {
+export async function buildFinanceAiContext(clubId?: string) {
+  const tenantClubId = await resolveTenantClubId(clubId);
   const supabase = await createClient();
 
   const [incomeRes, expenseRes, feesRes, sponsorsRes] = await Promise.all([
     supabase
       .from("finance_income")
       .select("amount, category, transaction_date")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("transaction_date", { ascending: false })
       .limit(100),
     supabase
       .from("finance_expenses")
       .select("amount, category, transaction_date")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("transaction_date", { ascending: false })
       .limit(100),
     supabase
       .from("finance_player_fees")
       .select("id, name, amount_due, amount_paid, status, due_date, player:player_id(first_name, last_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("status", ["partial", "overdue"])
       .lt("due_date", new Date().toISOString().slice(0, 10))
       .order("due_date", { ascending: true })
@@ -31,7 +32,7 @@ export async function buildFinanceAiContext(clubId: string = DEFAULT_CLUB_ID) {
     supabase
       .from("sponsor_financial_entries")
       .select("id, amount, status, due_date, sponsors(company_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("status", ["pending", "overdue", "planned"])
       .limit(30),
   ]);
@@ -82,25 +83,26 @@ export async function buildFinanceReportContent(
   periodEnd: string,
   clubName: string,
 ): Promise<FinanceReportContent> {
+  const tenantClubId = clubId;
   const supabase = await createClient();
 
   const [incomeRes, expenseRes, feesRes] = await Promise.all([
     supabase
       .from("finance_income")
       .select("amount, category")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .gte("transaction_date", periodStart)
       .lte("transaction_date", periodEnd),
     supabase
       .from("finance_expenses")
       .select("amount, category")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .gte("transaction_date", periodStart)
       .lte("transaction_date", periodEnd),
     supabase
       .from("finance_player_fees")
       .select("id, status")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("status", ["partial", "overdue"])
       .lt("due_date", periodEnd)
       .lt("due_date", new Date().toISOString().slice(0, 10)),

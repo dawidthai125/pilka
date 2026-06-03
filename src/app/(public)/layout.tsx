@@ -1,7 +1,5 @@
 import { Oswald } from "next/font/google";
 
-import { ClubSitePageWrapper } from "@/features/website/components/club-site-page";
-
 const clubDisplay = Oswald({
   subsets: ["latin", "latin-ext"],
   variable: "--font-club-display",
@@ -11,12 +9,8 @@ const clubDisplay = Oswald({
 /** ISR — wartość jak PUBLIC_WEBSITE_REVALIDATE_SECONDS (Next wymaga literału) */
 export const revalidate = 300;
 
-export default function PublicClubLayout({
+export default function PublicRootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <div className={clubDisplay.variable}>
-      <ClubSitePageWrapper>{children}</ClubSitePageWrapper>
-    </div>
-  );
+  return <div className={clubDisplay.variable}>{children}</div>;
 }

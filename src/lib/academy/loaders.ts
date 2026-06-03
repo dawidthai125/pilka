@@ -23,6 +23,7 @@ import {
 } from "@/lib/academy/mappers";
 import { playerFullName } from "@/lib/players/mappers";
 import { createClient } from "@/lib/supabase/server";
+import { resolveTenantClubId } from "@/lib/tenant/resolve";
 import type {
   AcademyDashboardStats,
   AcademyGroup,
@@ -35,7 +36,6 @@ import type {
 } from "@/types/academy";
 import type { UserAccessContext } from "@/types/rbac";
 
-const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
 export function requireAcademyReadAccess(access: UserAccessContext) {
   if (!canReadAcademy(access.roles) && !canReadOwnDevelopment(access.roles)) {
@@ -52,18 +52,18 @@ export function requireScoutingManageAccess(access: UserAccessContext) {
 }
 
 export const getAcademyGroups = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<AcademyGroup[]> => {
+  async (clubId?: string): Promise<AcademyGroup[]> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const [{ data, error }, { data: players }] = await Promise.all([
       supabase
         .from("academy_groups")
         .select("*, team:team_id(name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("age_group"),
       supabase
         .from("players")
         .select("team_id")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("status", "active"),
     ]);
     if (error) throw new Error(error.message);
@@ -83,13 +83,13 @@ export const getAcademyGroups = cache(
 );
 
 export const getAcademyDashboardStats = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<AcademyDashboardStats> => {
+  async (clubId?: string): Promise<AcademyDashboardStats> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const [groups, dev, goals, scouting] = await Promise.all([
-      supabase.from("academy_groups").select("id").eq("club_id", clubId),
-      supabase.from("player_development").select("id").eq("club_id", clubId),
-      supabase.from("player_goals").select("id").eq("club_id", clubId).eq("status", "active"),
-      supabase.from("scouting_players").select("id, status").eq("club_id", clubId),
+      supabase.from("academy_groups").select("id").eq("club_id", tenantClubId),
+      supabase.from("player_development").select("id").eq("club_id", tenantClubId),
+      supabase.from("player_goals").select("id").eq("club_id", tenantClubId).eq("status", "active"),
+      supabase.from("scouting_players").select("id, status").eq("club_id", tenantClubId),
     ]);
     return {
       groupCount: (groups.data ?? []).length,
@@ -102,38 +102,38 @@ export const getAcademyDashboardStats = cache(
 );
 
 export const getPlayerDevelopmentDetail = cache(
-  async (playerId: string, clubId: string = DEFAULT_CLUB_ID): Promise<PlayerDevelopmentDetail | null> => {
+  async (playerId: string, clubId?: string): Promise<PlayerDevelopmentDetail | null> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const [dev, history, assessments, goals, tests, transitions] = await Promise.all([
-      supabase.from("player_development").select("*").eq("club_id", clubId).eq("player_id", playerId).maybeSingle(),
+      supabase.from("player_development").select("*").eq("club_id", tenantClubId).eq("player_id", playerId).maybeSingle(),
       supabase
         .from("player_development_history")
         .select("*")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("recorded_at", { ascending: true }),
       supabase
         .from("player_assessments")
         .select("*, assessor:assessor_id(full_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("assessed_at", { ascending: true }),
       supabase
         .from("player_goals")
         .select("*")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("created_at", { ascending: false }),
       supabase
         .from("fitness_tests")
         .select("*")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("test_date", { ascending: true }),
       supabase
         .from("player_team_transitions")
         .select("*, decision_by_profile:decision_by(full_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("transition_date", { ascending: false }),
     ]);
@@ -150,12 +150,12 @@ export const getPlayerDevelopmentDetail = cache(
 );
 
 export const getTalentRanking = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<TalentRankingEntry[]> => {
+  async (clubId?: string, limit = 100): Promise<TalentRankingEntry[]> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data: playersData } = await supabase
       .from("players")
       .select("id, first_name, last_name, team_id, teams(name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("status", "active")
       .order("last_name")
       .limit(limit);
@@ -168,17 +168,17 @@ export const getTalentRanking = cache(
       supabase
         .from("player_development")
         .select("player_id, potential, overall_rating, development_level")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .in("player_id", playerIds),
       supabase
         .from("player_assessments")
         .select("player_id, average_score")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .in("player_id", playerIds),
       supabase
         .from("player_development_history")
         .select("player_id, overall_rating, recorded_at")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .in("player_id", playerIds)
         .order("recorded_at", { ascending: true }),
     ]);
@@ -232,12 +232,12 @@ export const getTalentRanking = cache(
 );
 
 export const getScoutingPlayers = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<ScoutingPlayer[]> => {
+  async (clubId?: string): Promise<ScoutingPlayer[]> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("scouting_players")
       .select("*, scouted_by_profile:scouted_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []).map((r) => mapScoutingPlayer(r as Record<string, unknown>));
@@ -245,21 +245,21 @@ export const getScoutingPlayers = cache(
 );
 
 export const getScoutingClubs = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<ScoutingClub[]> => {
+  async (clubId?: string): Promise<ScoutingClub[]> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
-    const { data, error } = await supabase.from("scouting_clubs").select("*").eq("club_id", clubId).order("name");
+    const { data, error } = await supabase.from("scouting_clubs").select("*").eq("club_id", tenantClubId).order("name");
     if (error) throw new Error(error.message);
     return (data ?? []).map((r) => mapScoutingClub(r as Record<string, unknown>));
   },
 );
 
 export const getScoutingReports = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<ScoutingReport[]> => {
+  async (clubId?: string): Promise<ScoutingReport[]> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("scouting_reports")
       .select("*, author:author_id(full_name), scouting_player:scouting_player_id(first_name, last_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("report_date", { ascending: false })
       .limit(30);
     if (error) throw new Error(error.message);
@@ -268,12 +268,12 @@ export const getScoutingReports = cache(
 );
 
 export const getOpponentAnalyses = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<OpponentAnalysis[]> => {
+  async (clubId?: string): Promise<OpponentAnalysis[]> => {    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("opponent_analysis")
       .select("*, author:author_id(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("analysis_date", { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []).map((r) => mapOpponentAnalysis(r as Record<string, unknown>));

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, ExternalLink, Search } from "lucide-react";
+import { Bell, ExternalLink, Search, Shield } from "lucide-react";
 
 import { ClubLogo } from "@/components/club/club-logo";
 import { MobileDashboardNav } from "@/components/layout/mobile-dashboard-nav";
@@ -37,12 +37,14 @@ export function DashboardHeader({
   clubName,
   logoUrl,
   unreadNotifications = 0,
+  showPlatformAdmin = false,
 }: {
   profile: Profile | null;
   roles: ClubRole[];
   clubName: string;
   logoUrl?: string | null;
   unreadNotifications?: number;
+  showPlatformAdmin?: boolean;
 }) {
   const email = profile?.email ?? "";
   const name = profile?.fullName ?? email;
@@ -122,6 +124,12 @@ export function DashboardHeader({
               <DropdownMenuSeparator />
               <DropdownMenuItem render={<Link href="/profile" />}>Profil użytkownika</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/notifications" />}>Powiadomienia</DropdownMenuItem>
+              {showPlatformAdmin ? (
+                <DropdownMenuItem render={<Link href="/platform/clubs" />}>
+                  <Shield className="size-4" />
+                  Platform — kluby
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuSeparator />
               <SignOutMenuItem />
             </DropdownMenuContent>

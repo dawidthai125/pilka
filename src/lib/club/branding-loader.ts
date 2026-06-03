@@ -14,7 +14,8 @@ export type ClubBrandingContext = {
 };
 
 export const getAuthClubBranding = cache(async (): Promise<ClubBrandingContext> => {
-  const home = await getPublicWebsiteHome();
+  const slug = siteConfig.defaultClubSlug;
+  const home = slug ? await getPublicWebsiteHome(slug) : null;
 
   if (!home) {
     const theme = resolveClubTheme();

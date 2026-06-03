@@ -15,11 +15,13 @@ import {
 import { ClubSiteShell } from "@/features/website/components/club-site-shell";
 
 export async function ClubSitePageWrapper({
+  clubSlug,
   children,
 }: {
+  clubSlug: string;
   children: React.ReactNode;
 }) {
-  const home = await getPublicWebsiteHome();
+  const home = await getPublicWebsiteHome(clubSlug);
   if (!home) {
     return (
       <div className="flex min-h-screen flex-col">
@@ -38,6 +40,7 @@ export async function ClubSitePageWrapper({
 
   return (
     <ClubSiteShell
+      clubSlug={clubSlug}
       clubName={home.club.publicName}
       officialName={home.club.officialName}
       settings={home.settings}
@@ -50,15 +53,15 @@ export async function ClubSitePageWrapper({
   );
 }
 
-export async function loadClubHomepageData() {
-  const clubId = await getPublicClubId();
+export async function loadClubHomepageData(clubSlug: string) {
+  const clubId = await getPublicClubId(clubSlug);
   const [home, news, league, sponsors, teams, clubStats, mediaItems] = await Promise.all([
-    getPublicWebsiteHome(),
+    getPublicWebsiteHome(clubSlug),
     getPublicNews(clubId, { limit: 6 }),
     getPublicLeagueTable(clubId),
-    getPublicSponsors(),
-    getPublicTeams(),
-    getPublicClubStats(),
+    getPublicSponsors(clubSlug),
+    getPublicTeams(clubSlug),
+    getPublicClubStats(clubSlug),
     getPublicWebsiteMedia(clubId),
   ]);
 

@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { resolvePwaTheme } from "@/lib/pwa/branding";
+import { resolveSessionClubId } from "@/lib/tenant/resolve";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "edge";
-
-const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
 type PwaOfflineRpcPayload = {
   profile: {
@@ -30,8 +29,9 @@ type PwaOfflineRpcPayload = {
 export async function GET() {
   try {
     const supabase = await createClient();
+    const clubId = await resolveSessionClubId();
     const { data, error } = await supabase.rpc("get_pwa_offline_context", {
-      p_club_id: DEFAULT_CLUB_ID,
+      p_club_id: clubId,
     });
 
     if (error || !data) {

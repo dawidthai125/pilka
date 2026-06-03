@@ -11,6 +11,7 @@ import { PwaProvider } from "@/components/pwa/pwa-provider";
 import { PwaThemeMeta } from "@/components/pwa/pwa-theme-meta";
 import { formatProductAttribution } from "@/config/product";
 import { getDashboardContext } from "@/lib/auth/session";
+import { getPlatformAdminSession } from "@/lib/platform/admin";
 import { formatClubOfficialSubtitle, getClubBrandingName } from "@/lib/club/names";
 import { resolveClubTheme } from "@/lib/club/theme";
 import { CLUB_DISPLAY_CLASS } from "@/lib/website/constants";
@@ -23,6 +24,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const { profile, access, club, unreadNotifications, websiteSettings } = await getDashboardContext();
+  const platformAdmin = await getPlatformAdminSession();
   const clubName = getClubBrandingName(club);
   const theme = resolveClubTheme({
     primaryColor: websiteSettings?.primaryColor,
@@ -78,6 +80,7 @@ export default async function DashboardLayout({
               clubName={clubName}
               logoUrl={logoUrl}
               unreadNotifications={unreadNotifications}
+              showPlatformAdmin={Boolean(platformAdmin)}
             />
           </div>
           <main className="dashboard-surface flex-1 px-3 py-4 pb-24 md:px-5 md:py-6 md:pb-8 print:bg-white print:p-0 lg:px-8">

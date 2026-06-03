@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { randomUUID } from "node:crypto";
 
 import { canAccessCoachNotes, canManagePlayers } from "@/config/permissions";
-import { DEFAULT_CLUB_ID, requireAccessContext } from "@/lib/auth/session";
+import { requireAccessContext } from "@/lib/auth/session";
 import {
   CLUB_ASSETS_BUCKET,
   playerDocumentPath,
@@ -140,13 +140,13 @@ function revalidatePlayerPaths(playerId?: string) {
   }
 }
 
-async function verifyPlayerInClub(playerId: string) {
+async function verifyPlayerInClub(playerId: string, clubId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("players")
     .select("id")
     .eq("id", playerId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .maybeSingle();
 
   if (error || !data) {
@@ -156,7 +156,7 @@ async function verifyPlayerInClub(playerId: string) {
   return true;
 }
 
-async function verifyTeamInClub(teamId: string | null) {
+async function verifyTeamInClub(teamId: string | null, clubId: string) {
   if (!teamId) return true;
 
   const supabase = await createClient();
@@ -164,7 +164,7 @@ async function verifyTeamInClub(teamId: string | null) {
     .from("teams")
     .select("id")
     .eq("id", teamId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", clubId)
     .maybeSingle();
 
   return !error && !!data;
@@ -186,14 +186,14 @@ export async function createPlayer(
 
   const playerData = parsed.data;
 
-  if (!(await verifyTeamInClub(playerData.team_id))) {
+  if (!(await verifyTeamInClub(playerData.team_id, access.clubId))) {
     return { error: "Wybrana drużyna nie należy do tego klubu." };
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("players")
-    .insert({ club_id: DEFAULT_CLUB_ID, ...playerData })
+    .insert({ club_id: access.clubId, ...playerData })
     .select("id")
     .single();
 
@@ -202,7 +202,7 @@ export async function createPlayer(
   }
 
   const { error: historyError } = await supabase.from("player_club_history").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     player_id: data.id,
     event_type: "transfer_in",
     event_date: playerData.joined_at ?? new Date().toISOString().slice(0, 10),
@@ -238,11 +238,11 @@ export async function updatePlayer(
 
   const playerData = parsed.data;
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
-  if (!(await verifyTeamInClub(playerData.team_id))) {
+  if (!(await verifyTeamInClub(playerData.team_id, access.clubId))) {
     return { error: "Wybrana drużyna nie należy do tego klubu." };
   }
 
@@ -251,7 +251,7 @@ export async function updatePlayer(
     .from("players")
     .update(playerData)
     .eq("id", playerId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", access.clubId);
 
   if (error) {
     return { error: "Nie udało się zaktualizować zawodnika." };
@@ -271,7 +271,7 @@ export async function uploadPlayerPhoto(
     return { error: "Brak uprawnień." };
   }
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
@@ -290,7 +290,7 @@ export async function uploadPlayerPhoto(
     return { error: "Niedozwolony typ pliku." };
   }
 
-  const path = playerPhotoPath(DEFAULT_CLUB_ID, playerId, ext);
+  const path = playerPhotoPath(access.clubId, playerId, ext);
   const supabase = await createClient();
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -306,7 +306,7 @@ export async function uploadPlayerPhoto(
     .from("players")
     .update({ photo_url: path })
     .eq("id", playerId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", access.clubId);
 
   if (error) {
     await supabase.storage.from(CLUB_ASSETS_BUCKET).remove([path]);
@@ -327,7 +327,7 @@ export async function uploadPlayerDocument(
     return { error: "Brak uprawnień." };
   }
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
@@ -350,7 +350,7 @@ export async function uploadPlayerDocument(
 
   const documentId = randomUUID();
   const safeFileName = sanitizeStorageFileName(file.name);
-  const path = playerDocumentPath(DEFAULT_CLUB_ID, playerId, documentId, safeFileName);
+  const path = playerDocumentPath(access.clubId, playerId, documentId, safeFileName);
   const supabase = await createClient();
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -364,7 +364,7 @@ export async function uploadPlayerDocument(
 
   const { error } = await supabase.from("player_documents").insert({
     id: documentId,
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     player_id: playerId,
     document_type: documentTypeResult.data,
     title,
@@ -392,7 +392,7 @@ export async function deletePlayerDocument(documentId: string, playerId: string)
     return { error: "Brak uprawnień." };
   }
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
@@ -402,7 +402,7 @@ export async function deletePlayerDocument(documentId: string, playerId: string)
     .select("storage_path")
     .eq("id", documentId)
     .eq("player_id", playerId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", access.clubId)
     .maybeSingle();
 
   if (fetchError || !doc) {
@@ -421,7 +421,7 @@ export async function deletePlayerDocument(documentId: string, playerId: string)
     .from("player_documents")
     .delete()
     .eq("id", documentId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", access.clubId);
 
   if (error) {
     return { error: "Nie udało się usunąć dokumentu." };
@@ -437,7 +437,7 @@ export async function getDocumentSignedUrl(storagePath: string) {
     return { error: "Brak uprawnień." };
   }
 
-  if (!isClubPlayerAssetPath(storagePath, DEFAULT_CLUB_ID)) {
+  if (!isClubPlayerAssetPath(storagePath, access.clubId)) {
     return { error: "Nieprawidłowa ścieżka pliku." };
   }
 
@@ -447,13 +447,13 @@ export async function getDocumentSignedUrl(storagePath: string) {
       .from("player_documents")
       .select("id")
       .eq("storage_path", storagePath)
-      .eq("club_id", DEFAULT_CLUB_ID)
+      .eq("club_id", access.clubId)
       .maybeSingle(),
     supabase
       .from("players")
       .select("id")
       .eq("photo_url", storagePath)
-      .eq("club_id", DEFAULT_CLUB_ID)
+      .eq("club_id", access.clubId)
       .maybeSingle(),
   ]);
 
@@ -482,7 +482,7 @@ export async function addPlayerHistoryEntry(
     return { error: "Brak uprawnień." };
   }
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
@@ -495,7 +495,7 @@ export async function addPlayerHistoryEntry(
 
   const supabase = await createClient();
   const { error } = await supabase.from("player_club_history").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     player_id: playerId,
     event_type: eventTypeResult.data,
     event_date: eventDate,
@@ -524,7 +524,7 @@ export async function addPlayerInjury(
     return { error: "Brak uprawnień." };
   }
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
@@ -537,7 +537,7 @@ export async function addPlayerInjury(
 
   const supabase = await createClient();
   const { error } = await supabase.from("player_injuries").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     player_id: playerId,
     injury_date: injuryDate,
     recovery_date: nullableString(formData.get("recoveryDate")),
@@ -565,7 +565,7 @@ export async function addCoachNote(
     return { error: "Notatki trenerskie są dostępne tylko dla sztabu szkoleniowego." };
   }
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
@@ -578,7 +578,7 @@ export async function addCoachNote(
 
   const supabase = await createClient();
   const { error } = await supabase.from("player_coach_notes").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     player_id: playerId,
     author_id: access.userId,
     note_type: noteTypeResult.data,
@@ -604,7 +604,7 @@ export async function updatePlayerStats(
     return { error: "Brak uprawnień." };
   }
 
-  if (!(await verifyPlayerInClub(playerId))) {
+  if (!(await verifyPlayerInClub(playerId, access.clubId))) {
     return { error: "Nie znaleziono zawodnika w tym klubie." };
   }
 
@@ -621,7 +621,7 @@ export async function updatePlayerStats(
     })
     .eq("id", statsId)
     .eq("player_id", playerId)
-    .eq("club_id", DEFAULT_CLUB_ID);
+    .eq("club_id", access.clubId);
 
   if (error) {
     return { error: "Nie udało się zaktualizować statystyk." };

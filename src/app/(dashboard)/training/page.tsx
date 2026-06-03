@@ -39,8 +39,8 @@ async function TrainingCalendarSection({
 
   const [trainings, teams, coaches] = await Promise.all([
     getTrainings(undefined, view, date, { teamId, coachUserId }),
-    getTeams(),
-    getCoaches(),
+    getTeams(access.clubId),
+    getCoaches(access.clubId),
   ]);
 
   return (

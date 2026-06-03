@@ -23,6 +23,18 @@ Konfiguracja w `league_teams`: `league_name = GLKS Mietków`, `display_name = Pi
 | **regiowyniki.pl** (`GLKS_Mietkow/kadra`) | Kadra sezonowa (29 zaw.) | ★★★★☆ | Statystyki per zawodnik często puste w B Klasie |
 | **mPZPN / competition-api-pro** | Kadra + statystyki M/G/ŻK | ★★★★★ | `LNP_ACCESS_TOKEN` + `LNP_TEAM_ID` w `.env.local` |
 
+### Statystyki zawodników — widoczne w przeglądarce, brak w sync
+
+Strona [laczynaspilka.pl](https://www.laczynaspilka.pl/rozgrywki) ładuje dane z `competition-api-pro` **z sesją PZPN** (logowanie klubu / konta). Serwer FC OS nie ma tej sesji — bez nagłówka `Authorization` API zwraca **401**. To nie jest osobna „umowa API”; wystarczy skopiować token JWT z DevTools (F12 → Sieć → filtr `competition-api-pro` → nagłówek `Bearer …`) oraz UUID drużyny z karty GLKS Mietków. Token wygasa — trzeba go odświeżyć co jakiś czas.
+
+```bash
+node scripts/discover-lnp-setup.mjs        # instrukcja
+node scripts/discover-lnp-setup.mjs --test # test po uzupełnieniu .env.local
+node scripts/probe-lnp-team-players.mjs
+```
+
+**90minut** (`strzelcy.php`, `skarb.php`) i **regiowyniki** (`/kadra/`, `/statystyki/`) dla B Klasy Wrocław VII **nie zawierają** bramek per zawodnik (tylko nazwiska lub sumy drużynowe).
+
 **Strategia scalania:** tabela z 90minut (primary), terminarz z regionalnyfutbol + wyniki z 90minut. Konflikty punktów logowane w `league_sync_jobs.metadata`.
 
 ## Uruchomienie
@@ -37,8 +49,9 @@ npm run sync:league-live
 
 ## Automatyczna aktualizacja
 
-- **Vercel Cron:** co 3 dni o 06:00 UTC → `GET /api/cron/league-sync`
-- **Secret:** `LEAGUE_SYNC_CRON_SECRET` lub `CRON_SECRET` na Vercel
+- **Vercel Cron:** codziennie o 06:00 UTC → `GET /api/cron/league-sync`
+- **Secret:** `CRON_SECRET` na Vercel (platforma wysyła `Authorization: Bearer …` przy cronie) lub `LEAGUE_SYNC_CRON_SECRET`
+- **Wymagane na Vercel:** `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` (lub `LEAGUE_SYNC_CRON_SECRET`)
 - **Ręcznie po protestach:** `npm run sync:league-live` lub POST na endpoint cron
 
 ## Co jest synchronizowane

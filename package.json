@@ -95,6 +95,8 @@
     "fetch:league-live": "node scripts/fetch-dzpn-league-live.mjs",
     "sync:league-live": "node scripts/sync-league-live.mjs",
     "sync:league-live:dry": "node scripts/sync-league-live.mjs --dry-run",
+    "lnp:sync-now": "node scripts/lnp-sync-clipboard.mjs",
+    "lnp:import-json": "node scripts/lnp-import-players-json.mjs",
     "db:migrate:stage116": "node scripts/run-sql.mjs supabase/migrations/20260606120000_stage116_production_hardening.sql supabase/migrations/20260606140000_stage116_p2_security_completion.sql",
     "db:migrate:stage12": "node scripts/run-sql.mjs supabase/migrations/20260610120000_stage12_pwa.sql",
     "db:migrate:integrations-audit": "node scripts/run-sql.mjs supabase/migrations/20260604102000_integrations_audit_hardening.sql",

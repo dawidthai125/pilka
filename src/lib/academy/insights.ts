@@ -1,44 +1,45 @@
 import { createClient } from "@/lib/supabase/server";
 import { playerFullName } from "@/lib/players/mappers";
 
-const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+import { resolveTenantClubId } from "@/lib/tenant/resolve";
 
-export async function buildAcademyAiContext(clubId: string = DEFAULT_CLUB_ID) {
+export async function buildAcademyAiContext(clubId?: string) {
+  const tenantClubId = await resolveTenantClubId(clubId);
   const supabase = await createClient();
 
   const [groups, developments, assessments, goals, transitions, scouting, reports, rankingData] =
     await Promise.all([
-      supabase.from("academy_groups").select("age_group, name, is_active").eq("club_id", clubId),
+      supabase.from("academy_groups").select("age_group, name, is_active").eq("club_id", tenantClubId),
       supabase
         .from("player_development")
         .select("player_id, potential, development_level, overall_rating, players(first_name, last_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("overall_rating", { ascending: false })
         .limit(15),
       supabase
         .from("player_assessments")
         .select("player_id, average_score, assessed_at")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("assessed_at", { ascending: false })
         .limit(20),
-      supabase.from("player_goals").select("title, status, player_id").eq("club_id", clubId).eq("status", "active"),
+      supabase.from("player_goals").select("title, status, player_id").eq("club_id", tenantClubId).eq("status", "active"),
       supabase
         .from("player_team_transitions")
         .select("player_id, from_age_group, to_age_group, transition_date, reason")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("transition_date", { ascending: false })
         .limit(10),
-      supabase.from("scouting_players").select("first_name, last_name, status, position, external_club_name").eq("club_id", clubId),
+      supabase.from("scouting_players").select("first_name, last_name, status, position, external_club_name").eq("club_id", tenantClubId),
       supabase
         .from("scouting_reports")
         .select("final_rating, summary, scouting_player_id, report_date")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("report_date", { ascending: false })
         .limit(10),
       supabase
         .from("player_development_history")
         .select("player_id, overall_rating, recorded_at")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("recorded_at", { ascending: false })
         .limit(100),
     ]);

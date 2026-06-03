@@ -57,7 +57,7 @@ export async function GET(request: Request) {
         schedule: "codziennie o 06:00 UTC",
         cli: "npm run sync:league-live",
         sources: ["90minut.pl", "regionalnyfutbol.pl", "regiowyniki.pl"],
-        mapping: "GLKS Mietków → Piorun Wawrzeńczyce",
+        mapping: "league_teams.league_name → league_teams.display_name (per club, from DB)",
       });
     }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

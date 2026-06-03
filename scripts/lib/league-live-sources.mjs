@@ -1,36 +1,9 @@
 /**
  * Pobieranie danych ligowych z mirrorów publicznych (do czasu API PZPN/DZPN).
- * Oficjalna nazwa ligowa: GLKS Mietków → wyświetlanie w FC OS: Piorun Wawrzeńczyce.
- *
- * Źródła (wg wiarygodności):
- * 1. 90minut.pl — tabela + wyniki (deklaracja: mPZPN + laczynaspilka.pl)
- * 2. regionalnyfutbol.pl — tabela + terminarz (mirror ŁNP)
+ * Konfiguracja klubu ładowana z bazy — patrz scripts/lib/league-club-config.mjs.
  */
 
-export const LEAGUE_CONFIG = {
-  clubId: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  competitionId: "f9022001-0001-4000-8000-000000000001",
-  seasonId: "f9021001-0001-4000-8000-000000000001",
-  ownLeagueName: "GLKS Mietków",
-  ownDisplayName: "Piorun Wawrzeńczyce",
-  sources: {
-    ninetyMinut: {
-      key: "90minut",
-      label: "90minut.pl",
-      reliability: 9,
-      tableUrl: "http://www.90minut.pl/liga/1/liga14526.html",
-    },
-    regionalnyFutbol: {
-      key: "regionalnyfutbol",
-      label: "regionalnyfutbol.pl",
-      reliability: 8,
-      pageUrl:
-        "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html",
-    },
-  },
-};
-
-const UA = "Mozilla/5.0 (compatible; PiorunLeagueSync/1.0; +https://pilka-mu.vercel.app)";
+const UA = "Mozilla/5.0 (compatible; FCOSLeagueSync/1.0)";
 
 const MONTHS = {
   stycznia: "01",
@@ -338,8 +311,19 @@ export function mergeFixtures(sources) {
   return [...map.values()].sort((a, b) => a.matchDate.localeCompare(b.matchDate));
 }
 
-export async function fetchAllLeagueSources() {
-  const cfg = LEAGUE_CONFIG.sources;
+function findOwnTeamRow(table, ownLeagueName) {
+  const needle = normalizeTeamName(String(ownLeagueName ?? "")).toLowerCase();
+  if (!needle) return null;
+  return (
+    table.find((r) => normalizeTeamName(r.teamName).toLowerCase().includes(needle)) ?? null
+  );
+}
+
+export async function fetchAllLeagueSources(clubConfig) {
+  if (!clubConfig?.sources) {
+    throw new Error("Brak źródeł mirror live w konfiguracji klubu.");
+  }
+  const cfg = clubConfig.sources;
   const [rfHtml, nmHtml] = await Promise.all([
     fetchPage(cfg.regionalnyFutbol.pageUrl),
     fetchPage(cfg.ninetyMinut.tableUrl),
@@ -357,10 +341,12 @@ export async function fetchAllLeagueSources() {
   const tableMerge = mergeLeagueTables({ regionalnyFutbol, ninetyMinut });
   const fixtures = mergeFixtures({ regionalnyFutbol, ninetyMinut });
 
-  const ownRow = tableMerge.table.find((r) => /mietk/i.test(r.teamName));
+  const ownRow = findOwnTeamRow(tableMerge.table, clubConfig.ownLeagueName);
 
   return {
     fetchedAt: new Date().toISOString(),
+    clubId: clubConfig.clubId,
+    clubSlug: clubConfig.slug ?? null,
     regionalnyFutbol: {
       ...cfg.regionalnyFutbol,
       tableRows: regionalnyFutbol.table.length,
@@ -376,6 +362,7 @@ export async function fetchAllLeagueSources() {
       tableSource: tableMerge.chosen,
       tableConflicts: tableMerge.conflicts,
       fixtures,
+      ownTeamRow: ownRow ?? null,
       glksMietkow: ownRow ?? null,
     },
   };

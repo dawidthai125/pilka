@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 
 import { getSiteUrl } from "@/config/env";
+import { clubPublicPath, listActivePublicClubs } from "@/lib/tenant/public-club";
 import { getPublicWebsiteSitemap } from "@/lib/website/public-data";
 
-const staticRoutes = [
+const staticSubpaths = [
   { path: "", changeFrequency: "daily" as const, priority: 1 },
   { path: "/aktualnosci", changeFrequency: "weekly" as const, priority: 0.8 },
   { path: "/mecze", changeFrequency: "weekly" as const, priority: 0.8 },
@@ -17,28 +18,46 @@ const staticRoutes = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
-  const dynamic = await getPublicWebsiteSitemap();
+  const clubs = await listActivePublicClubs();
+  const entries: MetadataRoute.Sitemap = [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+  ];
 
-  const staticEntries: MetadataRoute.Sitemap = staticRoutes.map(({ path, changeFrequency, priority }) => ({
-    url: `${baseUrl}${path}`,
-    lastModified: new Date(),
-    changeFrequency,
-    priority,
-  }));
+  for (const club of clubs) {
+    const dynamic = await getPublicWebsiteSitemap(club.slug);
 
-  const newsEntries: MetadataRoute.Sitemap = dynamic.news.map((item) => ({
-    url: `${baseUrl}/aktualnosci/${item.slug}`,
-    lastModified: new Date(item.updatedAt),
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
+    for (const { path, changeFrequency, priority } of staticSubpaths) {
+      entries.push({
+        url: `${baseUrl}${clubPublicPath(club.slug, path)}`,
+        lastModified: new Date(),
+        changeFrequency,
+        priority,
+      });
+    }
 
-  const galleryEntries: MetadataRoute.Sitemap = dynamic.gallery.map((item) => ({
-    url: `${baseUrl}/galeria/${item.slug}`,
-    lastModified: new Date(item.updatedAt),
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
+    for (const item of dynamic.news) {
+      entries.push({
+        url: `${baseUrl}${clubPublicPath(club.slug, `/aktualnosci/${item.slug}`)}`,
+        lastModified: new Date(item.updatedAt),
+        changeFrequency: "weekly",
+        priority: 0.7,
+      });
+    }
 
-  return [...staticEntries, ...newsEntries, ...galleryEntries];
+    for (const item of dynamic.gallery) {
+      entries.push({
+        url: `${baseUrl}${clubPublicPath(club.slug, `/galeria/${item.slug}`)}`,
+        lastModified: new Date(item.updatedAt),
+        changeFrequency: "monthly",
+        priority: 0.6,
+      });
+    }
+  }
+
+  return entries;
 }

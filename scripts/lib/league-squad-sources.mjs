@@ -8,13 +8,15 @@
 import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { LEAGUE_CONFIG } from "./league-live-sources.mjs";
 import { normalizeName, parseLeaguePlayerName } from "./league-player-utils.mjs";
 import {
   fetchLnpSquadAndStats,
   getLnpConfig,
+  getLnpConfigFromClubConfig,
+  loadLnpPlayersSnapshot,
   mergeLnpIntoMirrorRoster,
 } from "./league-lnp-sources.mjs";
+import { aggregateGoalsFromRegiowynikiMatches } from "./regiowyniki-match-goals.mjs";
 
 const UA = { "User-Agent": "Mozilla/5.0 (compatible; PiorunLeagueSync/1.0)" };
 
@@ -207,18 +209,36 @@ export function buildSeasonStatsNotes(player, fetchedAt) {
   });
 }
 
-export async function fetchSquadAndStats() {
+export async function fetchSquadAndStats(clubConfig) {
+  if (!clubConfig?.clubId) {
+    throw new Error("Brak konfiguracji klubu dla pobrania kadry.");
+  }
+
+  const squad = clubConfig.squadSources ?? {};
   const urls = {
-    regiowynikiKadra: "https://regiowyniki.pl/druzyna/Pilka_Nozna/Dolnoslaskie/GLKS_Mietkow/kadra/",
-    ninetyMinutStrzelcy: "http://www.90minut.pl/strzelcy.php?id_liga=14526",
-    ninetyMinutBilans: `http://www.90minut.pl/bilans.php?id_klub=3824&id_sezon=107`,
+    regiowynikiKadra: squad.regiowynikiKadra,
+    ninetyMinutStrzelcy: squad.ninetyMinutStrzelcy,
+    ninetyMinutBilans: squad.ninetyMinutBilans,
+    ninetyMinutBilansFallback: squad.ninetyMinutBilansFallback,
   };
+
+  if (!urls.regiowynikiKadra) {
+    throw new Error(
+      `Brak regiowynikiKadraUrl w league_sources.config dla klubu ${clubConfig.clubId}.`,
+    );
+  }
+
+  const bilansFallbackUrl =
+    urls.ninetyMinutBilansFallback ??
+    (urls.ninetyMinutBilans
+      ? urls.ninetyMinutBilans.replace(/id_sezon=\d+/, "id_sezon=91")
+      : null);
 
   const [kadraPage, strzelcyPage, bilans107, bilans91] = await Promise.all([
     get(urls.regiowynikiKadra),
-    get(urls.ninetyMinutStrzelcy),
-    get(urls.ninetyMinutBilans),
-    get("http://www.90minut.pl/bilans.php?id_klub=3824&id_sezon=91"),
+    urls.ninetyMinutStrzelcy ? get(urls.ninetyMinutStrzelcy) : Promise.resolve({ status: 404, text: "" }),
+    urls.ninetyMinutBilans ? get(urls.ninetyMinutBilans) : Promise.resolve({ status: 404, text: "" }),
+    bilansFallbackUrl ? get(bilansFallbackUrl) : Promise.resolve({ status: 404, text: "" }),
   ]);
 
   const kadra = kadraPage.status === 200 ? parseRegiowynikiKadra(kadraPage.text) : [];
@@ -231,10 +251,57 @@ export async function fetchSquadAndStats() {
         : [];
   let players = mergePlayerStats(kadra, strzelcy, bilans);
 
-  const lnpConfig = getLnpConfig();
-  const lnp = await fetchLnpSquadAndStats(lnpConfig);
+  let rwGoals = { ok: false, players: [], matchIds: 0 };
+  try {
+    rwGoals = await aggregateGoalsFromRegiowynikiMatches(
+      players.map((p) => p.leaguePlayerName),
+      { delayMs: 100 },
+    );
+  } catch (err) {
+    rwGoals = { ok: false, players: [], matchIds: 0, error: String(err?.message ?? err) };
+  }
+  if (rwGoals.ok && rwGoals.players.length) {
+    const byName = new Map(players.map((p) => [normalizeName(p.leaguePlayerName), p]));
+    for (const g of rwGoals.players) {
+      const key = normalizeName(g.leaguePlayerName);
+      const ex = byName.get(key) ?? {
+        leaguePlayerName: g.leaguePlayerName,
+        jerseyNumber: null,
+        appearances: 0,
+        goals: 0,
+        yellowCards: 0,
+        redCards: 0,
+        minutes: 0,
+        benchEntries: 0,
+        sources: [],
+      };
+      ex.goals = Math.max(ex.goals, g.goals);
+      for (const s of g.sources) {
+        if (!ex.sources.includes(s)) ex.sources.push(s);
+      }
+      byName.set(key, ex);
+    }
+    players = [...byName.values()].sort((a, b) => b.goals - a.goals || b.appearances - a.appearances);
+  }
+
+  const lnpConfig = getLnpConfigFromClubConfig(clubConfig);
+  let lnp = await fetchLnpSquadAndStats(lnpConfig);
   if (lnp.ok && lnp.players.length) {
     players = mergeLnpIntoMirrorRoster(players, lnp.players);
+  } else {
+    const snap = loadLnpPlayersSnapshot();
+    if (snap?.ok) {
+      players = mergeLnpIntoMirrorRoster(players, snap.players);
+      lnp = {
+        ok: true,
+        skipped: false,
+        fromSnapshot: true,
+        count: snap.count,
+        hasAnyStats: snap.hasAnyStats,
+        reason: `Użyto zapisu ${snap.path} (${snap.savedAt ?? "?"})`,
+        players: snap.players,
+      };
+    }
   }
 
   const fetchedAt = new Date().toISOString();
@@ -246,7 +313,7 @@ export async function fetchSquadAndStats() {
   if (!hasAnyStats) {
     if (!lnpConfig.enabled) {
       statsNote =
-        "Mirror B Klasy nie publikuje statystyk per zawodnik. mPZPN ma pełne dane — ustaw LNP_ACCESS_TOKEN i LNP_TEAM_ID w .env.local.";
+        "Regiowyniki/90minut nie mają bramek per zawodnik w B Klasie. Skopiuj token i UUID drużyny z przeglądarki ŁNP (node scripts/discover-lnp-setup.mjs).";
     } else if (lnp.skipped) {
       statsNote = lnp.reason ?? "Adapter mPZPN pominięty.";
     } else if (!lnp.ok) {
@@ -258,7 +325,7 @@ export async function fetchSquadAndStats() {
 
   return {
     fetchedAt,
-    leagueTeamName: LEAGUE_CONFIG.ownLeagueName,
+    leagueTeamName: clubConfig.ownLeagueName,
     urls,
     lnp: {
       enabled: lnpConfig.enabled,
@@ -271,6 +338,8 @@ export async function fetchSquadAndStats() {
     },
     counts: {
       regiowynikiKadra: kadra.length,
+      regiowynikiMatchGoals: rwGoals.players?.filter((p) => p.goals > 0).length ?? 0,
+      regiowynikiMatchesScanned: rwGoals.matchIds ?? 0,
       ninetyMinutStrzelcy: strzelcy.length,
       ninetyMinutBilans: bilans.length,
       mpzpnLnp: lnp.players?.length ?? 0,

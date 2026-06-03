@@ -11,6 +11,7 @@ import {
   canManageWebsiteTeamMedia,
 } from "@/config/permissions";
 import { getClub, requireAccessContext } from "@/lib/auth/session";
+import { clubPublicPath } from "@/lib/tenant/public-club";
 import { getClubBrandingName } from "@/lib/club/names";
 import { buildWebsiteAiNewsDraft } from "@/lib/website/insights";
 import { readString } from "@/lib/form-data";
@@ -35,15 +36,17 @@ import type {
 
 export type WebsiteActionState = { error?: string; success?: string; id?: string };
 
-function revalidateWebsitePaths() {
-  const paths = [
+function revalidateWebsitePaths(clubSlug: string) {
+  const dashboardPaths = [
     "/website",
     "/website/news",
     "/website/gallery",
     "/website/branding",
     "/website/social",
     "/website/media",
-    "/",
+  ];
+  const publicSubpaths = [
+    "",
     "/aktualnosci",
     "/mecze",
     "/druzyna",
@@ -53,7 +56,15 @@ function revalidateWebsitePaths() {
     "/kontakt",
     "/kibic",
   ];
-  for (const path of paths) revalidatePath(path);
+
+  revalidatePath("/");
+  for (const path of dashboardPaths) revalidatePath(path);
+  for (const subpath of publicSubpaths) revalidatePath(clubPublicPath(clubSlug, subpath));
+}
+
+async function revalidateWebsitePathsForClub(clubId: string) {
+  const club = await getClub(clubId);
+  if (club?.slug) revalidateWebsitePaths(club.slug);
 }
 
 function isValidHttpUrl(value: string): boolean {
@@ -123,7 +134,7 @@ export async function updateWebsiteBranding(
   });
 
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Ustawienia strony zapisane." };
 }
 
@@ -187,7 +198,7 @@ export async function upsertWebsiteNews(
   });
 
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: status === "published" ? "Wpis opublikowany." : "Wpis zapisany.", id };
 }
 
@@ -221,7 +232,7 @@ export async function publishWebsiteNews(
     .eq("club_id", access.clubId);
 
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Wpis opublikowany." };
 }
 
@@ -257,7 +268,7 @@ export async function generateWebsiteNewsWithAi(
   });
 
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Szkic AI utworzony — wymaga zatwierdzenia.", id };
 }
 
@@ -288,7 +299,7 @@ export async function upsertWebsiteGalleryAlbum(
   });
 
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Album zapisany.", id };
 }
 
@@ -336,7 +347,7 @@ export async function uploadWebsiteGalleryPhoto(
   });
 
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Zdjęcie dodane." };
 }
 
@@ -362,7 +373,7 @@ export async function updateWebsiteSocialIntegration(
   }, { onConflict: "club_id,platform" });
 
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Integracja zapisana (API — w przygotowaniu)." };
 }
 
@@ -379,7 +390,7 @@ export async function deleteWebsiteNews(
   const supabase = await createClient();
   const { error } = await supabase.from("website_news").delete().eq("id", newsId).eq("club_id", access.clubId);
   if (error) return { error: error.message };
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Wpis usunięty." };
 }
 
@@ -455,7 +466,7 @@ export async function uploadWebsiteMedia(
   const { error } = await supabase.from("website_media").upsert(payload);
   if (error) return { error: error.message };
 
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Zdjęcie zapisane.", id: mediaId };
 }
 
@@ -501,7 +512,7 @@ export async function deleteWebsiteMedia(
     if (error) return { error: error.message };
   }
 
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: media.section === "gallery" ? "Zdjęcie usunięte z galerii." : "Przywrócono media demo." };
 }
 
@@ -532,7 +543,7 @@ export async function reorderWebsiteMedia(
     if (error) return { error: error.message };
   }
 
-  revalidateWebsitePaths();
+  await revalidateWebsitePathsForClub(access.clubId);
   return { success: "Kolejność galerii zapisana." };
 }
 

@@ -19,6 +19,7 @@ import {
   formatPublicMatchTime,
   isDisplayablePublicMatch,
 } from "@/lib/website/match-display";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import { cn } from "@/lib/utils";
 import type { LeagueTableEntry } from "@/types/matches";
 import type {
@@ -447,18 +448,21 @@ function sortTeamsForAcademyPath(teams: PublicTeamCard[]): PublicTeamCard[] {
 }
 
 export function PublicAcademySection({
+  clubSlug,
   teams,
   academyImages,
   contactPhone,
   contactAddress,
   clubName,
 }: {
+  clubSlug: string;
   teams: PublicTeamCard[];
   academyImages: PublicAcademyMediaImage[];
   contactPhone?: string | null;
   contactAddress?: string | null;
   clubName?: string;
 }) {
+  const paths = buildPublicClubPaths(clubSlug);
   const displayPath = sortTeamsForAcademyPath(teams);
   const primaryImage = academyImages.find((item) => item.slotKey === "kids") ?? academyImages[0];
   const secondaryImage = academyImages.find((item) => item.slotKey === "training") ?? academyImages[1];
@@ -469,7 +473,7 @@ export function PublicAcademySection({
       eyebrow="Akademia"
       title={clubName ? `Akademia ${clubName}` : "Akademia klubu"}
       subtitle="Od najmłodszych grup po pierwszą drużynę seniorską — pierwszy kontakt z piłką."
-      href="/kontakt"
+      href={paths.kontakt}
       linkLabel="Zapisz dziecko"
       className="scroll-mt-24 border-t border-white/5 py-10 sm:py-12 lg:py-16"
       aria-label="Akademia"
@@ -540,7 +544,7 @@ export function PublicAcademySection({
                 ) : null}
               </div>
               <div className="mt-5">
-                <HomeDarkPrimaryButton href="/kontakt">Umów zapis</HomeDarkPrimaryButton>
+                <HomeDarkPrimaryButton href={paths.kontakt}>Umów zapis</HomeDarkPrimaryButton>
               </div>
             </div>
           </div>

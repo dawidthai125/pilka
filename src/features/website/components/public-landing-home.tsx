@@ -9,6 +9,7 @@ import {
   HomeDarkSection,
 } from "@/features/website/components/public-home-dark-ui";
 import { CLUB_DISPLAY_CLASS, CLUB_SCENE_DARK } from "@/lib/website/constants";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import { cn } from "@/lib/utils";
 import type { LeagueTableEntry } from "@/types/matches";
 import type { PublicNewsPreviewItem, PublicMatchSummary, PublicPlayer, PublicTeamStats } from "@/types/website";
@@ -21,6 +22,7 @@ const VALUES = [
 ] as const;
 
 export function PublicLandingHome({
+  clubSlug,
   clubName,
   officialName,
   heroTitle,
@@ -34,6 +36,7 @@ export function PublicLandingHome({
   players,
   topScorers,
 }: {
+  clubSlug: string;
   clubName: string;
   officialName: string;
   heroTitle: string;
@@ -47,6 +50,7 @@ export function PublicLandingHome({
   players: PublicPlayer[];
   topScorers: PublicPlayer[];
 }) {
+  const paths = buildPublicClubPaths(clubSlug);
   const ownRow = league.entries.find((e) => e.isOwnClub);
   const ownPosition = ownRow ? league.entries.indexOf(ownRow) + 1 : null;
 
@@ -73,21 +77,21 @@ export function PublicLandingHome({
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/mecze"
+              href={paths.mecze}
               className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-[var(--club-secondary)] px-6 text-sm font-bold uppercase tracking-wide text-[var(--club-primary)] shadow-lg hover:brightness-105"
             >
               <CalendarDays className="size-4" />
               Mecze
             </Link>
             <Link
-              href="/tabela"
+              href={paths.tabela}
               className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-white/30 px-6 text-sm font-semibold text-white hover:bg-white/10"
             >
               <Trophy className="size-4" />
               Tabela
             </Link>
             <Link
-              href="/aktualnosci"
+              href={paths.aktualnosci}
               className="inline-flex min-h-12 items-center rounded-lg border border-white/20 px-6 text-sm font-semibold text-white/90 hover:bg-white/10"
             >
               Aktualności
@@ -97,6 +101,7 @@ export function PublicLandingHome({
       </section>
 
       <PublicHomeSeasonHub
+        clubSlug={clubSlug}
         nextMatch={nextMatch}
         recentResults={recentResults}
         leagueEntries={league.entries}
@@ -112,17 +117,17 @@ export function PublicLandingHome({
           eyebrow="Liga"
           title="Tabela"
           subtitle={`${league.competition} · sezon ${league.season}`}
-          href="/tabela"
+          href={paths.tabela}
           linkLabel="Pełna tabela"
           className="border-t border-white/5 py-10 sm:py-12"
         >
-          <PublicHomeLeagueTable entries={league.entries} ownPosition={ownPosition} />
+          <PublicHomeLeagueTable clubSlug={clubSlug} entries={league.entries} ownPosition={ownPosition} />
         </HomeDarkSection>
       ) : null}
 
-      <PublicHomeSquadSection players={players} topScorers={topScorers} />
+      <PublicHomeSquadSection clubSlug={clubSlug} players={players} topScorers={topScorers} />
 
-      <PublicHomeNewsSection news={news} />
+      <PublicHomeNewsSection clubSlug={clubSlug} news={news} />
 
       {/* Wartości */}
       <section className={cn(CLUB_SCENE_DARK, "border-t border-white/5 py-10 sm:py-12")} aria-label="Wartości klubu">
@@ -151,13 +156,13 @@ export function PublicLandingHome({
         />
         <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
           <p className={cn(CLUB_DISPLAY_CLASS, "text-3xl font-bold text-[var(--club-secondary)] sm:text-4xl")}>
-            Dołącz do Pioruna!
+            Dołącz do {clubName}!
           </p>
           <p className="mt-3 text-base text-white/80">
             Zapisz dziecko do akademii i bądź częścią naszej piłkarskiej rodziny.
           </p>
           <Link
-            href="/kontakt"
+            href={paths.kontakt}
             className="mt-8 inline-flex min-h-12 items-center rounded-lg bg-[var(--club-secondary)] px-8 text-sm font-bold uppercase tracking-wide text-[var(--club-primary)] hover:brightness-105"
           >
             Zapisz dziecko

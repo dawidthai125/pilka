@@ -35,7 +35,7 @@ export default async function MatchDetailPage({
 
   const canManage = canManageMatches(access.roles);
   if (edit === "1" && canManage) {
-    const [teams, club] = await Promise.all([getTeams(), getClub()]);
+    const [teams, club] = await Promise.all([getTeams(access.clubId), getClub(access.clubId)]);
     return (
       <div className="mx-auto max-w-3xl space-y-6">
         <MatchForm teams={teams} match={data.match} ownTeamName={club ? getClubBrandingName(club) : "Klub"} mode="edit" />

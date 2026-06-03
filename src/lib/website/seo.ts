@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getSiteUrl } from "@/config/env";
 import { siteConfig } from "@/config/site";
 import { getWebsiteAssetUrl } from "@/lib/website/assets";
+import { clubPublicPath } from "@/lib/tenant/public-club";
 import { getPublicWebsiteHome } from "@/lib/website/public-data";
 
 export function getPublicSiteUrl(path = ""): string {
@@ -13,13 +14,14 @@ export function getPublicSiteUrl(path = ""): string {
 
 export async function buildPublicPageMetadata(
   pageTitle: string,
-  path: string,
+  clubSlug: string,
+  subpath: string,
   description?: string,
 ): Promise<Metadata> {
-  const home = await getPublicWebsiteHome();
+  const home = await getPublicWebsiteHome(clubSlug);
   const clubName = home?.club.publicName ?? siteConfig.name;
   const metaDescription = description ?? home?.settings.seoDescription ?? siteConfig.description;
-  const canonical = getPublicSiteUrl(path);
+  const canonical = getPublicSiteUrl(clubPublicPath(clubSlug, subpath));
   const ogImagePath = home?.settings.ogImagePath ?? home?.settings.heroImagePath ?? home?.settings.logoPath;
   const ogImageUrl = ogImagePath ? await getWebsiteAssetUrl(ogImagePath) : null;
 

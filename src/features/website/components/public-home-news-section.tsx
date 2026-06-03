@@ -3,6 +3,7 @@ import { Newspaper, Zap } from "lucide-react";
 
 import { HomeDarkPanel, HomeDarkSection } from "@/features/website/components/public-home-dark-ui";
 import { CLUB_DISPLAY_CLASS, WEBSITE_NEWS_CATEGORY_LABELS } from "@/lib/website/constants";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import { cn } from "@/lib/utils";
 import type { PublicNewsPreviewItem } from "@/types/website";
 
@@ -13,7 +14,8 @@ function formatNewsDate(iso: string | null | undefined): string {
   return d.toLocaleDateString("pl-PL", { day: "numeric", month: "short", year: "numeric" });
 }
 
-export function PublicHomeNewsSection({ news }: { news: PublicNewsPreviewItem[] }) {
+export function PublicHomeNewsSection({ clubSlug, news }: { clubSlug: string; news: PublicNewsPreviewItem[] }) {
+  const paths = buildPublicClubPaths(clubSlug);
   const cards = news.slice(0, 4);
   if (cards.length === 0) return null;
 
@@ -23,15 +25,15 @@ export function PublicHomeNewsSection({ news }: { news: PublicNewsPreviewItem[] 
     <HomeDarkSection
       eyebrow="Klub na żywo"
       title="Aktualności"
-      subtitle="Mecze, akademia, wydarzenia — to, co dzieje się w Piorunie."
-      href="/aktualnosci"
+      subtitle="Mecze, akademia, wydarzenia — to, co dzieje się w klubie."
+      href={paths.aktualnosci}
       linkLabel="Wszystkie wpisy"
       className="border-t border-white/5 py-10 sm:py-12"
     >
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
         {featured ? (
           <Link
-            href={`/aktualnosci/${featured.slug}`}
+            href={paths.newsArticle(featured.slug)}
             className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[var(--club-primary)] via-[#0a4a38] to-[#062820] lg:row-span-2"
           >
             <div className="absolute -left-10 top-10 size-40 rounded-full bg-[var(--club-secondary)]/10 blur-3xl" aria-hidden />
@@ -74,7 +76,7 @@ export function PublicHomeNewsSection({ news }: { news: PublicNewsPreviewItem[] 
           {rest.map((item) => (
             <Link
               key={item.id}
-              href={`/aktualnosci/${item.slug}`}
+              href={paths.newsArticle(item.slug)}
               className="group flex gap-4 overflow-hidden rounded-xl border border-white/10 bg-black/20 p-3 transition hover:border-white/20 hover:bg-black/30 sm:p-4"
             >
               <div className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-white/5 sm:size-24">
@@ -106,7 +108,7 @@ export function PublicHomeNewsSection({ news }: { news: PublicNewsPreviewItem[] 
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
             <p className="text-sm text-white/65">Chcesz więcej relacji z boiska i akademii?</p>
             <Link
-              href="/aktualnosci"
+              href={paths.aktualnosci}
               className="text-sm font-semibold text-[var(--club-secondary)] hover:underline"
             >
               Przejdź do aktualności →

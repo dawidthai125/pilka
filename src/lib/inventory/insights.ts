@@ -1,32 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_CLUB_ID } from "@/lib/auth/session";
+import { resolveTenantClubId } from "@/lib/tenant/resolve";
 import type { InventoryReportContent } from "@/types/inventory";
 import { generateAiReportContent, isOpenAiConfigured } from "@/integrations/openai";
 
-export async function buildInventoryAiContext(clubId: string = DEFAULT_CLUB_ID) {
+export async function buildInventoryAiContext(clubId?: string) {
+  const tenantClubId = await resolveTenantClubId(clubId);
   const supabase = await createClient();
 
   const [itemsRes, damagesRes, kitsRes, playersRes] = await Promise.all([
     supabase
       .from("inventory_items")
       .select("name, quantity_available, min_stock_level, status, category:category_id(slug)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("name")
       .limit(200),
     supabase
       .from("inventory_damages")
       .select("description, status, item:item_id(name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("status", ["reported", "in_repair", "replacement_needed"])
       .limit(30),
     supabase
       .from("inventory_player_kits")
       .select("player_id")
-      .eq("club_id", clubId),
+      .eq("club_id", tenantClubId),
     supabase
       .from("players")
       .select("id, first_name, last_name, status")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("status", "active")
       .limit(100),
   ]);

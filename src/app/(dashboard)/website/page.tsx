@@ -3,13 +3,17 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
+  getClub,
   getDashboardContext,
   requireWebsiteCmsAccess,
 } from "@/lib/auth/session";
+import { clubPublicPath } from "@/lib/tenant/public-club";
 
 export default async function WebsiteCmsPage() {
   const { access } = await getDashboardContext();
   requireWebsiteCmsAccess(access);
+  const club = await getClub(access.clubId);
+  const previewHref = club?.slug ? clubPublicPath(club.slug) : "/";
 
   return (
     <div className="space-y-6">
@@ -23,7 +27,7 @@ export default async function WebsiteCmsPage() {
         <Link href="/website/gallery" className={cn(buttonVariants({ variant: "outline" }))}>Galeria</Link>
         <Link href="/website/branding" className={cn(buttonVariants({ variant: "outline" }))}>Branding</Link>
         <Link href="/website/social" className={cn(buttonVariants({ variant: "outline" }))}>Social media</Link>
-        <Link href="/" className={cn(buttonVariants({ variant: "outline" }))} target="_blank">Podgląd strony</Link>
+        <Link href={previewHref} className={cn(buttonVariants({ variant: "outline" }))} target="_blank">Podgląd strony</Link>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { buildAccessContext } from "@/lib/rbac/permissions";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { parseClubRole } from "@/lib/validators";
 import { createClient, getUser } from "@/lib/supabase/server";
+import { resolveSessionClubId, resolveTenantClubId } from "@/lib/tenant/resolve";
 import { siteConfig } from "@/config/site";
 import type { Club, ClubRole, Profile, Team, UserAccessContext } from "@/types/rbac";
 import type { Database } from "@/types/database";
@@ -199,7 +200,6 @@ import {
   isContractReminderDue,
 } from "@/lib/sponsors/notifications";
 
-export const DEFAULT_CLUB_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 
 export type ClubMemberRow = {
   id: string;
@@ -254,7 +254,7 @@ export const getUserMemberships = cache(async (userId: string) => {
 });
 
 export const getAccessContext = cache(
-  async (userId: string, clubId: string = DEFAULT_CLUB_ID): Promise<UserAccessContext | null> => {
+  async (userId: string, clubId: string): Promise<UserAccessContext | null> => {
     const memberships = await getUserMemberships(userId);
     const clubMemberships = memberships.filter((m) => m.club_id === clubId);
 
@@ -280,10 +280,11 @@ export const getAccessContext = cache(
 );
 
 export async function requireAccessContext(
-  clubId: string = DEFAULT_CLUB_ID,
+  clubId?: string,
 ): Promise<UserAccessContext> {
-  const user = await requireUser();
-  const context = await getAccessContext(user.id, clubId);
+  const tenantClubId = await resolveTenantClubId(clubId);
+const user = await requireUser();
+  const context = await getAccessContext(user.id, tenantClubId);
 
   if (!context) {
     redirect("/login?error=no_membership");
@@ -292,14 +293,15 @@ export async function requireAccessContext(
   return context;
 }
 
-export const getClub = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<Club | null> => {
+export const getClub = cache(async (clubId?: string): Promise<Club | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("clubs")
     .select(
       "id, slug, public_name, official_name, association, competition_level, country, voivodeship, status",
     )
-    .eq("id", clubId)
+    .eq("id", tenantClubId)
     .maybeSingle();
 
   if (error || !data) return null;
@@ -317,12 +319,13 @@ export const getClub = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<C
   };
 });
 
-export const getTeams = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<Team[]> => {
+export const getTeams = cache(async (clubId?: string): Promise<Team[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("teams")
     .select("id, club_id, name, category, season, is_active")
-    .eq("club_id", clubId)
+    .eq("club_id", tenantClubId)
     .order("name");
 
   if (error) throw new Error(error.message);
@@ -338,12 +341,13 @@ export const getTeams = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<
 });
 
 export const getClubMembers = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<ClubMemberRow[]> => {
+  async (clubId?: string): Promise<ClubMemberRow[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data: memberships, error } = await supabase
       .from("club_memberships")
       .select("id, role, status, team_id, user_id")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("role");
 
     if (error) throw new Error(error.message);
@@ -383,10 +387,11 @@ export const getClubMembers = cache(
   },
 );
 
-export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+export const getDashboardContext = cache(async (clubId?: string) => {
+  const tenantClubId = await resolveSessionClubId(clubId);
   const user = await requireUser();
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_app_layout_context", { p_club_id: clubId });
+  const { data, error } = await supabase.rpc("get_app_layout_context", { p_club_id: tenantClubId });
 
   if (error || !data) {
     redirect("/login?error=no_membership");
@@ -447,7 +452,7 @@ export const getDashboardContext = cache(async (clubId: string = DEFAULT_CLUB_ID
 
   const access = buildAccessContext({
     userId: user.id,
-    clubId,
+    clubId: tenantClubId,
     roles,
   });
 
@@ -673,14 +678,15 @@ function attachTeamName(player: Player, teamMap: Map<string, string>): Player {
 }
 
 export const getPlayersByTeam = cache(
-  async (teamId: string, clubId: string = DEFAULT_CLUB_ID): Promise<Player[]> => {
+  async (teamId: string, clubId?: string): Promise<Player[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const [teamMap, playersRes] = await Promise.all([
-      loadTeamNameMapCached(clubId),
+      loadTeamNameMapCached(tenantClubId),
       supabase
         .from("players")
         .select(PLAYER_SELECT)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("team_id", teamId)
         .order("last_name")
         .order("first_name"),
@@ -694,15 +700,16 @@ export const getPlayersByTeam = cache(
 );
 
 export const getPlayers = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, options?: { slim?: boolean }): Promise<Player[]> => {
+  async (clubId?: string, options?: { slim?: boolean }): Promise<Player[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
-    const teamMap = await loadTeamNameMapCached(clubId);
+    const teamMap = await loadTeamNameMapCached(tenantClubId);
 
     if (options?.slim) {
       const { data, error } = await supabase
         .from("players")
         .select(PLAYER_LIST_SELECT)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("last_name")
         .order("first_name");
       if (error) throw new Error(error.message);
@@ -712,7 +719,7 @@ export const getPlayers = cache(
     const { data, error } = await supabase
       .from("players")
       .select(PLAYER_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("last_name")
       .order("first_name");
     if (error) throw new Error(error.message);
@@ -721,18 +728,20 @@ export const getPlayers = cache(
 );
 
 export const getPlayerCounts = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<{ total: number; active: number }> => {
-    const stats = await getHomeDashboardStats(clubId);
+  async (clubId?: string): Promise<{ total: number; active: number }> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
+    const stats = await getHomeDashboardStats(tenantClubId);
     return stats.playerCounts;
   },
 );
 
 export const getHomeDashboardStats = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
   ): Promise<{ playerCounts: { total: number; active: number }; documentAlerts: DocumentAlert[] }> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("get_home_dashboard_stats", { p_club_id: clubId });
+    const { data, error } = await supabase.rpc("get_home_dashboard_stats", { p_club_id: tenantClubId });
     if (error || !data) {
       return { playerCounts: { total: 0, active: 0 }, documentAlerts: [] };
     }
@@ -775,14 +784,15 @@ export const getHomeDashboardStats = cache(
 );
 
 export const getPlayer = cache(
-  async (playerId: string, clubId: string = DEFAULT_CLUB_ID): Promise<Player | null> => {
+  async (playerId: string, clubId?: string): Promise<Player | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const [teamMap, playerRes] = await Promise.all([
-      loadTeamNameMapCached(clubId),
+      loadTeamNameMapCached(tenantClubId),
       supabase
         .from("players")
         .select(PLAYER_SELECT)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("id", playerId)
         .maybeSingle(),
     ]);
@@ -793,7 +803,8 @@ export const getPlayer = cache(
 );
 
 export const getDocumentAlerts = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<DocumentAlert[]> => {
+  async (clubId?: string): Promise<DocumentAlert[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const alertHorizon = new Date();
     alertHorizon.setDate(alertHorizon.getDate() + 30);
@@ -802,7 +813,7 @@ export const getDocumentAlerts = cache(
     const { data: documents, error } = await supabase
       .from("player_documents")
       .select("id, player_id, document_type, title, expires_at")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .not("expires_at", "is", null)
       .lte("expires_at", horizonDate);
 
@@ -851,7 +862,8 @@ export type PlayerDetailData = {
 };
 
 export const getPlayerDetail = cache(
-  async (playerId: string, clubId: string = DEFAULT_CLUB_ID): Promise<PlayerDetailData | null> => {
+  async (playerId: string, clubId?: string): Promise<PlayerDetailData | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const [
       teamMap,
@@ -862,11 +874,11 @@ export const getPlayerDetail = cache(
       injuriesRes,
       notesRes,
     ] = await Promise.all([
-      loadTeamNameMapCached(clubId),
+      loadTeamNameMapCached(tenantClubId),
       supabase
         .from("players")
         .select(PLAYER_SELECT)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("id", playerId)
         .maybeSingle(),
       supabase
@@ -874,7 +886,7 @@ export const getPlayerDetail = cache(
         .select(
           "id, club_id, player_id, document_type, title, storage_path, file_name, mime_type, file_size, expires_at, notes, created_at",
         )
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("created_at", { ascending: false }),
       supabase
@@ -882,7 +894,7 @@ export const getPlayerDetail = cache(
         .select(
           "id, player_id, season, matches_played, goals, assists, yellow_cards, red_cards, minutes_played",
         )
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("season", { ascending: false }),
       supabase
@@ -890,19 +902,19 @@ export const getPlayerDetail = cache(
         .select(
           "id, player_id, event_type, event_date, description, previous_value, new_value, related_club_name, created_at",
         )
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("event_date", { ascending: false }),
       supabase
         .from("player_injuries")
         .select("id, player_id, injury_date, recovery_date, description, severity, is_active")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("injury_date", { ascending: false }),
       supabase
         .from("player_coach_notes")
         .select("id, player_id, author_id, note_type, content, created_at")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("created_at", { ascending: false }),
     ]);
@@ -948,11 +960,12 @@ export type TrainingFilters = {
 
 export const getTrainings = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     view: CalendarView = "month",
     anchorIso: string = new Date().toISOString().slice(0, 10),
     filters: TrainingFilters = {},
   ): Promise<Training[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const anchor = parseLocalDate(anchorIso);
     const { from, to } = getCalendarRange(view, anchor);
@@ -960,7 +973,7 @@ export const getTrainings = cache(
     let query = supabase
       .from("trainings")
       .select(TRAINING_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .gte("training_date", from)
       .lte("training_date", to)
       .order("training_date")
@@ -989,14 +1002,15 @@ export type TrainingDetailData = {
 };
 
 export const getTrainingDetail = cache(
-  async (trainingId: string, clubId: string = DEFAULT_CLUB_ID): Promise<TrainingDetailData | null> => {
+  async (trainingId: string, clubId?: string): Promise<TrainingDetailData | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const user = await getUser();
 
     const trainingRes = await supabase
       .from("trainings")
       .select(TRAINING_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("id", trainingId)
       .maybeSingle();
 
@@ -1005,27 +1019,27 @@ export const getTrainingDetail = cache(
     const training = mapTraining(trainingRes.data);
 
     const [teamMap, availabilityRes, attendanceRes, notesRes, rosterRes] = await Promise.all([
-      loadTeamNameMapCached(clubId),
+      loadTeamNameMapCached(tenantClubId),
       supabase
         .from("training_availability")
         .select("id, training_id, player_id, status, absence_reason, notes")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("training_id", trainingId),
       supabase
         .from("training_attendance")
         .select("id, training_id, player_id, status, notes")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("training_id", trainingId),
       supabase
         .from("training_session_notes")
         .select("id, training_id, author_id, player_id, content, created_at")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("training_id", trainingId)
         .order("created_at", { ascending: false }),
       supabase
         .from("players")
         .select(PLAYER_SELECT)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("team_id", training.teamId)
         .order("last_name")
         .order("first_name"),
@@ -1049,11 +1063,11 @@ export const getTrainingDetail = cache(
       const { data: membership } = await supabase
         .from("club_memberships")
         .select("role")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("user_id", user.id)
         .eq("status", "active");
       const roles = (membership ?? []).map((m) => m.role as import("@/types/rbac").ClubRole);
-      const accessCtx = buildAccessContext({ userId: user.id, clubId, roles });
+      const accessCtx = buildAccessContext({ userId: user.id, clubId: tenantClubId, roles });
       const ownIds = await resolveOwnPlayerIds(accessCtx);
       const onTeam = ownIds.find((id) => roster.some((p) => p.id === id));
       myPlayerId = onTeam ?? ownIds[0] ?? null;
@@ -1089,17 +1103,18 @@ export const getTrainingDetail = cache(
 export const getAttendanceStats = cache(
   async (
     scope: AttendanceScope = "season",
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     teamId?: string,
     maxTrainings?: number,
   ): Promise<PlayerAttendanceStats[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const fromDate = getScopeDateFrom(scope);
 
     let trainingQuery = supabase
       .from("trainings")
       .select("id")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("status", "completed");
 
     if (fromDate) {
@@ -1122,7 +1137,7 @@ export const getAttendanceStats = cache(
     const { data: attendance, error } = await supabase
       .from("training_attendance")
       .select("player_id, status")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("training_id", trainingIds);
 
     if (error) throw new Error(error.message);
@@ -1132,7 +1147,7 @@ export const getAttendanceStats = cache(
     const { data: players, error: playersError } = await supabase
       .from("players")
       .select("id, first_name, last_name")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("id", playerIds);
 
     if (playersError) throw new Error(playersError.message);
@@ -1158,7 +1173,8 @@ export const getAttendanceStats = cache(
 );
 
 export const getCoachDashboard = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<CoachDashboardData> => {
+  async (clubId?: string): Promise<CoachDashboardData> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const today = new Date().toISOString().slice(0, 10);
 
@@ -1166,7 +1182,7 @@ export const getCoachDashboard = cache(
       supabase
         .from("trainings")
         .select(TRAINING_SELECT)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("status", "planned")
         .gte("training_date", today)
         .order("training_date")
@@ -1175,7 +1191,7 @@ export const getCoachDashboard = cache(
       supabase
         .from("players")
         .select("id, first_name, last_name")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("status", "injured"),
       getAttendanceStats("season", clubId),
     ]);
@@ -1195,12 +1211,12 @@ export const getCoachDashboard = cache(
           supabase
             .from("training_availability")
             .select("status")
-            .eq("club_id", clubId)
+            .eq("club_id", tenantClubId)
             .eq("training_id", nextTraining.id),
           supabase
             .from("players")
             .select("*", { count: "exact", head: true })
-            .eq("club_id", clubId)
+            .eq("club_id", tenantClubId)
             .eq("team_id", nextTraining.teamId),
         ]);
 
@@ -1232,11 +1248,12 @@ export const getCoachDashboard = cache(
   },
 );
 
-export const syncTrainingReminders = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
-  const user = await getUser();
+export const syncTrainingReminders = cache(async (clubId?: string) => {
+    const tenantClubId = await resolveTenantClubId(clubId);
+const user = await getUser();
   if (!user) return;
 
-  const access = await getAccessContext(user.id, clubId);
+  const access = await getAccessContext(user.id, tenantClubId);
   if (!access || !canManageTrainings(access.roles)) return;
 
   const supabase = await createClient();
@@ -1248,7 +1265,7 @@ export const syncTrainingReminders = cache(async (clubId: string = DEFAULT_CLUB_
   const { data: trainings } = await supabase
     .from("trainings")
     .select("id, name, training_date, start_time")
-    .eq("club_id", clubId)
+    .eq("club_id", tenantClubId)
     .eq("status", "planned")
     .gte("training_date", today)
     .lte("training_date", horizonDate);
@@ -1258,7 +1275,7 @@ export const syncTrainingReminders = cache(async (clubId: string = DEFAULT_CLUB_
   const { data: members } = await supabase
     .from("club_memberships")
     .select("user_id")
-    .eq("club_id", clubId)
+    .eq("club_id", tenantClubId)
     .eq("status", "active")
     .in("role", ["owner", "president", "sports_director", "coach", "player", "parent"]);
 
@@ -1283,7 +1300,7 @@ export const syncTrainingReminders = cache(async (clubId: string = DEFAULT_CLUB_
         );
 
         rows.push({
-          club_id: clubId,
+          club_id: tenantClubId,
           user_id: member.user_id,
           training_id: training.id,
           reminder_type: reminderType,
@@ -1306,7 +1323,8 @@ export const syncTrainingReminders = cache(async (clubId: string = DEFAULT_CLUB_
 });
 
 export const getNotifications = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<ClubNotification[]> => {
+  async (clubId?: string): Promise<ClubNotification[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const user = await getUser();
     if (!user) return [];
 
@@ -1317,7 +1335,7 @@ export const getNotifications = cache(
       .select(
         "id, club_id, training_id, reminder_type, title, body, href, scheduled_at, read_at",
       )
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("user_id", user.id)
       .lte("scheduled_at", now)
       .order("scheduled_at", { ascending: false })
@@ -1329,7 +1347,8 @@ export const getNotifications = cache(
 );
 
 export const getUnreadNotificationCount = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<number> => {
+  async (clubId?: string): Promise<number> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const user = await getUser();
     if (!user) return 0;
 
@@ -1338,7 +1357,7 @@ export const getUnreadNotificationCount = cache(
     const { count, error } = await supabase
       .from("club_notifications")
       .select("*", { count: "exact", head: true })
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("user_id", user.id)
       .is("read_at", null)
       .lte("scheduled_at", now);
@@ -1348,12 +1367,13 @@ export const getUnreadNotificationCount = cache(
   },
 );
 
-export const getCoaches = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
-  const supabase = await createClient();
+export const getCoaches = cache(async (clubId?: string) => {
+    const tenantClubId = await resolveTenantClubId(clubId);
+const supabase = await createClient();
   const { data: memberships, error } = await supabase
     .from("club_memberships")
     .select("id, role, status, team_id, user_id")
-    .eq("club_id", clubId)
+    .eq("club_id", tenantClubId)
     .eq("status", "active")
     .in("role", ["coach", "owner", "president", "sports_director"]);
 
@@ -1363,7 +1383,7 @@ export const getCoaches = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
   const userIds = [...new Set(memberships.map((m) => m.user_id))];
   const [{ data: profiles }, teams] = await Promise.all([
     supabase.from("profiles").select("id, email, full_name").in("id", userIds),
-    getTeams(clubId),
+    getTeams(tenantClubId),
   ]);
 
   const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? []);
@@ -1391,11 +1411,12 @@ export { DEFAULT_COMPETITION as MATCH_DEFAULT_COMPETITION, DEFAULT_SEASON as MAT
 
 export const getMatches = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     view: MatchCalendarView = "month",
     anchorIso: string = new Date().toISOString().slice(0, 10),
     filters: MatchFilters = {},
   ): Promise<Match[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const anchor = parseLocalDate(anchorIso);
     const { from, to } = getMatchCalendarRange(view, anchor);
@@ -1403,7 +1424,7 @@ export const getMatches = cache(
     let query = supabase
       .from("matches")
       .select(MATCH_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .gte("match_date", from)
       .lte("match_date", to)
       .order("match_date")
@@ -1420,12 +1441,13 @@ export const getMatches = cache(
 );
 
 export const getMatchDetail = cache(
-  async (matchId: string, clubId: string = DEFAULT_CLUB_ID): Promise<MatchDetailData | null> => {
+  async (matchId: string, clubId?: string): Promise<MatchDetailData | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const matchRes = await supabase
       .from("matches")
       .select(MATCH_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("id", matchId)
       .maybeSingle();
 
@@ -1444,35 +1466,35 @@ export const getMatchDetail = cache(
       supabase
         .from("match_squad")
         .select("id, match_id, player_id, squad_role")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("match_id", matchId),
       supabase
         .from("match_lineup_positions")
         .select("id, match_id, player_id, slot_code, pos_x, pos_y")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("match_id", matchId),
       supabase
         .from("match_events")
         .select("id, match_id, event_type, minute, player_id, related_player_id, notes, created_at")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("match_id", matchId)
         .order("minute"),
       supabase
         .from("match_player_stats")
         .select("player_id, minutes_played, goals, assists, yellow_cards, red_cards")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("match_id", matchId),
       supabase
         .from("match_mvp_history")
         .select("player_id, created_at")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("match_id", matchId),
       supabase
         .from("players")
         .select(PLAYER_SELECT)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("team_id", match.teamId),
-      getAttendanceStats("season", clubId, match.teamId, 30),
+      getAttendanceStats("season", tenantClubId, match.teamId, 30),
     ]);
 
     const roster = rosterRes.data ?? [];
@@ -1490,7 +1512,7 @@ export const getMatchDetail = cache(
     const { data: lastActivityRows } = await supabase
       .from("training_attendance")
       .select("player_id, marked_at")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("player_id", roster.map((p) => p.id))
       .order("marked_at", { ascending: false })
       .limit(Math.min(roster.length * 5, 150));
@@ -1558,13 +1580,14 @@ export const getLeagueTable = cache(
   async (
     competition: string = DEFAULT_COMPETITION,
     season: string = DEFAULT_SEASON,
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
   ): Promise<LeagueTableEntry[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("league_table_entries")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("competition", competition)
       .eq("season", season)
       .order("points", { ascending: false })
@@ -1586,16 +1609,17 @@ export const getTeamMatchStats = cache(
   async (
     teamId: string,
     season: string = DEFAULT_SEASON,
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
   ): Promise<{ stats: TeamMatchStats; form: TeamFormStats; ownTeamName: string }> => {
-    const club = await getClub(clubId);
+    const tenantClubId = await resolveTenantClubId(clubId);
+    const club = await getClub(tenantClubId);
     const ownTeamName = club ? getClubBrandingName(club) : "Klub";
 
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("matches")
       .select(MATCH_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("team_id", teamId)
       .eq("season", season)
       .eq("status", "completed");
@@ -1611,7 +1635,8 @@ export const getTeamMatchStats = cache(
 );
 
 export const getPlayerFormStats = cache(
-  async (teamId?: string, clubId: string = DEFAULT_CLUB_ID): Promise<PlayerFormStats[]> => {
+  async (teamId?: string, clubId?: string): Promise<PlayerFormStats[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const since = new Date();
     since.setDate(since.getDate() - 30);
@@ -1620,7 +1645,7 @@ export const getPlayerFormStats = cache(
     let matchQuery = supabase
       .from("matches")
       .select("id")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("status", "completed")
       .gte("match_date", sinceIso);
 
@@ -1633,7 +1658,7 @@ export const getPlayerFormStats = cache(
     const { data: stats, error } = await supabase
       .from("match_player_stats")
       .select("player_id, minutes_played, goals, assists")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("match_id", matchIds);
 
     if (error) throw new Error(error.message);
@@ -1681,19 +1706,20 @@ async function fetchMatchFilterOptions(clubId: string) {
   return { seasons, competitions };
 }
 
-export const getMatchFilterOptions = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
+export const getMatchFilterOptions = cache(async (clubId?: string) => {
+  const tenantClubId = await resolveTenantClubId(clubId);
   return unstable_cache(
-    () => fetchMatchFilterOptions(clubId),
-    ["match-filter-options", clubId],
-    { revalidate: 300, tags: [`match-filters-${clubId}`] },
+    () => fetchMatchFilterOptions(tenantClubId),
+    ["match-filter-options", tenantClubId], { revalidate: 300, tags: [`match-filters-${tenantClubId}`] },
   )();
 });
 
 export const getAiConversations = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     search?: string,
   ): Promise<AiConversation[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const user = await getUser();
     if (!user) return [];
 
@@ -1701,7 +1727,7 @@ export const getAiConversations = cache(
     let query = supabase
       .from("ai_conversations")
       .select("id, club_id, user_id, title, is_pinned, created_at, updated_at")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("user_id", user.id)
       .order("is_pinned", { ascending: false })
       .order("updated_at", { ascending: false });
@@ -1722,7 +1748,7 @@ export const getAiConversations = cache(
       .from("ai_messages")
       .select("conversation_id, content, created_at")
       .in("conversation_id", ids)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("created_at", { ascending: false })
       .limit(Math.min(ids.length * 5, 200));
 
@@ -1740,8 +1766,9 @@ export const getAiConversations = cache(
 export const getAiConversationDetail = cache(
   async (
     conversationId: string,
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
   ): Promise<AiConversationDetail | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const user = await getUser();
     if (!user) return null;
 
@@ -1750,7 +1777,7 @@ export const getAiConversationDetail = cache(
       .from("ai_conversations")
       .select("id, club_id, user_id, title, is_pinned, created_at, updated_at")
       .eq("id", conversationId)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -1760,7 +1787,7 @@ export const getAiConversationDetail = cache(
       .from("ai_messages")
       .select("id, conversation_id, role, content, created_at")
       .eq("conversation_id", conversationId)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("created_at")
       .limit(200);
 
@@ -1773,15 +1800,16 @@ export const getAiConversationDetail = cache(
 
 export const getAiReports = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     category?: AiReportCategory,
     search?: string,
   ): Promise<AiReport[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     let query = supabase
       .from("ai_reports")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("created_at", { ascending: false });
 
     if (category) query = query.eq("category", category);
@@ -1797,13 +1825,14 @@ export const getAiReports = cache(
 );
 
 export const getAiReport = cache(
-  async (reportId: string, clubId: string = DEFAULT_CLUB_ID): Promise<AiReport | null> => {
+  async (reportId: string, clubId?: string): Promise<AiReport | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("ai_reports")
       .select("*")
       .eq("id", reportId)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .maybeSingle();
 
     if (error || !data) return null;
@@ -1823,12 +1852,13 @@ export const getAiReportCategories = cache(async (): Promise<AiReportCategoryRow
 });
 
 export const getAiSuggestions = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, status: AiSuggestion["status"] = "open"): Promise<AiSuggestion[]> => {
+  async (clubId?: string, status: AiSuggestion["status"] = "open"): Promise<AiSuggestion[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("ai_suggestions")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("status", status)
       .order("created_at", { ascending: false });
 
@@ -1837,11 +1867,12 @@ export const getAiSuggestions = cache(
   },
 );
 
-export const syncSponsorContractReminders = cache(async (clubId: string = DEFAULT_CLUB_ID) => {
-  const user = await getUser();
+export const syncSponsorContractReminders = cache(async (clubId?: string) => {
+    const tenantClubId = await resolveTenantClubId(clubId);
+const user = await getUser();
   if (!user) return;
 
-  const access = await getAccessContext(user.id, clubId);
+  const access = await getAccessContext(user.id, tenantClubId);
   if (!access || !canManageSponsors(access.roles)) return;
 
   const supabase = await createClient();
@@ -1853,7 +1884,7 @@ export const syncSponsorContractReminders = cache(async (clubId: string = DEFAUL
   const { data: contracts } = await supabase
     .from("sponsor_contracts")
     .select("id, name, end_date, sponsor_id, sponsors(company_name)")
-    .eq("club_id", clubId)
+    .eq("club_id", tenantClubId)
     .gte("end_date", today)
     .lte("end_date", horizonDate)
     .in("status", ["active", "expiring"])
@@ -1864,7 +1895,7 @@ export const syncSponsorContractReminders = cache(async (clubId: string = DEFAUL
   const { data: members } = await supabase
     .from("club_memberships")
     .select("user_id")
-    .eq("club_id", clubId)
+    .eq("club_id", tenantClubId)
     .eq("status", "active")
     .in("role", ["owner", "president"]);
 
@@ -1887,7 +1918,7 @@ export const syncSponsorContractReminders = cache(async (clubId: string = DEFAUL
 
       for (const member of members ?? []) {
         rows.push({
-          club_id: clubId,
+          club_id: tenantClubId,
           user_id: member.user_id,
           sponsor_contract_id: contract.id,
           sponsor_reminder_days: days,
@@ -1913,12 +1944,13 @@ const SPONSOR_LIST_SELECT =
   "id, club_id, company_name, city, contact_email, email, cooperation_status, created_at, updated_at";
 
 export const getSponsors = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, search?: string): Promise<Sponsor[]> => {
+  async (clubId?: string, search?: string): Promise<Sponsor[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     let query = supabase
       .from("sponsors")
       .select(SPONSOR_LIST_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("company_name");
 
     if (search?.trim()) {
@@ -1933,13 +1965,14 @@ export const getSponsors = cache(
 );
 
 export const getSponsor = cache(
-  async (sponsorId: string, clubId: string = DEFAULT_CLUB_ID): Promise<Sponsor | null> => {
+  async (sponsorId: string, clubId?: string): Promise<Sponsor | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("sponsors")
       .select("*")
       .eq("id", sponsorId)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .maybeSingle();
 
     if (error || !data) return null;
@@ -1950,9 +1983,10 @@ export const getSponsor = cache(
 export const getSponsorDetail = cache(
   async (
     sponsorId: string,
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     includeFinancial = false,
   ): Promise<SponsorDetailData | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const sponsor = await getSponsor(sponsorId, clubId);
     if (!sponsor) return null;
 
@@ -1962,28 +1996,28 @@ export const getSponsorDetail = cache(
         .from("sponsor_contracts")
         .select("*")
         .eq("sponsor_id", sponsorId)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("end_date", { ascending: false })
         .limit(20),
       supabase
         .from("sponsor_notes")
         .select("*, author:author_id(full_name)")
         .eq("sponsor_id", sponsorId)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("contact_date", { ascending: false })
         .limit(50),
       supabase
         .from("sponsor_exposure")
         .select("*")
         .eq("sponsor_id", sponsorId)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("exposure_date", { ascending: false })
         .limit(30),
       supabase
         .from("sponsor_reports")
         .select("*")
         .eq("sponsor_id", sponsorId)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("period_end", { ascending: false })
         .limit(20),
     ]);
@@ -1994,7 +2028,7 @@ export const getSponsorDetail = cache(
         .from("sponsor_financial_entries")
         .select("*")
         .eq("sponsor_id", sponsorId)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("due_date", { ascending: false })
         .limit(50);
       financialRows = financialData ?? [];
@@ -2008,7 +2042,7 @@ export const getSponsorDetail = cache(
         .from("sponsor_contract_attachments")
         .select("*")
         .in("contract_id", contractIds)
-        .eq("club_id", clubId);
+        .eq("club_id", tenantClubId);
       attachments = (attachmentRows ?? []).map(mapSponsorContractAttachment);
     }
 
@@ -2025,12 +2059,13 @@ export const getSponsorDetail = cache(
 );
 
 export const getSponsorLeads = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorLead[]> => {
+  async (clubId?: string): Promise<SponsorLead[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("sponsor_leads")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("updated_at", { ascending: false })
       .limit(100);
 
@@ -2040,12 +2075,13 @@ export const getSponsorLeads = cache(
 );
 
 export const getSponsorPublications = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorPublication[]> => {
+  async (clubId?: string): Promise<SponsorPublication[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("sponsor_publications")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("published_at", { ascending: false })
       .limit(100);
 
@@ -2058,7 +2094,7 @@ export const getSponsorPublications = cache(
       .from("sponsor_publication_links")
       .select("publication_id, sponsor_id, sponsors(company_name)")
       .in("publication_id", ids)
-      .eq("club_id", clubId);
+      .eq("club_id", tenantClubId);
 
     const linkMap = new Map<string, { ids: string[]; names: string[] }>();
     for (const link of links ?? []) {
@@ -2081,10 +2117,11 @@ export const getSponsorPublications = cache(
 );
 
 export const getSponsorDashboardStats = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorDashboardStats> => {
+  async (clubId?: string): Promise<SponsorDashboardStats> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_sponsor_dashboard_stats", {
-      p_club_id: clubId,
+      p_club_id: tenantClubId,
     });
 
     if (error || !data) {
@@ -2111,7 +2148,8 @@ export const getSponsorDashboardStats = cache(
 );
 
 export const getSponsorForCurrentUser = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<Sponsor | null> => {
+  async (clubId?: string): Promise<Sponsor | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const user = await getUser();
     if (!user) return null;
 
@@ -2119,7 +2157,7 @@ export const getSponsorForCurrentUser = cache(
     const { data } = await supabase
       .from("sponsors")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("profile_id", user.id)
       .maybeSingle();
 
@@ -2128,12 +2166,13 @@ export const getSponsorForCurrentUser = cache(
 );
 
 export const getSponsorPortalData = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<SponsorPortalData | null> => {
-    const sponsor = await getSponsorForCurrentUser(clubId);
+  async (clubId?: string): Promise<SponsorPortalData | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
+    const sponsor = await getSponsorForCurrentUser(tenantClubId);
     if (!sponsor) return null;
 
     const supabase = await createClient();
-    const teams = await getTeams(clubId);
+    const teams = await getTeams(tenantClubId);
     const seniorTeam = teams.find((t) => t.category === "seniors") ?? teams[0];
     const teamId = seniorTeam?.id;
 
@@ -2142,14 +2181,14 @@ export const getSponsorPortalData = cache(
         .from("sponsor_contracts")
         .select("*")
         .eq("sponsor_id", sponsor.id)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("end_date", { ascending: false })
         .limit(10),
       supabase
         .from("sponsor_reports")
         .select("*")
         .eq("sponsor_id", sponsor.id)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("status", "published")
         .order("period_end", { ascending: false })
         .limit(10),
@@ -2157,12 +2196,12 @@ export const getSponsorPortalData = cache(
         .from("sponsor_publication_links")
         .select("publication_id")
         .eq("sponsor_id", sponsor.id)
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("created_at", { ascending: false })
         .limit(20),
       teamId
         ? supabase.rpc("get_sponsor_portal_schedule", {
-            p_club_id: clubId,
+            p_club_id: tenantClubId,
             p_team_id: teamId,
           })
         : Promise.resolve({ data: { upcoming: [], results: [] }, error: null }),
@@ -2175,7 +2214,7 @@ export const getSponsorPortalData = cache(
         .from("sponsor_publications")
         .select("*")
         .in("id", publicationIds)
-        .eq("club_id", clubId);
+        .eq("club_id", tenantClubId);
       pubRows = (pubs ?? []).map(mapSponsorPublication);
     }
 
@@ -2221,13 +2260,14 @@ export const getSponsorPortalData = cache(
 );
 
 export const getSponsorReport = cache(
-  async (reportId: string, clubId: string = DEFAULT_CLUB_ID) => {
+  async (reportId: string, clubId?: string) => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data } = await supabase
       .from("sponsor_reports")
       .select("*, sponsors(company_name)")
       .eq("id", reportId)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .maybeSingle();
 
     if (!data) return null;
@@ -2247,12 +2287,13 @@ export function requireFinancePortalAccess(access: UserAccessContext) {
 }
 
 export const getFinanceIncome = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<FinanceIncome[]> => {
+  async (clubId?: string, limit = 100): Promise<FinanceIncome[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_income")
       .select("*, author:created_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("transaction_date", { ascending: false })
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2261,12 +2302,13 @@ export const getFinanceIncome = cache(
 );
 
 export const getFinanceExpenses = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<FinanceExpense[]> => {
+  async (clubId?: string, limit = 100): Promise<FinanceExpense[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_expenses")
       .select("*, author:created_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("transaction_date", { ascending: false })
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2275,12 +2317,13 @@ export const getFinanceExpenses = cache(
 );
 
 export const getFinanceFeePlans = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceFeePlan[]> => {
+  async (clubId?: string): Promise<FinanceFeePlan[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_fee_plans")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("name");
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapFinanceFeePlan);
@@ -2288,12 +2331,13 @@ export const getFinanceFeePlans = cache(
 );
 
 export const getFinancePlayerFees = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 200): Promise<FinancePlayerFee[]> => {
+  async (clubId?: string, limit = 200): Promise<FinancePlayerFee[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_player_fees")
       .select("*, player:player_id(first_name, last_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("due_date", { ascending: false })
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2302,12 +2346,13 @@ export const getFinancePlayerFees = cache(
 );
 
 export const getFinanceGrants = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceGrant[]> => {
+  async (clubId?: string): Promise<FinanceGrant[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_grants")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("period_start", { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapFinanceGrant);
@@ -2315,19 +2360,20 @@ export const getFinanceGrants = cache(
 );
 
 export const getFinanceBudgets = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceBudget[]> => {
+  async (clubId?: string): Promise<FinanceBudget[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_budgets")
       .select("*, team:team_id(name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("period_start", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
 
     const rows = (data ?? []) as Array<Record<string, unknown> & { period_start: string; period_end: string }>;
     const executions = await computeBudgetExecutionsBatch(
-      clubId,
+      tenantClubId,
       rows.map((row) => ({
         period_start: String(row.period_start),
         period_end: String(row.period_end),
@@ -2342,12 +2388,13 @@ export const getFinanceBudgets = cache(
 );
 
 export const getFinanceDocuments = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceDocument[]> => {
+  async (clubId?: string): Promise<FinanceDocument[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_documents")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("issue_date", { ascending: false, nullsFirst: false })
       .limit(100);
     if (error) throw new Error(error.message);
@@ -2356,12 +2403,13 @@ export const getFinanceDocuments = cache(
 );
 
 export const getFinanceReports = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceReport[]> => {
+  async (clubId?: string): Promise<FinanceReport[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("finance_reports")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("period_end", { ascending: false })
       .limit(30);
     if (error) throw new Error(error.message);
@@ -2370,23 +2418,25 @@ export const getFinanceReports = cache(
 );
 
 export const getFinanceReport = cache(
-  async (reportId: string, clubId: string = DEFAULT_CLUB_ID): Promise<FinanceReport | null> => {
+  async (reportId: string, clubId?: string): Promise<FinanceReport | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data } = await supabase
       .from("finance_reports")
       .select("*")
       .eq("id", reportId)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .maybeSingle();
     return data ? mapFinanceReport(data) : null;
   },
 );
 
 export const getFinanceDashboardStats = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<FinanceDashboardStats> => {
+  async (clubId?: string): Promise<FinanceDashboardStats> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_finance_dashboard_page", {
-      p_club_id: clubId,
+      p_club_id: tenantClubId,
     });
 
     if (error || !data) {
@@ -2424,7 +2474,7 @@ export const getFinanceDashboardStats = cache(
     const feeRows = (payload.overdue_fees ?? []).map((row) =>
       mapFinancePlayerFee({
         ...row,
-        club_id: clubId,
+        club_id: tenantClubId,
         player: row.first_name
           ? { first_name: row.first_name, last_name: row.last_name }
           : null,
@@ -2440,10 +2490,10 @@ export const getFinanceDashboardStats = cache(
       overdueFeesCount: Number(totals?.overdue_fees_count ?? feeRows.length),
       sponsorIncomeTotal: Number(totals?.sponsor_income ?? 0),
       recentIncome: (payload.recent_income ?? []).map((row) =>
-        mapFinanceIncome({ ...row, club_id: clubId }),
+        mapFinanceIncome({ ...row, club_id: tenantClubId }),
       ),
       recentExpenses: (payload.recent_expenses ?? []).map((row) =>
-        mapFinanceExpense({ ...row, club_id: clubId }),
+        mapFinanceExpense({ ...row, club_id: tenantClubId }),
       ),
       overdueFees: feeRows,
     };
@@ -2451,7 +2501,8 @@ export const getFinanceDashboardStats = cache(
 );
 
 export const getParentFinancePortalData = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<ParentFinancePortalData | null> => {
+  async (clubId?: string): Promise<ParentFinancePortalData | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const user = await getUser();
     if (!user) return null;
 
@@ -2459,7 +2510,7 @@ export const getParentFinancePortalData = cache(
     const { data: guardian } = await supabase
       .from("player_guardians")
       .select("player_id, player:player_id(first_name, last_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("profile_id", user.id)
       .limit(1)
       .maybeSingle();
@@ -2480,14 +2531,14 @@ export const getParentFinancePortalData = cache(
       supabase
         .from("finance_player_fees")
         .select("*")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("due_date", { ascending: false })
         .limit(50),
       supabase
         .from("finance_player_fee_payments")
         .select("*, recorder:recorded_by(full_name), fee:player_fee_id(player_id)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("payment_date", { ascending: false })
         .limit(50),
     ]);
@@ -2515,12 +2566,13 @@ export function requireInventoryPortalAccess(access: UserAccessContext) {
 }
 
 export const getInventoryCategories = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryCategory[]> => {
+  async (clubId?: string): Promise<InventoryCategory[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_categories")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("sort_order");
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapInventoryCategory);
@@ -2528,12 +2580,13 @@ export const getInventoryCategories = cache(
 );
 
 export const getInventoryItems = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 200): Promise<InventoryItem[]> => {
+  async (clubId?: string, limit = 200): Promise<InventoryItem[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_items")
       .select("*, category:category_id(slug, name), supplier:supplier_id(name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("name")
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2542,12 +2595,13 @@ export const getInventoryItems = cache(
 );
 
 export const getInventorySuppliers = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventorySupplier[]> => {
+  async (clubId?: string): Promise<InventorySupplier[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_suppliers")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("name");
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapInventorySupplier);
@@ -2555,12 +2609,13 @@ export const getInventorySuppliers = cache(
 );
 
 export const getInventoryTransactions = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<InventoryTransaction[]> => {
+  async (clubId?: string, limit = 100): Promise<InventoryTransaction[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_transactions")
       .select("*, item:item_id(name), player:player_id(first_name, last_name), profile:profile_id(full_name), issuer:issued_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("issue_date", { ascending: false })
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2569,12 +2624,13 @@ export const getInventoryTransactions = cache(
 );
 
 export const getInventoryReturns = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<InventoryReturn[]> => {
+  async (clubId?: string, limit = 100): Promise<InventoryReturn[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_returns")
       .select("*, item:item_id(name), recorder:recorded_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("return_date", { ascending: false })
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2583,12 +2639,13 @@ export const getInventoryReturns = cache(
 );
 
 export const getInventoryDamages = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 100): Promise<InventoryDamage[]> => {
+  async (clubId?: string, limit = 100): Promise<InventoryDamage[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_damages")
       .select("*, item:item_id(name), reporter:reported_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("damage_date", { ascending: false })
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2597,12 +2654,13 @@ export const getInventoryDamages = cache(
 );
 
 export const getInventoryPlayerKits = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryPlayerKit[]> => {
+  async (clubId?: string): Promise<InventoryPlayerKit[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_player_kits")
       .select("*, player:player_id(first_name, last_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("jersey_number");
     if (error) throw new Error(error.message);
     return (data ?? []).map(mapInventoryPlayerKit);
@@ -2610,12 +2668,13 @@ export const getInventoryPlayerKits = cache(
 );
 
 export const getInventoryStocktakes = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryStocktake[]> => {
+  async (clubId?: string): Promise<InventoryStocktake[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_stocktakes")
       .select("*, conductor:conducted_by(full_name), lines:inventory_stocktake_lines(difference)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("started_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
@@ -2624,12 +2683,13 @@ export const getInventoryStocktakes = cache(
 );
 
 export const getInventoryPurchaseOrders = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryPurchaseOrder[]> => {
+  async (clubId?: string): Promise<InventoryPurchaseOrder[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_purchase_orders")
       .select("*, supplier:supplier_id(name), lines:inventory_purchase_order_lines(id)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("order_date", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
@@ -2638,12 +2698,13 @@ export const getInventoryPurchaseOrders = cache(
 );
 
 export const getInventoryReports = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryReport[]> => {
+  async (clubId?: string): Promise<InventoryReport[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("inventory_reports")
       .select("*, generator:generated_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) throw new Error(error.message);
@@ -2652,33 +2713,35 @@ export const getInventoryReports = cache(
 );
 
 export const getInventoryReport = cache(
-  async (reportId: string, clubId: string = DEFAULT_CLUB_ID): Promise<InventoryReport | null> => {
+  async (reportId: string, clubId?: string): Promise<InventoryReport | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data } = await supabase
       .from("inventory_reports")
       .select("*, generator:generated_by(full_name)")
       .eq("id", reportId)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .maybeSingle();
     return data ? mapInventoryReport(data) : null;
   },
 );
 
 export const getInventoryDashboardStats = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<InventoryDashboardStats> => {
+  async (clubId?: string): Promise<InventoryDashboardStats> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const [statsRes, issuesRes, damagesRes] = await Promise.all([
-      supabase.rpc("get_inventory_dashboard_stats", { p_club_id: clubId }),
+      supabase.rpc("get_inventory_dashboard_stats", { p_club_id: tenantClubId }),
       supabase
         .from("inventory_transactions")
         .select("*, item:item_id(name), player:player_id(first_name, last_name), profile:profile_id(full_name), issuer:issued_by(full_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .order("issue_date", { ascending: false })
         .limit(8),
       supabase
         .from("inventory_damages")
         .select("*, item:item_id(name), reporter:reported_by(full_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .in("status", ["reported", "in_repair", "replacement_needed"])
         .order("damage_date", { ascending: false })
         .limit(8),
@@ -2708,7 +2771,8 @@ export const getInventoryDashboardStats = cache(
 );
 
 export const getPlayerInventoryPortalData = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<PlayerInventoryPortalData | null> => {
+  async (clubId?: string): Promise<PlayerInventoryPortalData | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const user = await getUser();
     if (!user) return null;
 
@@ -2724,7 +2788,7 @@ export const getPlayerInventoryPortalData = cache(
     const { data: playerRow } = await supabase
       .from("players")
       .select("id, first_name, last_name")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .ilike("email", profile.email)
       .maybeSingle();
 
@@ -2737,20 +2801,20 @@ export const getPlayerInventoryPortalData = cache(
       supabase
         .from("inventory_player_kits")
         .select("*, player:player_id(first_name, last_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .maybeSingle(),
       supabase
         .from("inventory_kit_assignments")
         .select("*, player:player_id(first_name, last_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("assigned_date", { ascending: false })
         .limit(20),
       supabase
         .from("inventory_transactions")
         .select("*, item:item_id(name), player:player_id(first_name, last_name), issuer:issued_by(full_name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("player_id", playerId)
         .order("issue_date", { ascending: false })
         .limit(30),
@@ -2763,7 +2827,7 @@ export const getPlayerInventoryPortalData = cache(
       ? await supabase
           .from("inventory_returns")
           .select("*, item:item_id(name), recorder:recorded_by(full_name)")
-          .eq("club_id", clubId)
+          .eq("club_id", tenantClubId)
           .in("transaction_id", issueIds)
           .order("return_date", { ascending: false })
           .limit(30)
@@ -2795,9 +2859,10 @@ export function requireWebsiteMediaAccess(access: UserAccessContext) {
 }
 
 export const getWebsiteSettingsForCms = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteSettings | null> => {
+  async (clubId?: string): Promise<WebsiteSettings | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
-    const { data, error } = await supabase.from("website_settings").select("*").eq("club_id", clubId).maybeSingle();
+    const { data, error } = await supabase.from("website_settings").select("*").eq("club_id", tenantClubId).maybeSingle();
     if (error) throw new Error(error.message);
     if (!data) return null;
     return mapWebsiteSettings(data as Record<string, unknown>);
@@ -2805,12 +2870,13 @@ export const getWebsiteSettingsForCms = cache(
 );
 
 export const getWebsiteNewsForCms = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteNews[]> => {
+  async (clubId?: string): Promise<WebsiteNews[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_news")
       .select("*, author:author_id(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapWebsiteNews(row as Record<string, unknown>));
@@ -2818,32 +2884,35 @@ export const getWebsiteNewsForCms = cache(
 );
 
 export const getWebsiteGalleryAlbumsForCms = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteGalleryAlbum[]> => {
+  async (clubId?: string): Promise<WebsiteGalleryAlbum[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_gallery_albums")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("sort_order");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapWebsiteGalleryAlbum(row as Record<string, unknown>));
   },
 );
 
-export const getCoachTeamIds = cache(async (clubId: string = DEFAULT_CLUB_ID): Promise<string[]> => {
+export const getCoachTeamIds = cache(async (clubId?: string): Promise<string[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("coach_team_ids", { p_club_id: clubId });
+  const { data, error } = await supabase.rpc("coach_team_ids", { p_club_id: tenantClubId });
   if (error) return [];
   return (data ?? []).map((id) => String(id));
 });
 
 export const getWebsiteMediaForCms = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteMediaItem[]> => {
+  async (clubId?: string): Promise<WebsiteMediaItem[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_media")
       .select("*, team:team_id(name), news:news_id(title)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("section")
       .order("sort_order");
 
@@ -2855,12 +2924,13 @@ export const getWebsiteMediaForCms = cache(
 );
 
 export const getWebsiteSocialIntegrationsForCms = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteSocialIntegration[]> => {
+  async (clubId?: string): Promise<WebsiteSocialIntegration[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_social_integrations")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("platform");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapWebsiteSocialIntegration(row as Record<string, unknown>));
@@ -2876,12 +2946,13 @@ export function requireIntegrationManageAccess(access: UserAccessContext) {
 }
 
 export const getIntegrationsForClub = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<Integration[]> => {
+  async (clubId?: string): Promise<Integration[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("integrations")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("provider");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapIntegration(row as Record<string, unknown>));
@@ -2889,9 +2960,10 @@ export const getIntegrationsForClub = cache(
 );
 
 export const getIntegrationSources = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, integrationId?: string): Promise<IntegrationSource[]> => {
+  async (clubId?: string, integrationId?: string): Promise<IntegrationSource[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
-    let query = supabase.from("integration_sources").select("*").eq("club_id", clubId).order("priority");
+    let query = supabase.from("integration_sources").select("*").eq("club_id", tenantClubId).order("priority");
     if (integrationId) query = query.eq("integration_id", integrationId);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
@@ -2900,12 +2972,13 @@ export const getIntegrationSources = cache(
 );
 
 export const getIntegrationClubMappings = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<IntegrationClubMapping[]> => {
+  async (clubId?: string): Promise<IntegrationClubMapping[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("integration_club_mappings")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("is_primary", { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapIntegrationClubMapping(row as Record<string, unknown>));
@@ -2913,12 +2986,13 @@ export const getIntegrationClubMappings = cache(
 );
 
 export const getExternalTeamsForIntegrations = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<ExternalTeam[]> => {
+  async (clubId?: string): Promise<ExternalTeam[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("external_teams")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("category_label");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapExternalTeam(row as Record<string, unknown>));
@@ -2926,12 +3000,13 @@ export const getExternalTeamsForIntegrations = cache(
 );
 
 export const getIntegrationSyncLogs = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, limit = 30): Promise<SyncLog[]> => {
+  async (clubId?: string, limit = 30): Promise<SyncLog[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("sync_logs")
       .select("*, creator:created_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("started_at", { ascending: false })
       .limit(limit);
     if (error) throw new Error(error.message);
@@ -2940,12 +3015,13 @@ export const getIntegrationSyncLogs = cache(
 );
 
 export const getIntegrationSyncErrors = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<SyncLog[]> => {
+  async (clubId?: string): Promise<SyncLog[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("sync_logs")
       .select("*, creator:created_by(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .in("status", ["error", "partial"])
       .order("started_at", { ascending: false })
       .limit(20);
@@ -2955,12 +3031,13 @@ export const getIntegrationSyncErrors = cache(
 );
 
 export const getIntegrationImports = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<IntegrationImport[]> => {
+  async (clubId?: string): Promise<IntegrationImport[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("integration_imports")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("created_at", { ascending: false })
       .limit(20);
     if (error) throw new Error(error.message);
@@ -2969,9 +3046,10 @@ export const getIntegrationImports = cache(
 );
 
 export const getIntegrationConflicts = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, pendingOnly = false): Promise<SyncConflict[]> => {
+  async (clubId?: string, pendingOnly = false): Promise<SyncConflict[]> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
-    let query = supabase.from("sync_conflicts").select("*").eq("club_id", clubId).order("created_at", { ascending: false });
+    let query = supabase.from("sync_conflicts").select("*").eq("club_id", tenantClubId).order("created_at", { ascending: false });
     if (pendingOnly) query = query.eq("status", "pending");
     const { data, error } = await query;
     if (error) throw new Error(error.message);
@@ -2980,11 +3058,12 @@ export const getIntegrationConflicts = cache(
 );
 
 export const getIntegrationDashboardStats = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<IntegrationDashboardStats> => {
+  async (clubId?: string): Promise<IntegrationDashboardStats> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const [integrations, logs, conflicts] = await Promise.all([
-      getIntegrationsForClub(clubId),
-      getIntegrationSyncLogs(clubId, 10),
-      getIntegrationConflicts(clubId, true),
+      getIntegrationsForClub(tenantClubId),
+      getIntegrationSyncLogs(tenantClubId, 10),
+      getIntegrationConflicts(tenantClubId, true),
     ]);
     const activeIntegrations = integrations.filter((i) => i.status === "ready").length;
     const recentErrors = logs.filter((l) => l.status === "error").length;
@@ -3004,12 +3083,13 @@ export const getIntegrationDashboardStats = cache(
 );
 
 export const getIntegrationByProvider = cache(
-  async (provider: IntegrationProvider, clubId: string = DEFAULT_CLUB_ID): Promise<Integration | null> => {
+  async (provider: IntegrationProvider, clubId?: string): Promise<Integration | null> => {
+    const tenantClubId = await resolveTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("integrations")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("provider", provider)
       .maybeSingle();
     if (error) throw new Error(error.message);

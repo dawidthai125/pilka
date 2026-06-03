@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { canManageClub, canManageTeams } from "@/config/permissions";
-import { DEFAULT_CLUB_ID, requireAccessContext } from "@/lib/auth/session";
+import { requireAccessContext } from "@/lib/auth/session";
 import { parseTeamCategory } from "@/lib/validators";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,7 +39,7 @@ export async function updateClubProfile(
       competition_level: String(formData.get("competitionLevel") ?? "").trim() || null,
       voivodeship: String(formData.get("voivodeship") ?? "").trim() || null,
     })
-    .eq("id", DEFAULT_CLUB_ID);
+    .eq("id", access.clubId);
 
   if (error) {
     return { error: "Nie udało się zaktualizować profilu klubu." };
@@ -74,7 +74,7 @@ export async function createTeam(
 
   const supabase = await createClient();
   const { error } = await supabase.from("teams").insert({
-    club_id: DEFAULT_CLUB_ID,
+    club_id: access.clubId,
     name,
     category: categoryResult.data,
     season,
@@ -102,7 +102,7 @@ export async function toggleTeamActive(teamId: string, isActive: boolean) {
     .from("teams")
     .update({ is_active: isActive })
     .eq("id", teamId)
-    .eq("club_id", DEFAULT_CLUB_ID)
+    .eq("club_id", access.clubId)
     .select("id")
     .maybeSingle();
 

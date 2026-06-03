@@ -1,47 +1,43 @@
 #!/usr/bin/env node
 /**
- * Pobiera aktualne dane ligowe (90minut + regionalnyfutbol), scala i importuje do League Hub.
- * Mapowanie: GLKS Mietków (źródła) → Piorun Wawrzeńczyce (strona klubu).
+ * Multi-club league sync — pobiera konfigurację z bazy per klub.
  *
  * npm run sync:league-live
  * npm run sync:league-live -- --dry-run
  * npm run sync:league-live -- --json
+ * npm run sync:league-live -- --club-id=<uuid>
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fetchAllLeagueSources } from "./lib/league-live-sources.mjs";
-import { runLivePipeline } from "./lib/league-live-pipeline.mjs";
+import { createPipelineClient, runLivePipeline } from "./lib/league-live-pipeline.mjs";
 import { fetchSquadAndStats } from "./lib/league-squad-sources.mjs";
+import { listLeagueSyncClubs, loadLeagueClubConfig } from "./lib/league-club-config.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "fixtures/league/live");
 
 function parseArgs(argv) {
+  const clubIdArg = argv.find((a) => a.startsWith("--club-id="));
   return {
     dryRun: argv.includes("--dry-run"),
     json: argv.includes("--json"),
     help: argv.includes("--help") || argv.includes("-h"),
+    clubId: clubIdArg ? clubIdArg.split("=")[1] : null,
   };
 }
 
-async function main() {
-  const args = parseArgs(process.argv);
-  if (args.help) {
-    console.log(`Użycie: npm run sync:league-live [--dry-run] [--json]
+async function syncOneClub(supabase, clubSummary, args) {
+  const clubConfig = await loadLeagueClubConfig(supabase, clubSummary.clubId);
+  clubConfig.slug = clubSummary.slug;
 
-Pobiera tabelę i terminarz B Klasy Wrocław VII 2025/26 z mirrorów publicznych,
-scala dane i synchronizuje do League Hub + moduł Mecze + publiczna /tabela.
+  console.log(`\n=== ${clubSummary.publicName} (${clubSummary.slug}) ===`);
 
-Źródła: 90minut.pl (tabela/wyniki), regionalnyfutbol.pl (terminarz), regiowyniki.pl (kadra).
-Statystyki zawodników: mPZPN (competition-api-pro) gdy LNP_ACCESS_TOKEN + LNP_TEAM_ID w .env.local.
-Oficjalna nazwa ligowa: GLKS Mietków → wyświetlanie: Piorun Wawrzeńczyce.
-`);
-    return;
-  }
-
-  console.log("Piorun — synchronizacja danych ligowych\n");
-  const [fetched, squadData] = await Promise.all([fetchAllLeagueSources(), fetchSquadAndStats()]);
+  const [fetched, squadData] = await Promise.all([
+    fetchAllLeagueSources(clubConfig),
+    fetchSquadAndStats(clubConfig),
+  ]);
   const { merged } = fetched;
 
   console.log(`90minut.pl:        tabela ${fetched.ninetyMinut.tableRows}, mecze ${fetched.ninetyMinut.fixtureRows}`);
@@ -53,34 +49,27 @@ Oficjalna nazwa ligowa: GLKS Mietków → wyświetlanie: Piorun Wawrzeńczyce.
     );
   }
   console.log(`Scalono:           tabela z ${merged.tableSource}, ${merged.fixtures.length} meczów`);
-  if (squadData.statsNote) console.log(`Uwaga:             ${squadData.statsNote}`);
 
-  if (merged.tableConflicts?.length) {
-    console.log(`Konflikty tabeli (${merged.tableConflicts.length}):`);
-    for (const c of merged.tableConflicts.slice(0, 5)) {
-      console.log(`  - ${c.team}: 90minut ${c.primary} vs RF ${c.secondary}`);
-    }
-  }
-
-  if (merged.glksMietkow) {
-    const g = merged.glksMietkow;
+  const ownRow = merged.ownTeamRow ?? merged.glksMietkow;
+  if (ownRow) {
     console.log(
-      `\nGLKS Mietków (→ Piorun Wawrzeńczyce): ${g.position}. miejsce, ${g.points} pkt, ${g.goalsFor}:${g.goalsAgainst}`,
+      `${clubConfig.ownLeagueName} (→ ${clubConfig.ownDisplayName}): ${ownRow.position}. miejsce, ${ownRow.points} pkt, ${ownRow.goalsFor}:${ownRow.goalsAgainst}`,
     );
   }
 
   mkdirSync(outDir, { recursive: true });
-  writeFileSync(join(outDir, "source-meta.json"), JSON.stringify(fetched, null, 2) + "\n");
-  writeFileSync(join(outDir, "squad-stats.json"), JSON.stringify(squadData, null, 2) + "\n");
+  const clubOutDir = join(outDir, clubSummary.slug);
+  mkdirSync(clubOutDir, { recursive: true });
+  writeFileSync(join(clubOutDir, "source-meta.json"), JSON.stringify(fetched, null, 2) + "\n");
+  writeFileSync(join(clubOutDir, "squad-stats.json"), JSON.stringify(squadData, null, 2) + "\n");
   writeFileSync(
-    join(outDir, "b-wroclaw-vii-fixtures.json"),
+    join(clubOutDir, "fixtures.json"),
     JSON.stringify({ matches: merged.fixtures }, null, 2) + "\n",
   );
 
   if (args.dryRun) {
-    console.log("\n[dry-run] Pominięto zapis do bazy.");
-    if (args.json) console.log(JSON.stringify({ ok: true, dryRun: true, fetched }, null, 2));
-    return;
+    console.log("[dry-run] Pominięto zapis do bazy.");
+    return { ok: true, dryRun: true, clubId: clubSummary.clubId, slug: clubSummary.slug, fetched };
   }
 
   const result = await runLivePipeline(
@@ -89,33 +78,94 @@ Oficjalna nazwa ligowa: GLKS Mietków → wyświetlanie: Piorun Wawrzeńczyce.
       fetchedAt: fetched.fetchedAt,
       tableSource: merged.tableSource,
       tableConflicts: merged.tableConflicts,
-      glksMietkow: merged.glksMietkow,
+      ownTeamRow: ownRow,
+      glksMietkow: ownRow,
     },
     squadData,
+    clubConfig,
   );
 
-  console.log(`\nImport: ${result.ingest.processed} rekordów (${result.ingest.failed} błędów)`);
-  if (result.repair) {
-    console.log(`Naprawa meczów: ${result.repair.removed} duplikatów usunięto, ${result.repair.updated} dat zaktualizowano`);
-  }
+  console.log(`Import: ${result.ingest.processed} rekordów (${result.ingest.failed} błędów)`);
   console.log(`Tabela publiczna: ${result.tableSynced} drużyn`);
   console.log(`Mecze: ${result.matchSync.processed} zsynchronizowanych`);
-  console.log(
-    `Kadra: ${result.squadSync.processed} wpisów w rejestrze (${result.squadSync.matched} istniejących dopasowań)`,
-  );
-  if (result.squadSync.playersSync) {
-    const ps = result.squadSync.playersSync;
-    console.log(
-      `Zawodnicy FC OS: ${ps.created} utworzonych, ${ps.linked} powiązanych, ${ps.deactivated} demo nieaktywnych, statystyki: ${ps.statsSync?.updated ?? 0}`,
-    );
+  console.log(`Kadra: ${result.squadSync.processed} wpisów w rejestrze`);
+
+  return {
+    ok: true,
+    clubId: clubSummary.clubId,
+    slug: clubSummary.slug,
+    publicName: clubSummary.publicName,
+    ...result,
+    fetched,
+  };
+}
+
+async function main() {
+  const args = parseArgs(process.argv);
+  if (args.help) {
+    console.log(`Użycie: npm run sync:league-live [--dry-run] [--json] [--club-id=<uuid>]
+
+Synchronizuje dane ligowe dla wszystkich klubów z aktywnym źródłem "Mirror live".
+Konfiguracja (sezon, liga, URL-e) pochodzi z bazy — league_sources.config.
+`);
+    return;
   }
-  console.log(`Job ID: ${result.jobId}`);
+
+  const supabase = createPipelineClient();
+  let clubs = await listLeagueSyncClubs(supabase);
+  if (args.clubId) {
+    clubs = clubs.filter((c) => c.clubId === args.clubId);
+    if (!clubs.length) {
+      throw new Error(`Brak aktywnego klubu mirror live o id ${args.clubId}.`);
+    }
+  }
+
+  if (!clubs.length) {
+    console.log("Brak aktywnych klubów z źródłem Mirror live.");
+    if (args.json) console.log(JSON.stringify({ ok: true, clubs: [], results: [] }));
+    return;
+  }
+
+  console.log(`FC OS — synchronizacja ligowa (${clubs.length} klubów)\n`);
+
+  const results = [];
+  for (const club of clubs) {
+    try {
+      const result = await syncOneClub(supabase, club, args);
+      results.push(result);
+    } catch (err) {
+      console.error(`\nBłąd sync [${club.slug}]:`, err.message);
+      results.push({
+        ok: false,
+        clubId: club.clubId,
+        slug: club.slug,
+        publicName: club.publicName,
+        error: err.message,
+      });
+    }
+  }
+
+  const failed = results.filter((r) => !r.ok);
+  const summary = {
+    ok: failed.length === 0,
+    clubsTotal: clubs.length,
+    clubsSucceeded: results.filter((r) => r.ok).length,
+    clubsFailed: failed.length,
+    results,
+  };
 
   if (args.json) {
-    console.log(JSON.stringify({ ok: true, ...result, fetched }, null, 2));
-  } else {
+    console.log(JSON.stringify(summary, null, 2));
+  } else if (clubs.length > 1) {
+    console.log(`\nPodsumowanie: ${summary.clubsSucceeded}/${summary.clubsTotal} klubów OK`);
+    if (failed.length) {
+      console.log("Błędy:", failed.map((f) => `${f.slug}: ${f.error}`).join("; "));
+    }
+  } else if (results[0]?.ok) {
     console.log("\nGotowe. Sprawdź /tabela, /mecze i /league w panelu.");
   }
+
+  if (failed.length) process.exit(1);
 }
 
 main().catch((err) => {

@@ -7,6 +7,7 @@ import {
   HomeDarkSectionHeader,
 } from "@/features/website/components/public-home-dark-ui";
 import { CLUB_DISPLAY_CLASS } from "@/lib/website/constants";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import {
   formatPublicMatchKickoff,
   formatPublicMatchScore,
@@ -169,6 +170,7 @@ function RecentResultRow({
 }
 
 export function PublicHomeSeasonHub({
+  clubSlug,
   nextMatch,
   recentResults,
   leagueEntries,
@@ -178,6 +180,7 @@ export function PublicHomeSeasonHub({
   officialTeamName,
   teamStats,
 }: {
+  clubSlug: string;
   nextMatch: PublicMatchSummary | null;
   recentResults: PublicMatchSummary[];
   leagueEntries: LeagueTableEntry[];
@@ -187,6 +190,7 @@ export function PublicHomeSeasonHub({
   officialTeamName: string;
   teamStats: PublicTeamStats | null;
 }) {
+  const paths = buildPublicClubPaths(clubSlug);
   const ownRow = leagueEntries.find((e) => e.isOwnClub);
   const ownPosition = ownRow ? leagueEntries.indexOf(ownRow) + 1 : null;
   const ownNames = [officialTeamName, ownTeamName, "Mietków", "Piorun"].filter(Boolean);
@@ -208,7 +212,7 @@ export function PublicHomeSeasonHub({
         eyebrow="Dla kibica"
         title="Mecze i forma"
         subtitle={`${competition} · ${season}`}
-        action={<HomeDarkPrimaryButton href="/mecze">Terminarz</HomeDarkPrimaryButton>}
+        action={<HomeDarkPrimaryButton href={paths.mecze}>Terminarz</HomeDarkPrimaryButton>}
       />
 
       {ownRow ? (
@@ -237,12 +241,12 @@ export function PublicHomeSeasonHub({
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
         {displayNext ? (
-          <NextMatchCard match={displayNext} ownTeamName={officialTeamName || ownTeamName} href="/mecze" />
+          <NextMatchCard match={displayNext} ownTeamName={officialTeamName || ownTeamName} href={paths.mecze} />
         ) : (
           <div className="flex min-h-[180px] flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/5 p-6 text-center">
             <Calendar className="mb-2 size-8 text-white/35" />
             <p className="text-sm font-medium text-white/70">Brak zaplanowanego meczu</p>
-            <Link href="/mecze" className="mt-2 text-sm text-[var(--club-secondary)] hover:underline">
+            <Link href={paths.mecze} className="mt-2 text-sm text-[var(--club-secondary)] hover:underline">
               Zobacz terminarz
             </Link>
           </div>
@@ -255,13 +259,13 @@ export function PublicHomeSeasonHub({
                 <TrendingUp className="size-4 text-[var(--club-secondary)]" />
                 Ostatnie wyniki
               </h3>
-              <Link href="/mecze" className="text-xs font-medium text-white/60 hover:text-[var(--club-secondary)]">
+              <Link href={paths.mecze} className="text-xs font-medium text-white/60 hover:text-[var(--club-secondary)]">
                 Wszystkie →
               </Link>
             </div>
             <div className="space-y-2">
               {results.map((match) => (
-                <RecentResultRow key={match.id} match={match} ownNames={ownNames} href="/mecze" />
+                <RecentResultRow key={match.id} match={match} ownNames={ownNames} href={paths.mecze} />
               ))}
             </div>
           </div>

@@ -10,7 +10,7 @@ export default async function NewMatchPage() {
   requireMatchReadAccess(access);
   if (!canManageMatches(access.roles)) redirect("/matches");
 
-  const [teams, club] = await Promise.all([getTeams(), getClub()]);
+  const [teams, club] = await Promise.all([getTeams(access.clubId), getClub(access.clubId)]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

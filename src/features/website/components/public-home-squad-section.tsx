@@ -8,6 +8,7 @@ import {
 } from "@/features/website/components/public-home-dark-ui";
 import { PLAYER_POSITION_LABELS } from "@/lib/players/constants";
 import { CLUB_DISPLAY_CLASS } from "@/lib/website/constants";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import { cn } from "@/lib/utils";
 import type { PlayerPosition } from "@/types/players";
 import type { PublicPlayer } from "@/types/website";
@@ -56,14 +57,17 @@ function SquadPlayerRow({ player, rank }: { player: PublicPlayer; rank: number }
 }
 
 export function PublicHomeSquadSection({
+  clubSlug,
   players,
   topScorers,
 }: {
+  clubSlug: string;
   players: PublicPlayer[];
   topScorers: PublicPlayer[];
 }) {
   if (players.length === 0) return null;
 
+  const paths = buildPublicClubPaths(clubSlug);
   const preview = [...players].sort((a, b) => {
     const numA = a.jerseyNumber ?? 999;
     const numB = b.jerseyNumber ?? 999;
@@ -76,14 +80,14 @@ export function PublicHomeSquadSection({
       eyebrow="Skład"
       title="Kadra drużyny"
       subtitle="Zawodnicy seniorscy — numery, pozycje i statystyki sezonu."
-      href="/druzyna"
+      href={paths.druzyna}
       linkLabel="Pełna kadra"
       className="border-t border-white/5 py-10 sm:py-12"
     >
       <div className="grid gap-6 lg:grid-cols-5 lg:gap-8">
         <div className="lg:col-span-3">
           <HomeDarkPanel>
-            <HomeDarkPanelHeader title="Lista zawodników" icon={Shirt} href="/druzyna" linkLabel="Wszyscy →" />
+            <HomeDarkPanelHeader title="Lista zawodników" icon={Shirt} href={paths.druzyna} linkLabel="Wszyscy →" />
             <div className="max-h-[420px] divide-y divide-white/8 overflow-y-auto">
               {preview.map((player, index) => (
                 <SquadPlayerRow key={player.id} player={player} rank={index + 1} />
@@ -95,12 +99,12 @@ export function PublicHomeSquadSection({
         {topScorers.length > 0 ? (
           <div className="lg:col-span-2">
             <HomeDarkPanel>
-              <HomeDarkPanelHeader title="Strzelcy" icon={Target} href="/druzyna" linkLabel="Statystyki →" />
+              <HomeDarkPanelHeader title="Strzelcy" icon={Target} href={paths.druzyna} linkLabel="Statystyki →" />
               <div className="divide-y divide-white/8">
                 {topScorers.map((player, index) => (
                   <Link
                     key={player.id}
-                    href="/druzyna"
+                    href={paths.druzyna}
                     className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/5 sm:px-5"
                   >
                     <span

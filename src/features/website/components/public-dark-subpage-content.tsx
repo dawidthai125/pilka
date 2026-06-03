@@ -8,6 +8,7 @@ import {
 import { PublicDarkCard } from "@/features/website/components/public-page-shell";
 import { PLAYER_POSITION_LABELS } from "@/lib/players/constants";
 import { CLUB_DISPLAY_CLASS, WEBSITE_NEWS_CATEGORY_LABELS } from "@/lib/website/constants";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import {
   formatPublicMatchKickoff,
   formatPublicMatchScore,
@@ -166,9 +167,9 @@ export function PublicDarkSquadList({ players }: { players: PublicPlayer[] }) {
         <PublicDarkCard className="border-amber-400/20 bg-amber-500/5">
           <p className="text-sm font-semibold text-amber-200/90">Statystyki sezonu niedostępne w źródłach ligowych</p>
           <p className="mt-2 text-sm leading-relaxed text-white/60">
-            Portale ligowe (Regiowyniki, 90minut) nie udostępniają dla B Klasy bramek i występów per zawodnik.
-            Możesz uzupełnić statystyki ręcznie w panelu klubu w module Zawodnicy albo włączyć synchronizację z systemem
-            mPZPN (Łączy Nas Piłka) — wtedy po imporcie gole pojawią się tutaj automatycznie.
+            Statystyki sezonu są uzupełniane automatycznie z protokołów meczów na Regiowyniki (publiczne, bez logowania
+            do PZPN). Jeśli widzisz zera, uruchom synchronizację ligową w panelu lub skontaktuj się z administratorem
+            strony. Pełne dane z systemu mPZPN wymagają dodatkowej konfiguracji API klubu.
           </p>
         </PublicDarkCard>
       ) : null}
@@ -184,7 +185,8 @@ export function PublicDarkSquadList({ players }: { players: PublicPlayer[] }) {
   );
 }
 
-export function PublicDarkNewsList({ news }: { news: WebsiteNews[] }) {
+export function PublicDarkNewsList({ clubSlug, news }: { clubSlug: string; news: WebsiteNews[] }) {
+  const paths = buildPublicClubPaths(clubSlug);
   if (news.length === 0) {
     return (
       <PublicDarkCard>
@@ -198,7 +200,7 @@ export function PublicDarkNewsList({ news }: { news: WebsiteNews[] }) {
       {news.map((item) => (
         <Link
           key={item.id}
-          href={`/aktualnosci/${item.slug}`}
+          href={paths.newsArticle(item.slug)}
           className="group block overflow-hidden rounded-xl border border-white/10 bg-black/20 p-5 transition hover:border-white/20 hover:bg-black/30 sm:p-6"
         >
           <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--club-secondary)]">

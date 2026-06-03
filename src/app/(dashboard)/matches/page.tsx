@@ -27,8 +27,8 @@ async function CalendarSection({ searchParams }: { searchParams: SearchParams })
       season: params.season,
       competition: params.competition,
     }),
-    getTeams(),
-    getMatchFilterOptions(),
+    getTeams(access.clubId),
+    getMatchFilterOptions(access.clubId),
   ]);
 
   return (

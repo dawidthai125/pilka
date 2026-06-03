@@ -12,7 +12,6 @@ import {
   mapWebsiteNews,
   mapWebsiteSettings,
 } from "@/lib/website/mappers";
-import { DEFAULT_PUBLIC_CLUB_SLUG } from "@/lib/website/public-data";
 import { createClient } from "@/lib/supabase/server";
 import type { LeagueTableEntry } from "@/types/matches";
 import type {
@@ -53,7 +52,7 @@ export type HydratedPublicHomePage = {
 };
 
 export const getPublicHomeBundle = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicHomeBundleRaw | null> => {
+  async (slug: string): Promise<PublicHomeBundleRaw | null> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_home_bundle", { p_club_slug: slug });
     if (error || !data || typeof data !== "object") return null;
@@ -192,9 +191,7 @@ export async function hydratePublicHomeBundle(raw: PublicHomeBundleRaw): Promise
   };
 }
 
-export async function loadHydratedPublicHomePage(
-  slug: string = DEFAULT_PUBLIC_CLUB_SLUG,
-): Promise<HydratedPublicHomePage | null> {
+export async function loadHydratedPublicHomePage(slug: string): Promise<HydratedPublicHomePage | null> {
   const raw = await getPublicHomeBundle(slug);
   if (!raw) return null;
   return hydratePublicHomeBundle(raw);

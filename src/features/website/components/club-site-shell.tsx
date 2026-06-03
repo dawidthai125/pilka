@@ -4,11 +4,13 @@ import { Mail, MapPin, Phone, User, UserPlus } from "lucide-react";
 import { ClubLogo } from "@/components/club/club-logo";
 import { PublicClubNav } from "@/features/website/components/public-club-nav";
 import { formatPublicSiteFooter } from "@/config/product";
-import { CLUB_DISPLAY_CLASS, PUBLIC_NAV_LINKS, WEBSITE_SOCIAL_PLATFORM_LABELS } from "@/lib/website/constants";
+import { CLUB_DISPLAY_CLASS, WEBSITE_SOCIAL_PLATFORM_LABELS } from "@/lib/website/constants";
+import { buildPublicClubPaths } from "@/lib/website/public-paths";
 import { cn } from "@/lib/utils";
 import type { WebsiteSettings, WebsiteSocialIntegration } from "@/types/website";
 
 type ClubSiteShellProps = {
+  clubSlug: string;
   clubName: string;
   officialName: string;
   settings: WebsiteSettings;
@@ -19,6 +21,7 @@ type ClubSiteShellProps = {
 };
 
 export function ClubSiteShell({
+  clubSlug,
   clubName,
   officialName,
   settings,
@@ -26,6 +29,15 @@ export function ClubSiteShell({
   socialLinks = [],
   children,
 }: ClubSiteShellProps) {
+  const paths = buildPublicClubPaths(clubSlug);
+  const navLinks = [
+    { href: paths.aktualnosci, label: "Aktualności" },
+    { href: paths.druzyna, label: "Kadra" },
+    { href: paths.akademia, label: "Akademia" },
+    { href: paths.mecze, label: "Mecze" },
+    { href: paths.galeria, label: "Galeria" },
+    { href: paths.kontakt, label: "Kontakt" },
+  ];
   const style = {
     ["--club-primary" as string]: settings.primaryColor,
     ["--club-secondary" as string]: settings.secondaryColor,
@@ -59,7 +71,7 @@ export function ClubSiteShell({
         {/* Nawigacja główna */}
         <div className="bg-[var(--club-primary)]">
           <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
-            <Link href="/" className="flex shrink-0 items-center gap-3">
+            <Link href={paths.home} className="flex shrink-0 items-center gap-3">
               <ClubLogo logoUrl={logoUrl} clubName={clubName} size="md" onDark className="size-11 sm:size-12" />
               <span className={cn(CLUB_DISPLAY_CLASS, "hidden text-lg font-bold text-white sm:inline")}>{clubName}</span>
             </Link>
@@ -68,7 +80,7 @@ export function ClubSiteShell({
 
             <div className="ml-auto flex shrink-0 items-center gap-2">
               <Link
-                href="/#akademia"
+                href={paths.akademia}
                 className="hidden min-h-10 items-center gap-1.5 rounded-lg bg-[var(--club-secondary)] px-4 text-xs font-bold uppercase tracking-wide text-[var(--club-primary)] hover:brightness-105 sm:inline-flex"
               >
                 <UserPlus className="size-4" />
@@ -128,7 +140,7 @@ export function ClubSiteShell({
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[var(--club-secondary)]">Strona</p>
             <ul className="space-y-1.5 text-sm text-white/80">
-              {PUBLIC_NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-[var(--club-secondary)]">
                     {link.label}
@@ -140,9 +152,9 @@ export function ClubSiteShell({
           <div>
             <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[var(--club-secondary)]">Klub</p>
             <ul className="space-y-1.5 text-sm text-white/80">
-              <li><Link href="/druzyna" className="hover:text-[var(--club-secondary)]">Kadra</Link></li>
-              <li><Link href="/mecze" className="hover:text-[var(--club-secondary)]">Terminarz</Link></li>
-              <li><Link href="/tabela" className="hover:text-[var(--club-secondary)]">Tabela</Link></li>
+              <li><Link href={paths.druzyna} className="hover:text-[var(--club-secondary)]">Kadra</Link></li>
+              <li><Link href={paths.mecze} className="hover:text-[var(--club-secondary)]">Terminarz</Link></li>
+              <li><Link href={paths.tabela} className="hover:text-[var(--club-secondary)]">Tabela</Link></li>
               <li><Link href="/login" className="hover:text-[var(--club-secondary)]">Panel klubowy</Link></li>
             </ul>
           </div>

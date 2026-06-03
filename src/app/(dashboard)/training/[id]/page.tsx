@@ -37,7 +37,7 @@ export default async function TrainingDetailPage({
   const showEdit = edit === "1" && canManage;
 
   if (showEdit) {
-    const [teams, coaches] = await Promise.all([getTeams(), getCoaches()]);
+    const [teams, coaches] = await Promise.all([getTeams(access.clubId), getCoaches(access.clubId)]);
     return (
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-center justify-between gap-3">

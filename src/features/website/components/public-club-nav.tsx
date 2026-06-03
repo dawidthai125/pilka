@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { PUBLIC_NAV_LINKS } from "@/lib/website/constants";
+import { usePublicClub } from "@/features/website/public-club-context";
+import { getPublicNavLinks } from "@/lib/website/public-paths";
 import { cn } from "@/lib/utils";
 
 function NavLink({ href, label }: { href: string; label: string }) {
   const pathname = usePathname();
   const isActive =
-    href === "/" ? pathname === "/" : href.startsWith("/#") ? false : pathname === href || pathname.startsWith(`${href}/`);
+    href === pathname ||
+    (href.includes("#") ? false : pathname === href || pathname.startsWith(`${href}/`));
 
   return (
     <Link
@@ -25,11 +27,14 @@ function NavLink({ href, label }: { href: string; label: string }) {
 }
 
 export function PublicClubNav({ variant }: { variant: "desktop" | "mobile" }) {
+  const { clubSlug, paths } = usePublicClub();
+  const navLinks = getPublicNavLinks(clubSlug);
+
   if (variant === "desktop") {
     return (
       <nav className="hidden flex-1 items-center justify-center gap-0 overflow-x-auto lg:flex" aria-label="Nawigacja główna">
-        <NavLink href="/" label="Start" />
-        {PUBLIC_NAV_LINKS.map((link) => (
+        <NavLink href={paths.home} label="Start" />
+        {navLinks.map((link) => (
           <NavLink key={link.href} href={link.href} label={link.label} />
         ))}
       </nav>
@@ -38,8 +43,8 @@ export function PublicClubNav({ variant }: { variant: "desktop" | "mobile" }) {
 
   return (
     <nav className="flex gap-0 overflow-x-auto border-t border-white/10 px-2 pb-1 lg:hidden" aria-label="Nawigacja mobilna">
-      <NavLink href="/" label="Start" />
-      {PUBLIC_NAV_LINKS.map((link) => (
+      <NavLink href={paths.home} label="Start" />
+      {navLinks.map((link) => (
         <NavLink key={link.href} href={link.href} label={link.label} />
       ))}
     </nav>

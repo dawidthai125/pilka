@@ -1,7 +1,6 @@
 import { cache } from "react";
 
-import { siteConfig } from "@/config/site";
-import { DEFAULT_CLUB_ID } from "@/lib/auth/session";
+import { resolvePublicClubBySlug } from "@/lib/tenant/public-club";
 import { DEFAULT_COMPETITION, DEFAULT_SEASON } from "@/lib/matches/constants";
 import { mapLeagueEntry } from "@/lib/matches/mappers";
 import { getClubBrandingName } from "@/lib/club/names";
@@ -37,19 +36,24 @@ import {
   mapWebsiteMedia,
 } from "@/lib/website/mappers";
 
-export const DEFAULT_PUBLIC_CLUB_SLUG = siteConfig.defaultClubSlug;
-
 const MATCH_PUBLIC_SELECT =
   "id, match_date, match_time, home_team_name, away_team_name, home_score, away_score, stadium, competition, round_number, status";
 
-export const resolvePublicClubId = cache(async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<string | null> => {
+function requireTenantClubId(clubId?: string): string {
+  if (!clubId) {
+    throw new Error("clubId is required — public loaders resolve slug in the page layer.");
+  }
+  return clubId;
+}
+
+export const resolvePublicClubId = cache(async (slug: string): Promise<string | null> => {
   const supabase = await createClient();
   const { data } = await supabase.from("clubs").select("id").eq("slug", slug).eq("status", "active").maybeSingle();
   return data?.id ? String(data.id) : null;
 });
 
 export const getPublicWebsiteHome = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicWebsiteHome | null> => {
+  async (slug: string): Promise<PublicWebsiteHome | null> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_website_home", { p_club_slug: slug });
     if (error || !data) return null;
@@ -82,9 +86,10 @@ export const getPublicWebsiteHome = cache(
 );
 
 export const getPublicWebsiteSettings = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteSettings | null> => {
+  async (clubId?: string): Promise<WebsiteSettings | null> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
-    const { data, error } = await supabase.from("website_settings").select("*").eq("club_id", clubId).maybeSingle();
+    const { data, error } = await supabase.from("website_settings").select("*").eq("club_id", tenantClubId).maybeSingle();
     if (error || !data) return null;
     return mapWebsiteSettings(data as Record<string, unknown>);
   },
@@ -92,14 +97,15 @@ export const getPublicWebsiteSettings = cache(
 
 export const getPublicNews = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     options?: { category?: string; limit?: number; publishedOnly?: boolean },
   ): Promise<WebsiteNews[]> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     let query = supabase
       .from("website_news")
       .select("*, author:author_id(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("published_at", { ascending: false, nullsFirst: false });
 
     if (options?.publishedOnly !== false) query = query.eq("status", "published");
@@ -113,12 +119,13 @@ export const getPublicNews = cache(
 );
 
 export const getPublicNewsBySlug = cache(
-  async (slug: string, clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteNews | null> => {
+  async (slug: string, clubId?: string): Promise<WebsiteNews | null> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_news")
       .select("*, author:author_id(full_name)")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("slug", slug)
       .eq("status", "published")
       .maybeSingle();
@@ -129,15 +136,16 @@ export const getPublicNewsBySlug = cache(
 
 export const getPublicMatches = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     filter: "all" | "upcoming" | "results" = "all",
     limit = 50,
   ): Promise<PublicMatchSummary[]> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     let query = supabase
       .from("matches")
       .select(MATCH_PUBLIC_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .limit(limit);
 
     if (filter === "upcoming") {
@@ -165,12 +173,13 @@ export const getPublicMatches = cache(
 );
 
 export const getPublicMatchById = cache(
-  async (matchId: string, clubId: string = DEFAULT_CLUB_ID): Promise<PublicMatchSummary | null> => {
+  async (matchId: string, clubId?: string): Promise<PublicMatchSummary | null> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("matches")
       .select(MATCH_PUBLIC_SELECT)
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("id", matchId)
       .maybeSingle();
     if (error || !data) return null;
@@ -180,10 +189,11 @@ export const getPublicMatchById = cache(
 
 export const getPublicLeagueTable = cache(
   async (
-    clubId: string = DEFAULT_CLUB_ID,
+    clubId?: string,
     competition?: string,
     season?: string,
   ): Promise<{ entries: LeagueTableEntry[]; ownTeamName: string; competition: string; season: string }> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
 
     let resolvedCompetition = competition;
@@ -193,7 +203,7 @@ export const getPublicLeagueTable = cache(
       const { data: activeSeason } = await supabase
         .from("league_seasons")
         .select("name")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("is_active", true)
         .order("name", { ascending: false })
         .limit(1)
@@ -202,7 +212,7 @@ export const getPublicLeagueTable = cache(
       const { data: activeCompetition } = await supabase
         .from("league_competitions")
         .select("name, season:league_seasons(name)")
-        .eq("club_id", clubId)
+        .eq("club_id", tenantClubId)
         .eq("is_active", true)
         .order("name")
         .limit(1)
@@ -216,12 +226,12 @@ export const getPublicLeagueTable = cache(
         (activeCompetition?.name ? String(activeCompetition.name) : DEFAULT_COMPETITION);
     }
 
-    const clubRes = await supabase.from("clubs").select("public_name, official_name").eq("id", clubId).maybeSingle();
+    const clubRes = await supabase.from("clubs").select("public_name, official_name").eq("id", tenantClubId).maybeSingle();
     const ownTeamName = clubRes.data
       ? getClubBrandingName({ publicName: String(clubRes.data.public_name) })
       : "Klub";
 
-    let query = supabase.from("league_table_entries").select("*").eq("club_id", clubId);
+    let query = supabase.from("league_table_entries").select("*").eq("club_id", tenantClubId);
     if (resolvedCompetition) query = query.eq("competition", resolvedCompetition);
     if (resolvedSeason) query = query.eq("season", resolvedSeason);
 
@@ -245,7 +255,7 @@ export const getPublicLeagueTable = cache(
 );
 
 export const getPublicPlayers = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicPlayer[]> => {
+  async (slug: string): Promise<PublicPlayer[]> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_players", { p_club_slug: slug });
     if (error) throw new Error(error.message);
@@ -255,7 +265,7 @@ export const getPublicPlayers = cache(
 );
 
 export const getPublicSponsors = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicSponsor[]> => {
+  async (slug: string): Promise<PublicSponsor[]> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_sponsors", { p_club_slug: slug });
     if (error) throw new Error(error.message);
@@ -270,7 +280,7 @@ export type PublicSitemapUrls = {
 };
 
 export const getPublicWebsiteSitemap = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicSitemapUrls> => {
+  async (slug: string): Promise<PublicSitemapUrls> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_website_sitemap", { p_club_slug: slug });
     if (error || !data || typeof data !== "object") {
@@ -295,9 +305,10 @@ export const getPublicWebsiteSitemap = cache(
 );
 
 export const getPublicGalleryAlbums = cache(
-  async (clubId: string = DEFAULT_CLUB_ID, publishedOnly = true): Promise<WebsiteGalleryAlbum[]> => {
+  async (clubId?: string, publishedOnly = true): Promise<WebsiteGalleryAlbum[]> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
-    let query = supabase.from("website_gallery_albums").select("*").eq("club_id", clubId).order("sort_order");
+    let query = supabase.from("website_gallery_albums").select("*").eq("club_id", tenantClubId).order("sort_order");
     if (publishedOnly) query = query.eq("is_published", true);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
@@ -306,12 +317,13 @@ export const getPublicGalleryAlbums = cache(
 );
 
 export const getPublicGalleryPhotos = cache(
-  async (albumId: string, clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteGalleryPhoto[]> => {
+  async (albumId: string, clubId?: string): Promise<WebsiteGalleryPhoto[]> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_gallery_photos")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("album_id", albumId)
       .order("sort_order");
     if (error) throw new Error(error.message);
@@ -320,12 +332,13 @@ export const getPublicGalleryPhotos = cache(
 );
 
 export const getPublicGalleryAlbumBySlug = cache(
-  async (slug: string, clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteGalleryAlbum | null> => {
+  async (slug: string, clubId?: string): Promise<WebsiteGalleryAlbum | null> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_gallery_albums")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("slug", slug)
       .eq("is_published", true)
       .maybeSingle();
@@ -335,12 +348,13 @@ export const getPublicGalleryAlbumBySlug = cache(
 );
 
 export const getPublicSocialIntegrations = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteSocialIntegration[]> => {
+  async (clubId?: string): Promise<WebsiteSocialIntegration[]> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_social_integrations")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .order("platform");
     if (error) throw new Error(error.message);
     return (data ?? []).map((row) => mapWebsiteSocialIntegration(row as Record<string, unknown>));
@@ -348,7 +362,7 @@ export const getPublicSocialIntegrations = cache(
 );
 
 export const getPublicTeamStats = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicTeamStats | null> => {
+  async (slug: string): Promise<PublicTeamStats | null> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_team_stats", { p_club_slug: slug });
     if (error || !data) return null;
@@ -363,7 +377,7 @@ export const getPublicTeamStats = cache(
 );
 
 export const getPublicTeams = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicTeamCard[]> => {
+  async (slug: string): Promise<PublicTeamCard[]> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_teams", { p_club_slug: slug });
 
@@ -395,7 +409,7 @@ export const getPublicTeams = cache(
 );
 
 export const getPublicClubStats = cache(
-  async (slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<PublicClubStats | null> => {
+  async (slug: string): Promise<PublicClubStats | null> => {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("get_public_club_stats", { p_club_slug: slug });
     if (!error && data && typeof data === "object") {
@@ -426,18 +440,29 @@ export const getPublicClubStats = cache(
   },
 );
 
-export async function getPublicClubId(slug: string = DEFAULT_PUBLIC_CLUB_SLUG): Promise<string> {
+export async function getPublicClubId(slug: string): Promise<string> {
   const id = await resolvePublicClubId(slug);
-  return id ?? DEFAULT_CLUB_ID;
+  if (!id) {
+    throw new Error(`Klub "${slug}" nie istnieje lub jest nieaktywny.`);
+  }
+  return id;
 }
 
+export const assertPublicClubSlug = cache(async (slug: string): Promise<void> => {
+  const club = await resolvePublicClubBySlug(slug);
+  if (!club) {
+    throw new Error(`Klub "${slug}" nie istnieje lub jest nieaktywny.`);
+  }
+});
+
 export const getPublicWebsiteMedia = cache(
-  async (clubId: string = DEFAULT_CLUB_ID): Promise<WebsiteMediaItem[]> => {
+  async (clubId?: string): Promise<WebsiteMediaItem[]> => {
+    const tenantClubId = requireTenantClubId(clubId);
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("website_media")
       .select("*")
-      .eq("club_id", clubId)
+      .eq("club_id", tenantClubId)
       .eq("is_active", true)
       .order("sort_order");
 

@@ -7,7 +7,7 @@
   "crons": [
     {
       "path": "/api/cron/league-sync",
-      "schedule": "0 6 */3 * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }

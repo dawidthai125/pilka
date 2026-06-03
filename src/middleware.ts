@@ -2,6 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getClientEnv } from "@/config/env";
+import {
+  clubPublicPath,
+  extractRouteClubSlug,
+  isLegacyFlatPublicPath,
+  isPublicWebsitePath,
+  resolveClubSlugFromHost,
+} from "@/lib/tenant/public-club";
 import type { Database } from "@/types/database";
 
 const authRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
@@ -31,6 +38,7 @@ const protectedPrefixes = [
   "/crm",
   "/equipment",
   "/injuries",
+  "/platform",
 ];
 
 function isAuthRoute(pathname: string) {
@@ -47,29 +55,95 @@ function isSelfAuthenticatingApiRoute(pathname: string) {
   return pathname === "/api/pwa/offline-data";
 }
 
-/** Strony klubowe — bez sesji Supabase Auth (Sprint 16 P0). */
-const PUBLIC_WEBSITE_PREFIXES = [
-  "/druzyna",
-  "/tabela",
-  "/mecze",
-  "/aktualnosci",
-  "/galeria",
-  "/kontakt",
-  "/sponsorzy",
-  "/kibic",
-] as const;
-
-function isPublicWebsiteRoute(pathname: string) {
-  if (pathname === "/") return true;
-  return PUBLIC_WEBSITE_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+async function fetchActiveClubCount(request: NextRequest): Promise<number> {
+  const env = getClientEnv();
+  const supabase = createServerClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll() {},
+      },
+    },
   );
+
+  const { count } = await supabase
+    .from("clubs")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "active");
+
+  return count ?? 0;
+}
+
+async function fetchLegacyRedirectClubSlug(
+  request: NextRequest,
+): Promise<string | null> {
+  const env = getClientEnv();
+  const supabase = createServerClient<Database>(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll() {},
+      },
+    },
+  );
+
+  const { data } = await supabase
+    .from("clubs")
+    .select("slug")
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  return data?.slug ? String(data.slug) : null;
+}
+
+function buildLegacyRedirectUrl(request: NextRequest, clubSlug: string): URL {
+  const { pathname } = request.nextUrl;
+  const targetPath =
+    pathname === "/" ? clubPublicPath(clubSlug) : clubPublicPath(clubSlug, pathname);
+  const url = request.nextUrl.clone();
+  url.pathname = targetPath;
+  return url;
 }
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get("host") ?? "";
 
-  if (isSelfAuthenticatingApiRoute(pathname) || isPublicWebsiteRoute(pathname)) {
+  if (isSelfAuthenticatingApiRoute(pathname)) {
+    return NextResponse.next();
+  }
+
+  const hostSlug = resolveClubSlugFromHost(host);
+  if (hostSlug && !extractRouteClubSlug(pathname)) {
+    const url = buildLegacyRedirectUrl(request, hostSlug);
+    return NextResponse.redirect(url, 301);
+  }
+
+  if (isLegacyFlatPublicPath(pathname) && !extractRouteClubSlug(pathname)) {
+    if (pathname === "/") {
+      const activeCount = await fetchActiveClubCount(request);
+      if (activeCount !== 1) {
+        return NextResponse.next();
+      }
+    }
+
+    const legacySlug = await fetchLegacyRedirectClubSlug(request);
+    if (legacySlug) {
+      return NextResponse.redirect(buildLegacyRedirectUrl(request, legacySlug), 301);
+    }
+  }
+
+  if (isPublicWebsitePath(pathname)) {
     return NextResponse.next();
   }
 

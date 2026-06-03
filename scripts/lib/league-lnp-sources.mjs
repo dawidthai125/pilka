@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 /**
  * Adapter competition-api-pro (mPZPN / laczynaspilka.pl).
  * Wymaga Bearer token + UUID drużyny z ekosystemu PZPN.
@@ -14,13 +18,21 @@ import { normalizeName, parseLeaguePlayerName } from "./league-player-utils.mjs"
 
 const DEFAULT_BASE = "https://competition-api-pro.laczynaspilka.pl/api/bus/competition/v1/";
 
-export function getLnpConfig() {
-  const token = process.env.LNP_ACCESS_TOKEN || process.env.LNP_API_BEARER_TOKEN || "";
-  const teamId = process.env.LNP_TEAM_ID || "";
-  const seasonId = process.env.LNP_SEASON_ID || "";
-  const leagueId = process.env.LNP_LEAGUE_ID || "";
-  const playId = process.env.LNP_PLAY_ID || "";
-  const baseUrl = (process.env.LNP_API_BASE || DEFAULT_BASE).replace(/\/?$/, "/");
+const _libDir = dirname(fileURLToPath(import.meta.url));
+export const LNP_PLAYERS_SNAPSHOT_PATH = join(_libDir, "../../fixtures/league/live/lnp-players-snapshot.json");
+
+export function getLnpConfig(overrides = {}) {
+  const token =
+    overrides.accessToken ||
+    overrides.token ||
+    process.env.LNP_ACCESS_TOKEN ||
+    process.env.LNP_API_BEARER_TOKEN ||
+    "";
+  const teamId = overrides.teamId || process.env.LNP_TEAM_ID || "";
+  const seasonId = overrides.seasonId || process.env.LNP_SEASON_ID || "";
+  const leagueId = overrides.leagueId || process.env.LNP_LEAGUE_ID || "";
+  const playId = overrides.playId || process.env.LNP_PLAY_ID || "";
+  const baseUrl = (overrides.baseUrl || process.env.LNP_API_BASE || DEFAULT_BASE).replace(/\/?$/, "/");
 
   return {
     enabled: Boolean(token && teamId),
@@ -31,6 +43,12 @@ export function getLnpConfig() {
     playId,
     baseUrl,
   };
+}
+
+/** Per-club config from league_sources.config.lnp (multi-tenant). Env vars are fallback. */
+export function getLnpConfigFromClubConfig(clubConfig) {
+  const lnp = clubConfig?.lnpConfig ?? {};
+  return getLnpConfig(lnp);
 }
 
 function pickNumber(obj, ...keys) {
@@ -52,12 +70,13 @@ function pickString(obj, ...keys) {
 }
 
 export function formatLnpPlayerName(player) {
-  const direct = pickString(player, "displayName", "fullName", "name", "playerName");
+  const p = player?.person ?? player?.player ?? player;
+  const direct = pickString(p, "displayName", "fullName", "name", "playerName");
   if (direct) return direct.replace(/\s+/g, " ").trim();
 
-  const first = pickString(player, "firstName", "name", "givenName");
-  const last = pickString(player, "lastName", "surname", "familyName");
-  if (first && last) return `${last} ${first}`;
+  const first = pickString(p, "firstName", "firstname", "name", "givenName");
+  const last = pickString(p, "lastName", "lastname", "surname", "familyName");
+  if (first && last) return `${last} ${first}`.replace(/\s+/g, " ").trim();
   if (last) return last;
   return first;
 }
@@ -105,8 +124,24 @@ export function mapLnpStats(raw) {
 
 export function mapLnpPlayerToSquadEntry(player, statsOverride = null) {
   const leaguePlayerName = formatLnpPlayerName(player);
-  const jerseyRaw = pickNumber(player, "shirtNumber", "jerseyNumber", "number", "squadNumber");
-  const stats = mapLnpStats(statsOverride ?? player);
+  const jerseyRaw = pickNumber(
+    player,
+    "shirtNumber",
+    "jerseyNumber",
+    "number",
+    "squadNumber",
+    "shirtNo",
+    "shirt",
+  );
+  const benchEntries = String(player?.type ?? "").toLowerCase() === "substitute" ? 1 : 0;
+  const statsBlob =
+    statsOverride ??
+    player?.statistics ??
+    player?.seasonStatistics ??
+    player?.competitionStatistics ??
+    player?.stats ??
+    player;
+  const stats = mapLnpStats(statsBlob);
 
   return {
     leaguePlayerName,
@@ -116,18 +151,20 @@ export function mapLnpPlayerToSquadEntry(player, statsOverride = null) {
     yellowCards: stats.yellowCards,
     redCards: stats.redCards,
     minutes: stats.minutes,
-    benchEntries: stats.benchEntries,
-    lnpPlayerId: pickString(player, "id", "playerId", "uuid") || null,
+    benchEntries: Math.max(stats.benchEntries, benchEntries),
+    lnpPlayerId:
+      pickString(player, "id", "playerId", "uuid") ||
+      pickString(player?.person, "id", "playerId") ||
+      null,
     sources: ["mpzpn_lnp"],
   };
 }
 
-function unwrapItems(json) {
+export function unwrapItems(json) {
   if (Array.isArray(json)) return json;
-  if (Array.isArray(json?.items)) return json.items;
-  if (Array.isArray(json?.data)) return json.data;
-  if (Array.isArray(json?.players)) return json.players;
-  if (Array.isArray(json?.content)) return json.content;
+  for (const key of ["items", "data", "players", "content", "value", "results", "members"]) {
+    if (Array.isArray(json?.[key])) return json[key];
+  }
   return [];
 }
 
@@ -153,6 +190,47 @@ export async function lnpFetch(config, path, { method = "GET" } = {}) {
   }
 
   return { ok: res.ok, status: res.status, url, json, text: text.slice(0, 500) };
+}
+
+export function playersFromLnpJson(json) {
+  return unwrapItems(json).map((p) => mapLnpPlayerToSquadEntry(p));
+}
+
+export function saveLnpPlayersSnapshot({ raw, players, teamId }) {
+  writeFileSync(
+    LNP_PLAYERS_SNAPSHOT_PATH,
+    JSON.stringify(
+      {
+        savedAt: new Date().toISOString(),
+        teamId: teamId ?? process.env.LNP_TEAM_ID ?? null,
+        raw: raw ?? null,
+        players,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+}
+
+export function loadLnpPlayersSnapshot() {
+  const path = process.env.LNP_PLAYERS_SNAPSHOT || LNP_PLAYERS_SNAPSHOT_PATH;
+  if (!existsSync(path)) return null;
+  try {
+    const data = JSON.parse(readFileSync(path, "utf8"));
+    const players =
+      Array.isArray(data.players) && data.players.length
+        ? data.players
+        : data.raw
+          ? playersFromLnpJson(data.raw)
+          : [];
+    if (!players.length) return null;
+    const hasAnyStats = players.some(
+      (p) => p.appearances > 0 || p.goals > 0 || p.yellowCards > 0 || p.redCards > 0 || p.minutes > 0,
+    );
+    return { ok: true, fromSnapshot: true, path, savedAt: data.savedAt, players, hasAnyStats, count: players.length };
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchLnpTeamPlayers(config = getLnpConfig()) {
@@ -215,6 +293,94 @@ export async function enrichLnpPlayersWithSeasonStats(config, players) {
   return enriched;
 }
 
+/** play-dictionaries dla drużyny (z karty https://laczynaspilka.pl/rozgrywki/druzyna/{teamId}). */
+export async function resolveLnpTeamPlayContext(config) {
+  if (!config.enabled || !config.teamId) return config;
+
+  const res = await lnpFetch(config, `teams/${config.teamId}/play-dictionaries`);
+  if (!res.ok) return config;
+
+  const items = unwrapItems(res.json);
+  const target =
+    items.find((i) =>
+      /wrocław|wroclaw|b\s*klasa|gr\.?\s*vii|grupa\s*vii|vii/i.test(JSON.stringify(i)),
+    ) ?? items[0];
+  if (!target) return config;
+
+  return {
+    ...config,
+    playId: config.playId || pickString(target, "playId", "play_id", "id"),
+    seasonId: config.seasonId || pickString(target, "seasonId", "season_id"),
+    leagueId: config.leagueId || pickString(target, "leagueId", "league_id"),
+  };
+}
+
+function mapPointsRows(rows) {
+  return rows.map((row) => {
+    const stats = mapLnpStats(row);
+    return {
+      leaguePlayerName: formatLnpPlayerName(row),
+      jerseyNumber: null,
+      appearances: stats.appearances,
+      goals: stats.goals,
+      yellowCards: stats.yellowCards,
+      redCards: stats.redCards,
+      minutes: stats.minutes,
+      benchEntries: stats.benchEntries,
+      lnpPlayerId: row?.playerId ?? row?.id ?? null,
+      sources: ["mpzpn_lnp_points"],
+    };
+  });
+}
+
+/** Tabela strzelców / punktów rozgrywek (plays/{playId}/points). */
+export async function fetchLnpPlayPoints(config) {
+  if (!config.enabled) return [];
+
+  if (config.playId) {
+    const res = await lnpFetch(config, `plays/${config.playId}/points`);
+    if (res.ok) return mapPointsRows(unwrapItems(res.json));
+  }
+
+  if (config.leagueId && config.seasonId) {
+    const res = await lnpFetch(
+      config,
+      `leagues/${config.leagueId}/seasons/${config.seasonId}/points`,
+    );
+    if (res.ok) {
+      const rows = unwrapItems(res.json);
+      return mapPointsRows(rows.filter((r) => /mietk/i.test(JSON.stringify(r))));
+    }
+  }
+
+  return [];
+}
+
+export function mergeLnpPointsIntoPlayers(players, pointsRows) {
+  const byId = new Map();
+  const byName = new Map();
+  for (const row of pointsRows) {
+    if (row.lnpPlayerId) byId.set(row.lnpPlayerId, row);
+    const key = normalizeName(row.leaguePlayerName);
+    if (key) byName.set(key, row);
+  }
+
+  return players.map((p) => {
+    const extra = (p.lnpPlayerId && byId.get(p.lnpPlayerId)) || byName.get(normalizeName(p.leaguePlayerName));
+    if (!extra) return p;
+    const sources = [...new Set([...p.sources, ...extra.sources])];
+    return {
+      ...p,
+      appearances: Math.max(p.appearances, extra.appearances),
+      goals: Math.max(p.goals, extra.goals),
+      yellowCards: Math.max(p.yellowCards, extra.yellowCards),
+      redCards: Math.max(p.redCards, extra.redCards),
+      minutes: Math.max(p.minutes, extra.minutes),
+      sources,
+    };
+  });
+}
+
 /** Resolve season/league IDs from seasons/dictionaries when not set in env. */
 export async function resolveLnpDictionaryIds(config) {
   if (config.seasonId && config.leagueId) return config;
@@ -253,11 +419,23 @@ export async function fetchLnpSquadAndStats(config = getLnpConfig()) {
     };
   }
 
-  const resolved = await resolveLnpDictionaryIds(config);
-  const roster = await fetchLnpTeamPlayers(resolved);
-  if (!roster.ok) return roster;
+  let resolved = await resolveLnpTeamPlayContext(config);
+  resolved = await resolveLnpDictionaryIds(resolved);
+  let roster = await fetchLnpTeamPlayers(resolved);
+  if (!roster.ok) {
+    const snap = loadLnpPlayersSnapshot();
+    if (snap?.ok) {
+      roster = { ok: true, players: snap.players, raw: snap.raw, fromSnapshot: true };
+    } else {
+      return roster;
+    }
+  }
 
-  const players = await enrichLnpPlayersWithSeasonStats(resolved, roster.players);
+  let players = await enrichLnpPlayersWithSeasonStats(resolved, roster.players);
+  const pointsRows = await fetchLnpPlayPoints(resolved);
+  if (pointsRows.length) {
+    players = mergeLnpPointsIntoPlayers(players, pointsRows);
+  }
   const hasAnyStats = players.some(
     (p) => p.appearances > 0 || p.goals > 0 || p.yellowCards > 0 || p.redCards > 0 || p.minutes > 0,
   );
@@ -271,6 +449,7 @@ export async function fetchLnpSquadAndStats(config = getLnpConfig()) {
     seasonId: resolved.seasonId || null,
     leagueId: resolved.leagueId || null,
     teamId: resolved.teamId,
+    playId: resolved.playId || null,
     players,
   };
 }

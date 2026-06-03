@@ -17,7 +17,7 @@ export default async function NewTrainingPage() {
     redirect("/training");
   }
 
-  const [teams, coaches] = await Promise.all([getTeams(), getCoaches()]);
+  const [teams, coaches] = await Promise.all([getTeams(access.clubId), getCoaches(access.clubId)]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
