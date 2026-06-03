@@ -14,7 +14,7 @@ export {
 } from "@/types/website";
 
 /** ISR — zgodne z Vercel (revalidate segmentów publicznych) */
-export const PUBLIC_WEBSITE_REVALIDATE_SECONDS = 60;
+export const PUBLIC_WEBSITE_REVALIDATE_SECONDS = 300;
 
 export const WEBSITE_NEWS_CATEGORY_LABELS: Record<WebsiteNewsCategory, string> = {
   matches: "Mecze",

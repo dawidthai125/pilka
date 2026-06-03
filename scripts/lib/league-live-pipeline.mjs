@@ -140,7 +140,25 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
     }
   }
 
-  for (const row of merged.fixtures ?? []) {
+  const allFixtures = merged.fixtures ?? [];
+  const ownFixtures = allFixtures.filter((row) => {
+    const home = sanitizeText(row.homeTeamName);
+    const away = sanitizeText(row.awayTeamName);
+    return home && away && (isOwnTeam(home, teams) || isOwnTeam(away, teams));
+  });
+
+  const { data: existingMatches } = await supabase
+    .from("league_matches")
+    .select("external_key, home_score, away_score, sync_status, match_id, match_date, match_time, round_number")
+    .eq("club_id", clubId)
+    .eq("competition_id", competitionId);
+
+  const existingByKey = new Map(
+    (existingMatches ?? []).map((row) => [String(row.external_key), row]),
+  );
+
+  const upsertRows = [];
+  for (const row of ownFixtures) {
     const homeTeamName = sanitizeText(row.homeTeamName);
     const awayTeamName = sanitizeText(row.awayTeamName);
     if (!homeTeamName || !awayTeamName || !isValidDate(row.matchDate)) {
@@ -156,14 +174,7 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
     const awayScore = row.awayScore != null ? clampStat(row.awayScore) : null;
     const status = homeScore != null && awayScore != null ? "completed" : row.status ?? "scheduled";
 
-    const { data: existing } = await supabase
-      .from("league_matches")
-      .select("id, home_score, away_score, sync_status, match_id, match_date, match_time, round_number")
-      .eq("club_id", clubId)
-      .eq("competition_id", competitionId)
-      .eq("external_key", externalKey)
-      .maybeSingle();
-
+    const existing = existingByKey.get(externalKey);
     const scoresChanged =
       existing && homeScore != null && (existing.home_score !== homeScore || existing.away_score !== awayScore);
     const metaChanged =
@@ -174,37 +185,50 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
     const syncStatus =
       !existing || scoresChanged || metaChanged ? "pending" : existing.sync_status === "synced" ? "synced" : "pending";
 
-    const { error } = await supabase.from("league_matches").upsert(
-      {
-        club_id: clubId,
-        competition_id: competitionId,
-        season_id: seasonId,
-        source_id: SOURCE_MIRROR_ID,
-        sync_job_id: jobId,
-        external_key: externalKey,
-        round_number: row.roundNumber ?? null,
-        match_date: row.matchDate,
-        match_time: row.matchTime ?? "11:00",
-        home_team_name: homeTeamName,
-        away_team_name: awayTeamName,
-        home_score: homeScore,
-        away_score: awayScore,
-        status,
-        sync_status: syncStatus,
-        match_id: existing?.match_id ?? null,
-      },
-      { onConflict: "club_id,competition_id,external_key" },
-    );
+    upsertRows.push({
+      club_id: clubId,
+      competition_id: competitionId,
+      season_id: seasonId,
+      source_id: SOURCE_MIRROR_ID,
+      sync_job_id: jobId,
+      external_key: externalKey,
+      round_number: row.roundNumber ?? null,
+      match_date: row.matchDate,
+      match_time: row.matchTime ?? "11:00",
+      home_team_name: homeTeamName,
+      away_team_name: awayTeamName,
+      home_score: homeScore,
+      away_score: awayScore,
+      status,
+      sync_status: syncStatus,
+      match_id: existing?.match_id ?? null,
+    });
+  }
 
-    if (error) failed += 1;
-    else processed += 1;
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < upsertRows.length; i += BATCH_SIZE) {
+    const chunk = upsertRows.slice(i, i + BATCH_SIZE);
+    const { error } = await supabase.from("league_matches").upsert(chunk, {
+      onConflict: "club_id,competition_id,external_key",
+    });
+    if (error) {
+      failed += chunk.length;
+      await supabase.from("league_sync_logs").insert({
+        club_id: clubId,
+        job_id: jobId,
+        level: "error",
+        message: `Mecze (batch ${i / BATCH_SIZE + 1}): ${error.message}`,
+      });
+    } else {
+      processed += chunk.length;
+    }
   }
 
   await supabase.from("league_sync_logs").insert({
     club_id: clubId,
     job_id: jobId,
     level: "info",
-    message: `Mirror sync: ${processed} OK, ${failed} błędów. Źródło tabeli: ${metadata.tableSource ?? "?"}.`,
+    message: `Mirror sync: ${processed} OK, ${failed} błędów. Mecze: ${ownFixtures.length}/${allFixtures.length} (GLKS). Źródło tabeli: ${metadata.tableSource ?? "?"}.`,
   });
 
   return { processed, failed };

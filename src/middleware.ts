@@ -47,10 +47,29 @@ function isSelfAuthenticatingApiRoute(pathname: string) {
   return pathname === "/api/pwa/offline-data";
 }
 
+/** Strony klubowe — bez sesji Supabase Auth (Sprint 16 P0). */
+const PUBLIC_WEBSITE_PREFIXES = [
+  "/druzyna",
+  "/tabela",
+  "/mecze",
+  "/aktualnosci",
+  "/galeria",
+  "/kontakt",
+  "/sponsorzy",
+  "/kibic",
+] as const;
+
+function isPublicWebsiteRoute(pathname: string) {
+  if (pathname === "/") return true;
+  return PUBLIC_WEBSITE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (isSelfAuthenticatingApiRoute(pathname)) {
+  if (isSelfAuthenticatingApiRoute(pathname) || isPublicWebsiteRoute(pathname)) {
     return NextResponse.next();
   }
 

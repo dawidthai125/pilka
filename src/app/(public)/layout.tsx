@@ -9,7 +9,7 @@ const clubDisplay = Oswald({
 });
 
 /** ISR — wartość jak PUBLIC_WEBSITE_REVALIDATE_SECONDS (Next wymaga literału) */
-export const revalidate = 60;
+export const revalidate = 300;
 
 export default function PublicClubLayout({
   children,

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 
+/** Pełny sync (fetch + DB) — wymaga planu z wydłużonym limitem funkcji. */
+export const maxDuration = 300;
+
 function isAuthorized(request: Request): boolean {
   const secret = process.env.LEAGUE_SYNC_CRON_SECRET ?? process.env.CRON_SECRET;
   if (!secret) {
@@ -51,7 +54,7 @@ export async function GET(request: Request) {
         endpoint: "/api/cron/league-sync",
         methods: ["GET", "POST"],
         auth: "Authorization: Bearer LEAGUE_SYNC_CRON_SECRET (lub CRON_SECRET na Vercel)",
-        schedule: "co 3 dni o 06:00 UTC",
+        schedule: "codziennie o 06:00 UTC",
         cli: "npm run sync:league-live",
         sources: ["90minut.pl", "regionalnyfutbol.pl", "regiowyniki.pl"],
         mapping: "GLKS Mietków → Piorun Wawrzeńczyce",
