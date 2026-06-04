@@ -1,0 +1,94 @@
+{
+  "sprint": "17.7",
+  "t0": "2026-06-03T16:18:57.058Z",
+  "preflight": {
+    "pitrEnabled": "OPERATOR_CONFIRMED",
+    "retentionVerified": "OPERATOR_CONFIRMED",
+    "adminAccess": "PASS",
+    "rollbackOwner": "OPERATOR_CONFIRMED",
+    "maintenanceWindow": "OPERATOR_CONFIRMED",
+    "cronDisabled": "OPERATOR_CONFIRMED",
+    "t0Timestamp": "2026-06-03T16:18:57.058Z"
+  },
+  "phases": {
+    "f1": {
+      "verdict": "PASS",
+      "counts": {
+        "tables": 104,
+        "enums": 93,
+        "functions": 158,
+        "rpc": 16,
+        "policies": 244,
+        "triggers": 156,
+        "buckets": 2
+      },
+      "timestamp": "2026-06-03T16:18:57.058Z"
+    },
+    "f2": {
+      "verdict": "PASS",
+      "start": "2026-06-03T16:18:58.025Z",
+      "end": "2026-06-03T16:18:59.341Z"
+    },
+    "f3": {
+      "verdict": "PASS",
+      "counts": {
+        "tables": 148,
+        "enums": 129,
+        "functions": 211,
+        "rpc": 19,
+        "policies": 339,
+        "triggers": 220,
+        "buckets": 2
+      },
+      "financeTableCount": 9,
+      "missingRpc": [],
+      "delta": {
+        "tables": 44,
+        "functions": 53,
+        "rpc": 3,
+        "enums": 36,
+        "policies": 95,
+        "triggers": 64
+      }
+    },
+    "f6": {
+      "verdict": "PASS",
+      "migrations": [
+        {
+          "version": "20260531120000",
+          "name": "legacy_applied_manual_pre_baseline"
+        },
+        {
+          "version": "20260703120000",
+          "name": null
+        },
+        {
+          "version": "20260703140000",
+          "name": null
+        },
+        {
+          "version": "20260704000000",
+          "name": "fc_os_baseline_173"
+        },
+        {
+          "version": "20260704100000",
+          "name": "fc_os_prod_parity_patch_174"
+        }
+      ]
+    },
+    "f8": {
+      "verdict": "PASS",
+      "counts": {
+        "tables": 148,
+        "enums": 129,
+        "functions": 211,
+        "rpc": 19,
+        "policies": 339,
+        "triggers": 220,
+        "buckets": 2
+      }
+    }
+  },
+  "success": true,
+  "rollbackRequired": false
+}

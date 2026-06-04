@@ -7,10 +7,13 @@ import {
   formatPlatformDate,
   HealthLevelBadge,
 } from "@/features/platform/components/platform-status-badges";
+import { PlatformAlertsPanel } from "@/features/platform/components/platform-alerts-panel";
 import { SyncHistorySection } from "@/features/platform/components/sync-history-section";
 import type { ClubHealthRow, LeagueHealthRow } from "@/lib/platform/health";
+import type { PlatformAlert } from "@/lib/platform/platform-alerts";
 import {
   EMPTY_SYNC_HISTORY_FILTERS,
+  filtersFromAlert,
   filtersFromClub,
   filtersFromLeague,
   syncHistoryFilterSummary,
@@ -20,12 +23,14 @@ import type { SyncHistoryRow } from "@/lib/platform/sync-history";
 import { cn } from "@/lib/utils";
 
 type MonitoringInteractiveProps = {
+  alerts: PlatformAlert[];
   clubHealth: ClubHealthRow[];
   leagueHealth: LeagueHealthRow[];
   syncHistory: SyncHistoryRow[];
 };
 
 export function MonitoringInteractive({
+  alerts,
   clubHealth,
   leagueHealth,
   syncHistory,
@@ -74,8 +79,27 @@ export function MonitoringInteractive({
     [scrollToHistory],
   );
 
+  const applyFromAlert = useCallback(
+    (alert: PlatformAlert) => {
+      setFilters(filtersFromAlert(alert));
+      if (alert.sourceId) {
+        setHealthFocus(`league:${alert.sourceId}`);
+      } else if (alert.clubId) {
+        setHealthFocus(`club:${alert.clubId}`);
+      } else {
+        setHealthFocus(null);
+      }
+      scrollToHistory();
+    },
+    [scrollToHistory],
+  );
+
+  const filterHintWithAlert = filterHint;
+
   return (
     <>
+      <PlatformAlertsPanel alerts={alerts} onAlertSelect={applyFromAlert} />
+
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Club Health</h2>
@@ -105,7 +129,7 @@ export function MonitoringInteractive({
         filters={filters}
         onFiltersChange={setFilters}
         criticalClubIds={criticalClubIds}
-        filterHint={filterHint}
+        filterHint={filterHintWithAlert}
         sectionRef={historyRef}
       />
     </>

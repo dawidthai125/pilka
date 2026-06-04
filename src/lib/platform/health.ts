@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getNextCronRun } from "@/lib/platform/cron-schedule";
 import type { ClubOnboardingStatus, OnboardingStepStatus } from "@/lib/platform/onboarding-status";
 import { loadSyncMonitoring, type SyncMonitoringData } from "@/lib/platform/monitoring";
+import { evaluatePlatformAlerts, type PlatformAlert } from "@/lib/platform/platform-alerts";
 import { loadSyncHistory, type SyncHistoryRow } from "@/lib/platform/sync-history";
 import {
   loadPlatformSyncMetrics,
@@ -516,6 +517,7 @@ export async function computePlatformHealthSummary(
 
 export type PlatformMonitoringBundle = {
   syncMonitoring: SyncMonitoringData;
+  alerts: PlatformAlert[];
   clubHealth: ClubHealthRow[];
   leagueHealth: LeagueHealthRow[];
   syncHistory: SyncHistoryRow[];
@@ -529,5 +531,11 @@ export async function loadPlatformMonitoringBundle(): Promise<PlatformMonitoring
     computeLeagueHealthRows(context),
     loadSyncHistory(),
   ]);
-  return { syncMonitoring, clubHealth, leagueHealth, syncHistory };
+  const alerts = evaluatePlatformAlerts({
+    ctx: context,
+    clubHealth,
+    leagueHealth,
+    cronStatus: syncMonitoring.cron.status,
+  });
+  return { syncMonitoring, alerts, clubHealth, leagueHealth, syncHistory };
 }

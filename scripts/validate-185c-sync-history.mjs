@@ -23,10 +23,15 @@ function testSources() {
   assert(!history.includes("league_sync_logs"), "v1 must not query logs");
   assert(health.includes("syncHistory"), "bundle must include syncHistory");
   assert(health.includes("loadSyncHistory"), "bundle must load sync history");
-  assert(
-    view.includes("SyncHistorySection") || view.includes("MonitoringInteractive"),
-    "monitoring view must render Sync History",
+  const interactive = readFileSync(
+    join(root, "src/features/platform/components/monitoring-interactive.tsx"),
+    "utf8",
   );
+  assert(
+    view.includes("MonitoringInteractive"),
+    "monitoring view must use interactive shell",
+  );
+  assert(interactive.includes("SyncHistorySection"), "interactive must render Sync History");
   assert(
     readFileSync(join(root, "src/features/platform/components/monitoring-interactive.tsx"), "utf8").includes(
       "onRowSelect",

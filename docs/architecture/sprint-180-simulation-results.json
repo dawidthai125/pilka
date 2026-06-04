@@ -1,0 +1,70 @@
+{
+  "sprint": "18.0",
+  "simulatedAt": "2026-06-03T16:24:05.888Z",
+  "environment": "embedded-pg",
+  "pilot": {
+    "clubId": "6661ddb8-04b0-4159-bda6-499a85039afd",
+    "teamId": "b29fa3bb-0ae6-413e-8438-1e76273cebf0",
+    "seasonId": "540d2595-6c41-421e-9d48-ca369e984d49",
+    "competitionId": "291274a7-cd6b-4a93-9d49-ea8fe84f8cc5"
+  },
+  "artifacts": {
+    "website_settings": 1,
+    "content_channels": [
+      "website",
+      "facebook",
+      "instagram"
+    ],
+    "league_seasons": 1,
+    "league_sources": [
+      {
+        "is_active": false,
+        "name": "Manual / pending sync setup"
+      }
+    ],
+    "availability_reasons": 6,
+    "memberships": [
+      {
+        "role": "owner",
+        "status": "active"
+      }
+    ],
+    "teams": [
+      "PC Seniorzy"
+    ],
+    "website_news": 0,
+    "sponsors": 0,
+    "gallery_albums": 0,
+    "website_social": 0
+  },
+  "isolation": [
+    {
+      "name": "pilot_owner_memberships_scoped",
+      "pass": true
+    },
+    {
+      "name": "pilot_cannot_read_piorun_players",
+      "pass": true
+    },
+    {
+      "name": "public_website_settings_readable_cross_tenant",
+      "pass": true,
+      "note": "Expected: website_is_public policy allows authenticated read of public sites"
+    },
+    {
+      "name": "piorun_cannot_manage_pilot_website",
+      "pass": true
+    },
+    {
+      "name": "unique_slugs",
+      "pass": true
+    },
+    {
+      "name": "public_rpc_exists",
+      "pass": true
+    }
+  ],
+  "isolationVerdict": "PASS",
+  "isolationBusinessVerdict": "PASS",
+  "clubCount": 2
+}

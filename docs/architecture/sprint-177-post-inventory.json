@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-06-03T16:19:00.375Z",
+  "counts": {
+    "tables": 148,
+    "enums": 129,
+    "functions": 211,
+    "rpc": 19,
+    "policies": 339,
+    "triggers": 220,
+    "buckets": 2
+  },
+  "t0": {
+    "tables": 104,
+    "enums": 93,
+    "functions": 158,
+    "rpc": 16,
+    "policies": 244,
+    "triggers": 156,
+    "buckets": 2
+  },
+  "delta": {
+    "tables": 44,
+    "functions": 53,
+    "rpc": 3,
+    "enums": 36,
+    "policies": 95,
+    "triggers": 64
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "savedAt": "2026-06-03T03:54:32.088Z",
+  "teamId": "312e40bc-a65a-4558-ad00-d1edccc66e60",
+  "raw": [
+    {
+      "id": "83d76e54-b079-44b7-a71a-16fa0633c18a",
+      "firstname": "Aleksander",
+      "lastname": "Bielaszka",
+      "isKeeper": false
+    },
+    {
+      "id": "dada3214-5c58-48b5-a0ff-a86925d677c2",
+      "firstname": "Dominik",
+      "lastname": "Błachowicz",
+      "isKeeper": false
+    },
+    {
+      "id": "f6e40e15-bdcc-460e-b455-5a3bd4cd21d4",
+      "firstname": "Marsel",
+      "lastname": "Grzegorek",
+      "isKeeper": false
+    },
+    {
+      "id": "052f228a-1a2b-42ab-9a71-cf051916a3a6",
+      "firstname": "Szymon",
+      "lastname": "Konieczny",
+      "number": 20,
+      "isKeeper": false,
+      "type": "Substitute"
+    }
+  ],
+  "players": [
+    {
+      "leaguePlayerName": "Bielaszka Aleksander",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 0,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "lnpPlayerId": "83d76e54-b079-44b7-a71a-16fa0633c18a",
+      "sources": [
+        "mpzpn_lnp"
+      ]
+    },
+    {
+      "leaguePlayerName": "Błachowicz Dominik",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 0,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "lnpPlayerId": "dada3214-5c58-48b5-a0ff-a86925d677c2",
+      "sources": [
+        "mpzpn_lnp"
+      ]
+    },
+    {
+      "leaguePlayerName": "Grzegorek Marsel",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 0,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "lnpPlayerId": "f6e40e15-bdcc-460e-b455-5a3bd4cd21d4",
+      "sources": [
+        "mpzpn_lnp"
+      ]
+    },
+    {
+      "leaguePlayerName": "Konieczny Szymon",
+      "jerseyNumber": 20,
+      "appearances": 0,
+      "goals": 0,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 1,
+      "lnpPlayerId": "052f228a-1a2b-42ab-9a71-cf051916a3a6",
+      "sources": [
+        "mpzpn_lnp"
+      ]
+    }
+  ]
+}

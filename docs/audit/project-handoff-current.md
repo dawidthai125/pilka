@@ -2,9 +2,31 @@
 
 **Klub referencyjny:** Piorun Wawrzeńczyce / GLKS Mietków  
 **Repozytorium:** `dawidthai125/pilka`  
-**Dokument:** stan na 2026-06-04 · dla nowego agenta  
+**Dokument:** stan na 2026-06-04 (po backup PRE 18.5) · dla nowego agenta  
 **Produkcja:** https://pilka-mu.vercel.app  
 **Supabase project:** `pwkqnwqvrdiaycveacxa`
+
+---
+
+## 0. START HERE — STAN NA DZIŚ (nowy agent)
+
+> **Pełny checkpoint backupu:** [`pre-18-5-backup-handoff.md`](./pre-18-5-backup-handoff.md)
+
+| Pole | Wartość |
+|------|---------|
+| **Produkcja commit** | `ef7873e` — Sprint **18.4b** LIVE na Vercel |
+| **origin/main** | `ef7873e` — zsynchronizowany |
+| **Tag backupu** | `pre-18-5-platform-complete` → `ef7873e` (local + origin) |
+| **Backup PRE 18.5** | ✅ COMPLETE — `backups/pre-18-5/` (lokalnie, **w .gitignore**) |
+| **Platform Phase** | ✅ COMPLETE (18.1–18.4b) |
+| **Następny sprint** | **18.5** — scope od użytkownika |
+| **PITR** | ON (T0 backupu: `2026-06-04T08:56:05Z`) |
+
+**Nowe trasy Platform (18.4b):** `/platform/monitoring`, `/platform/audit`
+
+**Nie rób ponownie:** backup PRE 18.5, deploy 18.4a/18.4b, push bez polecenia.
+
+**Operator jeszcze do zrobienia:** skopiować `backups/pre-18-5/fcos-pre-18-5-offsite.7z` offsite; zarchiwizować klub `release-184a-mpz313we`.
 
 ---
 
@@ -14,18 +36,15 @@
 
 - **ETAP 15.x** — platforma modułowa (League Hub, Content, CRM, PWA) — **wdrożona**.
 - **Strona publiczna** — Public Website 4.0 + dark matchday; **multi-club** `/{slug}/*` (Sprint 18.1).
-- **Platform Admin** — Create Club (18.2), League Setup (18.3), Dashboard + Club Activation (18.4a) — **kod gotowy lokalnie**, migracja 18.4a-db **na prod**.
+- **Platform Admin** — Create Club (18.2), League Setup (18.3), Dashboard + Activation (18.4a), Monitoring + Audit Center (18.4b) — **LIVE na prod** (`ef7873e`).
 - **Dane ligowe** — mirror live sync (90minut + RF + regiowyniki kadra); mPZPN tylko ręczny import.
 
-### Ostatni commit lokalny (niekoniecznie na Vercel)
+### Ostatni commit (prod + origin/main)
 
-**Sprint 18.4a + 18.4a-db — Platform Dashboard & Club Activation**  
-Commit: `77a7257` · branch `main` **ahead 1** względem `origin/main`  
-**Push / deploy Vercel:** oczekuje na polecenie użytkownika.
-
-### Ostatni wdrożony sprint na Vercel (UI)
-
-Sprawdź Vercel Dashboard — **przed pushem** produkcja może być starsza niż `77a7257` (brak dashboardu `/platform` i karty aktywacji w UI).
+**Sprint 18.4b — Platform Monitoring & Audit Center**  
+Commit: `ef7873e909e2961e0c789ce6aa37f944530f437f`  
+**Vercel:** Ready (`pilka-ix912e4fc` → `pilka-mu.vercel.app`)  
+**Tag checkpointu:** `pre-18-5-platform-complete`
 
 ### Wdrożone wcześniej (referencja)
 
@@ -111,12 +130,13 @@ Metryki po P0 (lokalnie): sync **~79 s → ~28 s**; warm TTFB `/` prod **~0,95 s
 
 | Pole | Wartość |
 |------|---------|
-| **Commit lokalny (18.4a)** | `77a7257` — **nie na remote** (do `git push`) |
-| **Commit remote (sprawdź)** | `git ls-remote origin main` lub GitHub |
+| **Commit prod** | `ef7873e` (18.4b) |
+| **origin/main** | `ef7873e` |
+| **Backup tag** | `pre-18-5-platform-complete` |
 | **URL** | https://pilka-mu.vercel.app |
 | **Region Vercel** | `fra1` |
 | **Public multi-club** | ✅ `/` directory, `/piorun-wawrzenczyce`, `/pilot-club-test` |
-| **Platform UI 18.4a** | ⚠️ Po push+deploy — dashboard, activation card |
+| **Platform UI** | ✅ `/platform`, `/platform/monitoring`, `/platform/audit` |
 | **Migracja 18.4a-db** | ✅ `20260604140000_hotfix_184adb_platform_club_writes.sql` na prod |
 
 ### Kluby w DB (2026-06-04)
@@ -125,7 +145,7 @@ Metryki po P0 (lokalnie): sync **~79 s → ~28 s**; warm TTFB `/` prod **~0,95 s
 |------|--------|-------|
 | `piorun-wawrzenczyce` | active | Klub produkcyjny |
 | `pilot-club-test` | active | Smoke 18.4a (audit kompletny) |
-| `release-184a-*` | onboarding | Śmieciowy klub ze smoke — archiwizuj |
+| `release-184a-mpz313we` | onboarding | Klub testowy ze smoke 18.4a — **zarchiwizuj** przed 18.5 |
 
 ---
 
@@ -138,27 +158,31 @@ Metryki po P0 (lokalnie): sync **~79 s → ~28 s**; warm TTFB `/` prod **~0,95 s
 | **18.3** League Setup Wizard | ✅ kod | `docs/architecture/sprint-183-final-report.md` |
 | **18.3d** availability_reasons hotfix | ✅ prod DB | `supabase/migrations/20260604120000_hotfix_183d_*.sql` |
 | **18.4** Audyt operacyjny | 📋 tylko projekt | bez kodu |
-| **18.4a** Dashboard + Activation | ✅ lokalnie | `docs/architecture/sprint-184a-final-report.md` |
-| **18.4a-db** RPC club writes | ✅ prod DB | ta sama migracja co 18.4a-db w raporcie |
+| **18.4a** Dashboard + Activation | ✅ prod | `docs/architecture/sprint-184a-final-report.md` |
+| **18.4a-db** RPC club writes | ✅ prod DB | `20260604140000_hotfix_184adb_platform_club_writes.sql` |
+| **18.4b** Monitoring + Audit Center | ✅ prod | commit `ef7873e` |
+| **PRE 18.5 backup** | ✅ complete | `docs/audit/pre-18-5-backup-handoff.md` |
 
 **Agent — czytaj obowiązkowo:** [`docs/ai/10-platform-admin-multi-club.md`](../ai/10-platform-admin-multi-club.md)
 
-### Kluczowe pliki 18.4a
+### Kluczowe pliki Platform (18.4a + 18.4b)
 
 | Obszar | Plik |
 |--------|------|
 | Aktywacja | `src/lib/platform/club-activation.ts` |
 | Dashboard | `src/lib/platform/dashboard.ts`, `platform-dashboard.tsx` |
+| Monitoring | `src/lib/platform/monitoring.ts`, `health.ts` |
+| Audit Center | `src/lib/platform/audit-center.ts`, `audit-center-view.tsx` |
 | RPC writes | `src/lib/platform/club-db-writes.ts` |
 | Actions | `src/features/platform/actions.ts` |
-| Migracja | `supabase/migrations/20260604140000_hotfix_184adb_platform_club_writes.sql` |
+| Trasy | `src/app/(platform)/platform/monitoring/page.tsx`, `audit/page.tsx` |
+| Migracja RPC | `supabase/migrations/20260604140000_hotfix_184adb_platform_club_writes.sql` |
 
 ### Następny krok operacyjny
 
-1. `git push origin main` (jeśli użytkownik prosi)
-2. Vercel Production deploy → Ready na `77a7257`
-3. Smoke zalogowany: `/platform`, `/platform/clubs/[id]`, aktywacja + League Setup UI
-4. Cleanup klubów testowych `release-184a-*`
+1. **Sprint 18.5** — scope od użytkownika (backup już domknięty)
+2. Archiwizacja klubu `release-184a-mpz313we`
+3. Opcjonalnie: commit untracked `20260604120000_hotfix_183d_*.sql` jeśli brak na remote
 
 ---
 
@@ -305,11 +329,13 @@ Dokumentacja sync: `docs/modules/stage-15b-live-sync.md`, `docs/modules/stage-15
 
 ## 7. OPEN TASKS
 
-### P0 (Platform — deploy)
+### P0 (przed / na początku Sprint 18.5)
 
-1. **Push + deploy** commit `77a7257` (18.4a UI na Vercel).
-2. **Post-deploy smoke** platform admin (sesja + `PLATFORM_ADMIN_EMAILS`).
-3. **Archiwizacja** klubów `release-184a-*` po smoke.
+1. ~~Push + deploy 18.4b~~ — ✅ done (`ef7873e`)
+2. ~~Backup PRE 18.5~~ — ✅ done — patrz `pre-18-5-backup-handoff.md`
+3. **Offsite copy** archiwum `.7z` — operator (poza repo)
+4. **Archiwizacja** klubu `release-184a-mpz313we`
+5. **Visual smoke** Platform Admin (login manual ~30 s)
 
 ### P1 (następne po P0 — wydajność + dane)
 
@@ -387,8 +413,11 @@ Kolejny agent **nie powinien ponownie proponować** (już zrobione lub odrzucone
 - [ ] Hotfix **18.3d** — `availability_reasons` full unique index
 - [ ] Sprint **18.4a** — platform dashboard, club activation gates, activation card
 - [ ] Hotfix **18.4a-db** — RPC `platform_set_club_status` / `platform_append_club_audit`
+- [ ] Sprint **18.4b** — monitoring, audit center, health dashboard (`ef7873e`)
+- [ ] **PRE 18.5 backup** — tag, dump, ENV, manifest, offsite `.7z`
 - [ ] Audyt **18.4** — mapa operatora (tylko dokumentacja, bez implementacji)
 - [ ] Ponowne „dodaj aktywację klubu” — jest w 18.4a
+- [ ] Ponowne „dodaj monitoring platform” — jest w 18.4b
 - [ ] Surowy `UPDATE clubs SET status` z panelu — używaj RPC (`club-db-writes.ts`)
 
 ---
@@ -451,7 +480,7 @@ Wymagane w `.env.local`: `NEXT_PUBLIC_SUPABASE_*`, `SUPABASE_SERVICE_ROLE_KEY` (
 
 - Otwórz https://pilka-mu.vercel.app — `/`, `/druzyna`, `/tabela`.
 - GitHub: `gh run list --branch main -L 3`
-- Vercel: ostatni deployment = commit `aee9d4f` (lub nowszy).
+- Vercel: ostatni deployment = commit `ef7873e` (18.4b).
 
 ### Krok 4 — Zweryfikuj ligę
 
@@ -464,10 +493,10 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 
 ### Krok 5 — Zaplanuj sprint
 
-- **Jeśli 18.4a nie na prod:** push + deploy + smoke platform (P0 w sekcji 7).
+- **Sprint 18.5** — następny po backupie PRE 18.5 (scope użytkownika).
 - **Rekomendacja produktowa (liga):** **League Player Matching 16.1** (sekcja 8).
 - **Rekomendacja techniczna:** Regiowyniki goals + `get_public_home_bundle` — patrz P1.
-- **Po deploy 18.4a:** Sprint **18.4b** monitoring / Sentry (z audytu 18.4).
+- **Backup checkpoint:** `docs/audit/pre-18-5-backup-handoff.md` — nie powtarzaj bez polecenia.
 
 ### Krok 6 — Zasady pracy z użytkownikiem
 
@@ -496,10 +525,12 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 
 | Temat | Plik |
 |-------|------|
-| **START — stan na dziś** | Ten plik |
+| **START — stan na dziś** | Ten plik (sekcja 0) |
+| **Backup PRE 18.5** | `docs/audit/pre-18-5-backup-handoff.md` |
 | Architektura produktu | `docs/ai/README.md` + `01`–`09` |
 | Platform Admin 18.x | `docs/ai/10-platform-admin-multi-club.md` |
 | Raport 18.4a | `docs/architecture/sprint-184a-final-report.md` |
+| Rollback / PITR | `docs/architecture/sprint-176-rollback-runbook.md` |
 | Raporty 18.1–18.3 | `docs/architecture/sprint-181` … `183-final-report.md` |
 | Liga / sync | `docs/ai/07-league-hub-sync.md`, `docs/modules/stage-15b-live-sync.md` |
 | Zasady agenta | `docs/ai/09-agent-rules.md`, `AGENTS.md` |

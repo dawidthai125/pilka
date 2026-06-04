@@ -1,30 +1,258 @@
 {
-  "fetchedAt": "2026-06-02T20:07:29.367Z",
+  "fetchedAt": "2026-06-03T14:30:06.101Z",
   "leagueTeamName": "GLKS Mietków",
   "urls": {
     "regiowynikiKadra": "https://regiowyniki.pl/druzyna/Pilka_Nozna/Dolnoslaskie/GLKS_Mietkow/kadra/",
-    "ninetyMinutStrzelcy": "http://www.90minut.pl/strzelcy.php?id_liga=14526",
+    "ninetyMinutStrzelcy": "http://www.90minut.pl/strzelcy.php?id=14526",
     "ninetyMinutBilans": "http://www.90minut.pl/bilans.php?id_klub=3824&id_sezon=107"
   },
   "lnp": {
-    "enabled": false,
-    "ok": false,
-    "skipped": true,
-    "count": 0,
+    "enabled": true,
+    "ok": true,
+    "skipped": false,
+    "count": 4,
     "hasAnyStats": false,
-    "reason": "Ustaw LNP_ACCESS_TOKEN i LNP_TEAM_ID w .env.local (UUID drużyny z mPZPN / laczynaspilka.pl).",
-    "teamId": null
+    "reason": null,
+    "teamId": "312e40bc-a65a-4558-ad00-d1edccc66e60"
   },
   "counts": {
     "regiowynikiKadra": 29,
+    "regiowynikiMatchGoals": 16,
+    "regiowynikiMatchesScanned": 19,
     "ninetyMinutStrzelcy": 0,
     "ninetyMinutBilans": 0,
-    "mpzpnLnp": 0,
-    "merged": 29
+    "mpzpnLnp": 4,
+    "merged": 30
   },
-  "hasAnyStats": false,
-  "statsNote": "Mirror B Klasy nie publikuje statystyk per zawodnik. mPZPN ma pełne dane — ustaw LNP_ACCESS_TOKEN i LNP_TEAM_ID w .env.local.",
+  "hasAnyStats": true,
+  "statsNote": null,
   "players": [
+    {
+      "leaguePlayerName": "Janduła Maciej",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 5,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Mikulski Cyprian",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 4,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Jakubczak Franciszek",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 3,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Szkoła Dariusz",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 3,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Warchoł Tomasz",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 3,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Śmiałowski Dawid",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 3,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Szczepaniak Tomasz",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 2,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Chwastyk Piotr",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Grzegorek Michał",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Kałamarz Krzysztof",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Konieczny Szymon",
+      "jerseyNumber": 20,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 1,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals",
+        "mpzpn_lnp"
+      ],
+      "lnpPlayerId": "052f228a-1a2b-42ab-9a71-cf051916a3a6"
+    },
+    {
+      "leaguePlayerName": "Malkowski  Szymon",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Niezgoda Kacper",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Smycz Zbigniew",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Szumiel Tomasz",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
+    {
+      "leaguePlayerName": "Zaperty Piotr",
+      "jerseyNumber": null,
+      "appearances": 0,
+      "goals": 1,
+      "yellowCards": 0,
+      "redCards": 0,
+      "minutes": 0,
+      "benchEntries": 0,
+      "sources": [
+        "regiowyniki_kadra",
+        "regiowyniki_match_goals"
+      ]
+    },
     {
       "leaguePlayerName": "Błachowicz Dominik",
       "jerseyNumber": null,
@@ -35,24 +263,13 @@
       "minutes": 0,
       "benchEntries": 0,
       "sources": [
-        "regiowyniki_kadra"
-      ]
+        "regiowyniki_kadra",
+        "mpzpn_lnp"
+      ],
+      "lnpPlayerId": "dada3214-5c58-48b5-a0ff-a86925d677c2"
     },
     {
       "leaguePlayerName": "Błasiak Krzysztof",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Chwastyk Piotr",
       "jerseyNumber": null,
       "appearances": 0,
       "goals": 0,
@@ -74,47 +291,10 @@
       "minutes": 0,
       "benchEntries": 0,
       "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Grzegorek Michał",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Jakubczak Franciszek",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Janduła Maciej",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
+        "regiowyniki_kadra",
+        "mpzpn_lnp"
+      ],
+      "lnpPlayerId": "f6e40e15-bdcc-460e-b455-5a3bd4cd21d4"
     },
     {
       "leaguePlayerName": "Kamiński Bartłomiej",
@@ -143,72 +323,7 @@
       ]
     },
     {
-      "leaguePlayerName": "Kałamarz Krzysztof",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Konieczny Szymon",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
       "leaguePlayerName": "Maksim Mariusz",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Malkowski  Szymon",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Mikulski Cyprian",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Niezgoda Kacper",
       "jerseyNumber": null,
       "appearances": 0,
       "goals": 0,
@@ -247,59 +362,7 @@
       ]
     },
     {
-      "leaguePlayerName": "Smycz Zbigniew",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
       "leaguePlayerName": "Susło Bartosz",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Szczepaniak Tomasz",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Szkoła Dariusz",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Szumiel Tomasz",
       "jerseyNumber": null,
       "appearances": 0,
       "goals": 0,
@@ -338,33 +401,7 @@
       ]
     },
     {
-      "leaguePlayerName": "Warchoł Tomasz",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
       "leaguePlayerName": "Wojajczyk Maciej",
-      "jerseyNumber": null,
-      "appearances": 0,
-      "goals": 0,
-      "yellowCards": 0,
-      "redCards": 0,
-      "minutes": 0,
-      "benchEntries": 0,
-      "sources": [
-        "regiowyniki_kadra"
-      ]
-    },
-    {
-      "leaguePlayerName": "Zaperty Piotr",
       "jerseyNumber": null,
       "appearances": 0,
       "goals": 0,
@@ -390,7 +427,7 @@
       ]
     },
     {
-      "leaguePlayerName": "Śmiałowski Dawid",
+      "leaguePlayerName": "Bielaszka Aleksander",
       "jerseyNumber": null,
       "appearances": 0,
       "goals": 0,
@@ -398,8 +435,9 @@
       "redCards": 0,
       "minutes": 0,
       "benchEntries": 0,
+      "lnpPlayerId": "83d76e54-b079-44b7-a71a-16fa0633c18a",
       "sources": [
-        "regiowyniki_kadra"
+        "mpzpn_lnp"
       ]
     }
   ]

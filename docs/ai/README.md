@@ -7,6 +7,7 @@ Ten katalog jest **źródłem prawdy dla nowych agentów** (Cursor, Claude, itd.
 | # | Plik | Co z niego wyniesiesz |
 |---|------|------------------------|
 | 0 | [`../audit/project-handoff-current.md`](../audit/project-handoff-current.md) | **Stan na dziś:** produkcja, ostatni sprint, otwarte zadania, DO NOT REPEAT |
+| 0b | [`../audit/pre-18-5-backup-handoff.md`](../audit/pre-18-5-backup-handoff.md) | **Checkpoint PRE 18.5:** tag, dump, checksums, restore, czego nie powtarzać |
 | 1 | [01-product-overview.md](./01-product-overview.md) | Czym jest FC OS, dla kogo, Piorun vs GLKS |
 | 2 | [02-tech-architecture.md](./02-tech-architecture.md) | Stack, warstwy, multi-tenant, bezpieczeństwo |
 | 3 | [03-routing-map.md](./03-routing-map.md) | Wszystkie trasy: public, auth, dashboard, API |

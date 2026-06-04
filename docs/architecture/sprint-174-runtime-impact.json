@@ -1,0 +1,1086 @@
+{
+  "generatedAt": "2026-06-03T15:40:20.100Z",
+  "summary": {
+    "active": 43,
+    "inactive": 1,
+    "unknown": 0,
+    "required": 43,
+    "optional": 1
+  },
+  "rows": [
+    {
+      "table": "academy_group_staff",
+      "module": "Academy",
+      "runtimeStatus": "INACTIVE",
+      "classification": "OPTIONAL",
+      "codeRefs": 0,
+      "queryFiles": [],
+      "typeRefs": [
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "academy_groups",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "external_leagues",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 1,
+      "queryFiles": [
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\lib\\integrations\\sync-engine.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "external_matches",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\integrations\\sync-engine.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "external_teams",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "finance_budgets",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "finance_documents",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "finance_expenses",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ]
+    },
+    {
+      "table": "finance_fee_plans",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "finance_grants",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "finance_income",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 4,
+      "queryFiles": [
+        "src\\features\\crm\\actions.ts",
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\crm\\actions.ts",
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "finance_player_fee_payments",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "finance_player_fees",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ]
+    },
+    {
+      "table": "finance_reports",
+      "module": "Finance",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "fitness_tests",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "integration_club_mappings",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "integration_imports",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts"
+      ]
+    },
+    {
+      "table": "integration_sources",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 1,
+      "queryFiles": [
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "integrations",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 4,
+      "queryFiles": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\app\\(dashboard)\\ai\\page.tsx",
+        "src\\app\\(dashboard)\\integrations\\dzpn\\page.tsx",
+        "src\\app\\(dashboard)\\integrations\\extranet\\page.tsx"
+      ]
+    },
+    {
+      "table": "inventory_categories",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_damages",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ]
+    },
+    {
+      "table": "inventory_items",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ]
+    },
+    {
+      "table": "inventory_kit_assignments",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 1,
+      "queryFiles": [
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_player_kits",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ]
+    },
+    {
+      "table": "inventory_purchase_order_lines",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 1,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_purchase_orders",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_reports",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_returns",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_stocktake_lines",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 1,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_stocktakes",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_suppliers",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "inventory_transactions",
+      "module": "Inventory",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "opponent_analysis",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts",
+        "src\\lib\\ai\\agent\\tools\\write.ts"
+      ]
+    },
+    {
+      "table": "player_assessments",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_development",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_development_history",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_goals",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_team_transitions",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "scouting_clubs",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 2,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts",
+        "src\\types\\database.ts"
+      ]
+    },
+    {
+      "table": "scouting_players",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "scouting_reports",
+      "module": "Academy",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "sync_conflicts",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 4,
+      "queryFiles": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts"
+      ]
+    },
+    {
+      "table": "sync_jobs",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 1,
+      "queryFiles": [
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\features\\league\\actions.ts",
+        "src\\lib\\integrations\\sync-engine.ts",
+        "src\\lib\\league\\loaders.ts"
+      ]
+    },
+    {
+      "table": "sync_logs",
+      "module": "Integrations",
+      "runtimeStatus": "ACTIVE",
+      "classification": "REQUIRED",
+      "codeRefs": 3,
+      "queryFiles": [
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ],
+      "typeRefs": [
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    }
+  ],
+  "potentialErrors": [
+    {
+      "table": "academy_groups",
+      "error": "Dashboard query to academy_groups fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "external_leagues",
+      "error": "Dashboard query to external_leagues fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "external_matches",
+      "error": "Dashboard query to external_matches fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "external_teams",
+      "error": "Dashboard query to external_teams fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "finance_budgets",
+      "error": "Dashboard query to finance_budgets fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "finance_documents",
+      "error": "Dashboard query to finance_documents fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "finance_expenses",
+      "error": "Dashboard query to finance_expenses fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ]
+    },
+    {
+      "table": "finance_fee_plans",
+      "error": "Dashboard query to finance_fee_plans fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "finance_grants",
+      "error": "Dashboard query to finance_grants fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "finance_income",
+      "error": "Dashboard query to finance_income fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\crm\\actions.ts",
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ]
+    },
+    {
+      "table": "finance_player_fee_payments",
+      "error": "Dashboard query to finance_player_fee_payments fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "finance_player_fees",
+      "error": "Dashboard query to finance_player_fees fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\finance\\insights.ts"
+      ]
+    },
+    {
+      "table": "finance_reports",
+      "error": "Dashboard query to finance_reports fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\finance\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "fitness_tests",
+      "error": "Dashboard query to fitness_tests fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "integration_club_mappings",
+      "error": "Dashboard query to integration_club_mappings fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "integration_imports",
+      "error": "Dashboard query to integration_imports fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts"
+      ]
+    },
+    {
+      "table": "integration_sources",
+      "error": "Dashboard query to integration_sources fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "integrations",
+      "error": "Dashboard query to integrations fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "inventory_categories",
+      "error": "Dashboard query to inventory_categories fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "inventory_damages",
+      "error": "Dashboard query to inventory_damages fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ]
+    },
+    {
+      "table": "inventory_items",
+      "error": "Dashboard query to inventory_items fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ]
+    },
+    {
+      "table": "inventory_kit_assignments",
+      "error": "Dashboard query to inventory_kit_assignments fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "inventory_player_kits",
+      "error": "Dashboard query to inventory_player_kits fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\inventory\\insights.ts"
+      ]
+    },
+    {
+      "table": "inventory_purchase_order_lines",
+      "error": "Dashboard query to inventory_purchase_order_lines fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts"
+      ]
+    },
+    {
+      "table": "inventory_purchase_orders",
+      "error": "Dashboard query to inventory_purchase_orders fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "inventory_reports",
+      "error": "Dashboard query to inventory_reports fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "inventory_returns",
+      "error": "Dashboard query to inventory_returns fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "inventory_stocktake_lines",
+      "error": "Dashboard query to inventory_stocktake_lines fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts"
+      ]
+    },
+    {
+      "table": "inventory_stocktakes",
+      "error": "Dashboard query to inventory_stocktakes fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "inventory_suppliers",
+      "error": "Dashboard query to inventory_suppliers fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "inventory_transactions",
+      "error": "Dashboard query to inventory_transactions fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\inventory\\actions.ts",
+        "src\\lib\\auth\\session.ts"
+      ]
+    },
+    {
+      "table": "opponent_analysis",
+      "error": "Dashboard query to opponent_analysis fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_assessments",
+      "error": "Dashboard query to player_assessments fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_development",
+      "error": "Dashboard query to player_development fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_development_history",
+      "error": "Dashboard query to player_development_history fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_goals",
+      "error": "Dashboard query to player_goals fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "player_team_transitions",
+      "error": "Dashboard query to player_team_transitions fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "scouting_clubs",
+      "error": "Dashboard query to scouting_clubs fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "scouting_players",
+      "error": "Dashboard query to scouting_players fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "scouting_reports",
+      "error": "Dashboard query to scouting_reports fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\academy\\actions.ts",
+        "src\\lib\\academy\\insights.ts",
+        "src\\lib\\academy\\loaders.ts"
+      ]
+    },
+    {
+      "table": "sync_conflicts",
+      "error": "Dashboard query to sync_conflicts fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\features\\integrations\\actions.ts",
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "sync_jobs",
+      "error": "Dashboard query to sync_jobs fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    },
+    {
+      "table": "sync_logs",
+      "error": "Dashboard query to sync_logs fails with \"relation does not exist\" on prod",
+      "files": [
+        "src\\lib\\auth\\session.ts",
+        "src\\lib\\integrations\\insights.ts",
+        "src\\lib\\integrations\\sync-engine.ts"
+      ]
+    }
+  ]
+}

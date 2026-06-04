@@ -1,0 +1,113 @@
+{
+  "generatedAt": "2026-06-04T08:22:32.712Z",
+  "sprint": "17.6",
+  "environment": {
+    "supabaseUrl": "pwkqnwqvrdiaycveacxa",
+    "siteUrl": "http://localhost:3000",
+    "vercelRegion": "fra1",
+    "cron": [
+      {
+        "path": "/api/cron/league-sync",
+        "schedule": "0 6 * * * UTC"
+      }
+    ]
+  },
+  "counts": {
+    "tables": 148,
+    "enums": 129,
+    "functions": 213,
+    "rpc": 19,
+    "policies": 339,
+    "triggers": 220,
+    "buckets": 2,
+    "storageObjects": 0,
+    "authUsers": 7,
+    "clubs": 3,
+    "schemaMigrations": 5
+  },
+  "schemaMigrations": [
+    {
+      "version": "20260531120000",
+      "name": "legacy_applied_manual_pre_baseline"
+    },
+    {
+      "version": "20260703120000",
+      "name": null
+    },
+    {
+      "version": "20260703140000",
+      "name": null
+    },
+    {
+      "version": "20260704000000",
+      "name": "fc_os_baseline_173"
+    },
+    {
+      "version": "20260704100000",
+      "name": "fc_os_prod_parity_patch_174"
+    }
+  ],
+  "clubs": [
+    {
+      "id": "1a9885d9-81e0-4197-bcf5-da94b83a569d",
+      "slug": "pilot-club-test",
+      "public_name": "Pilot Club Test",
+      "official_name": "Pilot Club Test"
+    },
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "slug": "piorun-wawrzenczyce",
+      "public_name": "Piorun Wawrzeńczyce",
+      "official_name": "GLKS Mietków"
+    },
+    {
+      "id": "0ab2dfb9-7f37-47a7-8f2c-42d5d7e9d6eb",
+      "slug": "release-184a-mpz313we",
+      "public_name": "Release 184a Test",
+      "official_name": "Release 184a Test"
+    }
+  ],
+  "buckets": [
+    {
+      "id": "club-assets",
+      "name": "club-assets",
+      "public": false,
+      "file_size_limit": "10485760"
+    },
+    {
+      "id": "club-videos",
+      "name": "club-videos",
+      "public": false,
+      "file_size_limit": "524288000"
+    }
+  ],
+  "storageByBucket": [],
+  "extensions": [
+    "pg_stat_statements",
+    "pgcrypto",
+    "plpgsql",
+    "supabase_vault",
+    "uuid-ossp"
+  ],
+  "rpc": [
+    "get_ai_manager_snapshot",
+    "get_app_layout_context",
+    "get_document_validity_status",
+    "get_finance_dashboard_page",
+    "get_finance_dashboard_totals",
+    "get_home_dashboard_stats",
+    "get_inventory_dashboard_stats",
+    "get_inventory_report_summary",
+    "get_public_club_stats",
+    "get_public_home_bundle",
+    "get_public_players",
+    "get_public_sponsors",
+    "get_public_team_stats",
+    "get_public_teams",
+    "get_public_website_home",
+    "get_public_website_sitemap",
+    "get_pwa_offline_context",
+    "get_sponsor_dashboard_stats",
+    "get_sponsor_portal_schedule"
+  ]
+}

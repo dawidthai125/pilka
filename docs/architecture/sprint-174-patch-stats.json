@@ -1,0 +1,9 @@
+{
+  "bytes": 154499,
+  "tables": 45,
+  "enums": 36,
+  "functions": 65,
+  "policies": 112,
+  "stripped": 14,
+  "piorunRefs": 0
+}

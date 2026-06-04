@@ -1,3 +1,4 @@
+import type { PlatformAlert } from "@/lib/platform/platform-alerts";
 import type { SyncHistoryRow } from "@/lib/platform/sync-history";
 
 export type SyncHistoryQuickFilter =
@@ -96,6 +97,26 @@ export function filterSyncHistoryRows(
     if (!matchesQuick(row, filters.quick, criticalSet)) return false;
     return true;
   });
+}
+
+export function filtersFromAlert(alert: PlatformAlert): SyncHistoryFilters {
+  if (alert.type === "cron_fail") {
+    return applyQuickFilter("failed", []);
+  }
+  if (alert.clubId && alert.sourceId) {
+    return filtersFromLeague(alert.clubId, alert.sourceId, alert.provider);
+  }
+  if (alert.clubId) {
+    const base = filtersFromClub(alert.clubId);
+    if (alert.provider) {
+      return { ...base, provider: alert.provider };
+    }
+    return base;
+  }
+  if (alert.provider) {
+    return { ...EMPTY_SYNC_HISTORY_FILTERS, provider: alert.provider };
+  }
+  return applyQuickFilter("failed", []);
 }
 
 export function syncHistoryFilterSummary(

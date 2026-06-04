@@ -1,0 +1,991 @@
+﻿ÔŚç injected env (7) from .env.local // tip: Ôîü auth for agents [www.vestauth.com]
+{
+  "dbConnected": true,
+  "repoCount": 105,
+  "prodTrackedCount": 2,
+  "prodOnlyVersions": [],
+  "untrackedButInRepo": 103,
+  "untrackedSample": [
+    "20260531120000",
+    "20260531130000",
+    "20260531140000",
+    "20260531150000",
+    "20260531160000",
+    "20260531161000",
+    "20260531162000",
+    "20260531163000",
+    "20260531170000",
+    "20260531171000"
+  ],
+  "prodTableCount": 104,
+  "prodPolicyCount": 244,
+  "keyRpcPresent": {
+    "get_public_home_bundle": true,
+    "get_public_website_home": true,
+    "get_pwa_offline_context": true
+  },
+  "categoryCounts": {
+    "A-Schema": 49,
+    "B-RLS": 43,
+    "C-RPC": 60,
+    "D-Seed": 25,
+    "F-Fix": 38,
+    "E-Club": 8
+  },
+  "forensicsSummary": {
+    "pass": 2,
+    "warning": 103,
+    "fail": 0
+  },
+  "prodTrackedVersions": [
+    "20260703120000",
+    "20260703140000"
+  ],
+  "forensics": [
+    {
+      "migration": "20260531120000_foundation.sql",
+      "version": "20260531120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531130000_seed_first_club.sql",
+      "version": "20260531130000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531140000_security_hardening.sql",
+      "version": "20260531140000",
+      "category": "F-Fix+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531150000_club_name_model.sql",
+      "version": "20260531150000",
+      "category": "A-Schema",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531160000_players_module.sql",
+      "version": "20260531160000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531161000_players_storage.sql",
+      "version": "20260531161000",
+      "category": "B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531162000_seed_players.sql",
+      "version": "20260531162000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531163000_players_audit_hardening.sql",
+      "version": "20260531163000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531170000_trainings_module.sql",
+      "version": "20260531170000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531171000_seed_trainings.sql",
+      "version": "20260531171000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531172000_trainings_audit_hardening.sql",
+      "version": "20260531172000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531180000_matches_module.sql",
+      "version": "20260531180000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531181000_seed_matches.sql",
+      "version": "20260531181000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531182000_matches_audit_hardening.sql",
+      "version": "20260531182000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531183000_matches_audit_hardening.sql",
+      "version": "20260531183000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531190000_ai_module.sql",
+      "version": "20260531190000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531191000_seed_ai.sql",
+      "version": "20260531191000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531192000_ai_audit_hardening.sql",
+      "version": "20260531192000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531200000_sponsors_module.sql",
+      "version": "20260531200000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531201000_seed_sponsors.sql",
+      "version": "20260531201000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260531202000_sponsors_audit_hardening.sql",
+      "version": "20260531202000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260601100000_finance_module.sql",
+      "version": "20260601100000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260601101000_seed_finance.sql",
+      "version": "20260601101000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260601102000_finance_audit_hardening.sql",
+      "version": "20260601102000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260602100000_inventory_module.sql",
+      "version": "20260602100000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260602101000_seed_inventory.sql",
+      "version": "20260602101000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260602102000_inventory_audit_hardening.sql",
+      "version": "20260602102000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260602103000_inventory_audit_hardening.sql",
+      "version": "20260602103000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260602120000_league_mirror_live_source.sql",
+      "version": "20260602120000",
+      "category": "A-Schema",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260602140000_public_players_league_stats.sql",
+      "version": "20260602140000",
+      "category": "C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260603100000_website_module.sql",
+      "version": "20260603100000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260603101000_seed_website.sql",
+      "version": "20260603101000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260603102000_website_audit_hardening.sql",
+      "version": "20260603102000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260603103000_public_website_v2.sql",
+      "version": "20260603103000",
+      "category": "C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260604100000_integrations_module.sql",
+      "version": "20260604100000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260604101000_seed_integrations.sql",
+      "version": "20260604101000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260604102000_integrations_audit_hardening.sql",
+      "version": "20260604102000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605100000_academy_module.sql",
+      "version": "20260605100000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605101000_seed_academy.sql",
+      "version": "20260605101000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605102000_academy_audit_hardening.sql",
+      "version": "20260605102000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605103000_academy_audit_fixes.sql",
+      "version": "20260605103000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605110000_stage115_security_performance.sql",
+      "version": "20260605110000",
+      "category": "F-Fix+A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605111000_website_media_system.sql",
+      "version": "20260605111000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605111100_seed_website_demo_media.sql",
+      "version": "20260605111100",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605111200_website_40_copy.sql",
+      "version": "20260605111200",
+      "category": "A-Schema",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260605111300_piorun_facebook_content.sql",
+      "version": "20260605111300",
+      "category": "E-Club+A-Schema",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260606120000_stage116_production_hardening.sql",
+      "version": "20260606120000",
+      "category": "F-Fix+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260606140000_stage116_p2_security_completion.sql",
+      "version": "20260606140000",
+      "category": "F-Fix+B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260610120000_stage12_pwa.sql",
+      "version": "20260610120000",
+      "category": "A-Schema+B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260615120000_stage13_ai_manager.sql",
+      "version": "20260615120000",
+      "category": "A-Schema+B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260615121000_seed_stage13_ai_manager.sql",
+      "version": "20260615121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260615130000_stage13_audit_rls_hardening.sql",
+      "version": "20260615130000",
+      "category": "F-Fix+B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260615140000_stage135_performance.sql",
+      "version": "20260615140000",
+      "category": "A-Schema",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260615150000_stage137_performance.sql",
+      "version": "20260615150000",
+      "category": "C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260615160000_stage1310_pwa_offline_context.sql",
+      "version": "20260615160000",
+      "category": "C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260616120000_stage14_video_module.sql",
+      "version": "20260616120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260616121000_seed_stage14_video.sql",
+      "version": "20260616121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260616122000_stage14_audit_hardening.sql",
+      "version": "20260616122000",
+      "category": "F-Fix+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260617120000_stage15a_content_hub.sql",
+      "version": "20260617120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260617121000_seed_stage15a_content.sql",
+      "version": "20260617121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260617121500_stage15a_seed_trigger_fix.sql",
+      "version": "20260617121500",
+      "category": "D-Seed+F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260617123000_stage15a_audit_hardening.sql",
+      "version": "20260617123000",
+      "category": "F-Fix+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260618120000_stage15b_league_hub.sql",
+      "version": "20260618120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260618121000_seed_stage15b_league.sql",
+      "version": "20260618121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260618123000_stage15b_audit_hardening.sql",
+      "version": "20260618123000",
+      "category": "F-Fix+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260618124000_stage15b_trigger_fix.sql",
+      "version": "20260618124000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260618125000_league_table_entries_cleanup.sql",
+      "version": "20260618125000",
+      "category": "F-Fix",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260619120000_stage156_communication_hub.sql",
+      "version": "20260619120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260619121000_seed_stage156_communication.sql",
+      "version": "20260619121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260619123000_stage156_audit_hardening.sql",
+      "version": "20260619123000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260619124000_stage156_security_hardening.sql",
+      "version": "20260619124000",
+      "category": "F-Fix+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260619125000_stage156_team_ids_fix.sql",
+      "version": "20260619125000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260620120000_stage157_attendance_availability.sql",
+      "version": "20260620120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260620121000_seed_stage157_attendance.sql",
+      "version": "20260620121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260620123000_stage157_audit_hardening.sql",
+      "version": "20260620123000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260621120000_stage158_club_crm.sql",
+      "version": "20260621120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260621121000_seed_stage158_club_crm.sql",
+      "version": "20260621121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260621123000_stage158_audit_hardening.sql",
+      "version": "20260621123000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260621124000_stage158_treasurer_fix.sql",
+      "version": "20260621124000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260621125000_seed_stage158_parent_portal.sql",
+      "version": "20260621125000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260621126000_stage158_coach_events_scope.sql",
+      "version": "20260621126000",
+      "category": "B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260622120000_stage159_equipment_assets.sql",
+      "version": "20260622120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260622121000_seed_stage159_equipment.sql",
+      "version": "20260622121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260622123000_stage159_audit_hardening.sql",
+      "version": "20260622123000",
+      "category": "F-Fix+A-Schema+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260622124000_stage159_rls_fix.sql",
+      "version": "20260622124000",
+      "category": "F-Fix+A-Schema+B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260622125000_seed_stage159_player_link.sql",
+      "version": "20260622125000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260622126000_seed_stage159_parent_guardian.sql",
+      "version": "20260622126000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260622127000_stage159_ensure_player_guardians.sql",
+      "version": "20260622127000",
+      "category": "F-Fix+A-Schema+B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260623120000_stage1510_injury_medical.sql",
+      "version": "20260623120000",
+      "category": "A-Schema+B-RLS+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260623121000_seed_stage1510_injury.sql",
+      "version": "20260623121000",
+      "category": "D-Seed",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260623123000_stage1510_audit_hardening.sql",
+      "version": "20260623123000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260623124000_stage1510_sync_fix.sql",
+      "version": "20260623124000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260623125000_stage1510_parent_guardian.sql",
+      "version": "20260623125000",
+      "category": "C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631120000_piorun_p1_real_content.sql",
+      "version": "20260631120000",
+      "category": "E-Club+A-Schema",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631140000_piorun_media_quality_hotfix.sql",
+      "version": "20260631140000",
+      "category": "E-Club",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631150000_piorun_contact_mockup.sql",
+      "version": "20260631150000",
+      "category": "E-Club",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631160000_piorun_logo_cover_mockup.sql",
+      "version": "20260631160000",
+      "category": "E-Club",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631161000_piorun_social_public_read.sql",
+      "version": "20260631161000",
+      "category": "E-Club+B-RLS",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631170000_piorun_mockup_visual_assets.sql",
+      "version": "20260631170000",
+      "category": "E-Club",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631180000_piorun_logo_crest_upgrade.sql",
+      "version": "20260631180000",
+      "category": "E-Club",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631190000_public_website_last_result_date_fix.sql",
+      "version": "20260631190000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260631200000_public_players_stats_fix.sql",
+      "version": "20260631200000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    },
+    {
+      "migration": "20260703120000_league_player_matching_161.sql",
+      "version": "20260703120000",
+      "category": "A-Schema",
+      "repo": true,
+      "prod": "tracked",
+      "tracked": true,
+      "status": "PASS"
+    },
+    {
+      "migration": "20260703140000_public_home_bundle_162.sql",
+      "version": "20260703140000",
+      "category": "A-Schema+C-RPC",
+      "repo": true,
+      "prod": "tracked",
+      "tracked": true,
+      "status": "PASS"
+    },
+    {
+      "migration": "20260703141000_public_home_bundle_academy_fix.sql",
+      "version": "20260703141000",
+      "category": "F-Fix+C-RPC",
+      "repo": true,
+      "prod": "schema-present",
+      "tracked": false,
+      "status": "WARNING"
+    }
+  ]
+}

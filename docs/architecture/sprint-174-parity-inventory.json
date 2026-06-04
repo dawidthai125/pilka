@@ -1,0 +1,84 @@
+{
+  "generatedAt": "2026-06-03T16:19:09.802Z",
+  "counts": {
+    "baselineTables": 148,
+    "prodTables": 148,
+    "repoTables": 148,
+    "missingTables": 0,
+    "missingEnums": 0,
+    "missingFunctions": 2,
+    "missingRpc": 0,
+    "missingPolicies": 8,
+    "missingTriggers": 1,
+    "missingBuckets": 0,
+    "baselineFunctions": 213,
+    "prodFunctions": 211,
+    "baselineRpc": 19,
+    "prodRpc": 19,
+    "prodPolicies": 339,
+    "baselinePolicyStatements": 352
+  },
+  "verdict": {
+    "tables": "PASS",
+    "enums": "PASS",
+    "functions": "WARNING",
+    "rpc": "PASS",
+    "policies": "WARNING",
+    "triggers": "WARNING",
+    "buckets": "PASS",
+    "repoVsBaseline": "PASS"
+  },
+  "missing": {
+    "tables": [],
+    "enums": [],
+    "functions": [
+      "actor_can_manage_academy_player",
+      "user_has_club_permission"
+    ],
+    "rpc": [],
+    "policies": [
+      {
+        "name": "players_public_select",
+        "table": "players"
+      },
+      {
+        "name": "player_stats_public_select",
+        "table": "player_stats"
+      },
+      {
+        "name": "sponsors_public_select",
+        "table": "sponsors"
+      },
+      {
+        "name": "player_development_history_manage",
+        "table": "player_development_history"
+      },
+      {
+        "name": "content_channel_variants_manage",
+        "table": "content_channel_variants"
+      },
+      {
+        "name": "league_conflicts_manage",
+        "table": "league_conflicts"
+      },
+      {
+        "name": "coach_message_responses_upsert",
+        "table": "coach_message_responses"
+      },
+      {
+        "name": "crm_event_attendees_manage",
+        "table": "crm_events"
+      }
+    ],
+    "triggers": [
+      {
+        "name": "on_auth_user_created",
+        "table": "handle_new_user"
+      }
+    ],
+    "buckets": []
+  },
+  "byModule": {},
+  "prodOnlyTables": [],
+  "repoBaselineTableDiff": []
+}

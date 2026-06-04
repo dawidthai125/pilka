@@ -8,7 +8,7 @@ import type { PlatformMonitoringBundle } from "@/lib/platform/health";
 import { cn } from "@/lib/utils";
 
 export function SyncMonitoringView({ data }: { data: PlatformMonitoringBundle }) {
-  const { syncMonitoring, clubHealth, leagueHealth, syncHistory } = data;
+  const { syncMonitoring, alerts, clubHealth, leagueHealth, syncHistory } = data;
   const { cron } = syncMonitoring;
 
   return (
@@ -57,6 +57,7 @@ export function SyncMonitoringView({ data }: { data: PlatformMonitoringBundle })
       </Card>
 
       <MonitoringInteractive
+        alerts={alerts}
         clubHealth={clubHealth}
         leagueHealth={leagueHealth}
         syncHistory={syncHistory}

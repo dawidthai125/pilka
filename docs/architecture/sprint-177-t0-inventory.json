@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-06-03T16:18:57.058Z",
+  "counts": {
+    "tables": 104,
+    "enums": 93,
+    "functions": 158,
+    "rpc": 16,
+    "policies": 244,
+    "triggers": 156,
+    "buckets": 2
+  }
+}

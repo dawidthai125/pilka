@@ -1,0 +1,28 @@
+[
+  {
+    "id": "83d76e54-b079-44b7-a71a-16fa0633c18a",
+    "firstname": "Aleksander",
+    "lastname": "Bielaszka",
+    "isKeeper": false
+  },
+  {
+    "id": "dada3214-5c58-48b5-a0ff-a86925d677c2",
+    "firstname": "Dominik",
+    "lastname": "Błachowicz",
+    "isKeeper": false
+  },
+  {
+    "id": "f6e40e15-bdcc-460e-b455-5a3bd4cd21d4",
+    "firstname": "Marsel",
+    "lastname": "Grzegorek",
+    "isKeeper": false
+  },
+  {
+    "id": "052f228a-1a2b-42ab-9a71-cf051916a3a6",
+    "firstname": "Szymon",
+    "lastname": "Konieczny",
+    "number": 20,
+    "isKeeper": false,
+    "type": "Substitute"
+  }
+]
