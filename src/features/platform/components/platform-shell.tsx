@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LayoutDashboard, Plus, Shield } from "lucide-react";
+import { Activity, Building2, ClipboardList, LayoutDashboard, Plus, Shield } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/platform", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/platform/monitoring", label: "Monitoring", icon: Activity, exact: false },
+  { href: "/platform/audit", label: "Audit Center", icon: ClipboardList, exact: true },
   { href: "/platform/clubs", label: "Kluby", icon: Building2, exact: false },
   { href: "/platform/clubs/new", label: "Nowy klub", icon: Plus, exact: true },
 ];

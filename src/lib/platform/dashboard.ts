@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeClubOnboardingStatus } from "@/lib/platform/onboarding-status";
 import type { PlatformAuditEntry } from "@/lib/platform/audit";
+import { computePlatformHealthSummary, type PlatformHealthSummary } from "@/lib/platform/health";
+import { PLATFORM_AUDIT_ACTION_LABELS } from "@/lib/platform/platform-audit-actions";
 
 export type PlatformDashboardKpi = {
   totalClubs: number;
@@ -39,10 +41,13 @@ export type PlatformRecentActionRow = {
 
 export type PlatformDashboardData = {
   kpi: PlatformDashboardKpi;
+  platformHealth: PlatformHealthSummary;
   onboardingClubs: PlatformOnboardingRow[];
   recentSyncs: PlatformRecentSyncRow[];
   recentActions: PlatformRecentActionRow[];
 };
+
+export { PLATFORM_AUDIT_ACTION_LABELS };
 
 function parseAuditEntries(
   clubSlug: string,
@@ -72,7 +77,7 @@ function parseAuditEntries(
 export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
   const admin = createAdminClient();
 
-  const [clubsRes, leaguesRes, syncsRes] = await Promise.all([
+  const [clubsRes, leaguesRes, syncsRes, platformHealth] = await Promise.all([
     admin.from("clubs").select("id, slug, public_name, status, settings, created_at").order("created_at", {
       ascending: false,
     }),
@@ -82,6 +87,7 @@ export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
       .select("id, club_id, status, records_processed, records_failed, error_message, created_at")
       .order("created_at", { ascending: false })
       .limit(10),
+    computePlatformHealthSummary(),
   ]);
 
   if (clubsRes.error) throw new Error(clubsRes.error.message);
@@ -130,6 +136,7 @@ export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
       onboardingClubs: onboardingClubsRaw.length,
       activeLeagues: leaguesRes.count ?? 0,
     },
+    platformHealth,
     onboardingClubs,
     recentSyncs,
     recentActions: allActions.slice(0, 15),
