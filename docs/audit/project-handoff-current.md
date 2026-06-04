@@ -2,8 +2,9 @@
 
 **Klub referencyjny:** Piorun Wawrzeńczyce / GLKS Mietków  
 **Repozytorium:** `dawidthai125/pilka`  
-**Dokument:** stan na 2026-06-03 · dla nowego agenta  
-**Produkcja:** https://pilka-mu.vercel.app
+**Dokument:** stan na 2026-06-04 · dla nowego agenta  
+**Produkcja:** https://pilka-mu.vercel.app  
+**Supabase project:** `pwkqnwqvrdiaycveacxa`
 
 ---
 
@@ -11,16 +12,24 @@
 
 ### Obecny etap
 
-- **ETAP 15.x** — platforma modułowa (League Hub, Content, CRM, PWA, itd.) — **wdrożona i używana**.
-- **Strona publiczna** — **Public Website 4.0** + późniejsze **ujednolicenie dark matchday** na wszystkich podstronach publicznych (`PublicLandingHome`, `/druzyna`, `/tabela`, `/mecze`, …).
-- **Dane ligowe** — **mirror live sync** (90minut + regionalnyfutbol + regiowyniki kadra); brak oficjalnego API PZPN/DZPN w produkcji.
-- **Sprint 16.0 P0** — **wdrożony na produkcję** (wydajność public + stabilizacja ingestu ligowego).
+- **ETAP 15.x** — platforma modułowa (League Hub, Content, CRM, PWA) — **wdrożona**.
+- **Strona publiczna** — Public Website 4.0 + dark matchday; **multi-club** `/{slug}/*` (Sprint 18.1).
+- **Platform Admin** — Create Club (18.2), League Setup (18.3), Dashboard + Club Activation (18.4a) — **kod gotowy lokalnie**, migracja 18.4a-db **na prod**.
+- **Dane ligowe** — mirror live sync (90minut + RF + regiowyniki kadra); mPZPN tylko ręczny import.
 
-### Ostatni wdrożony sprint
+### Ostatni commit lokalny (niekoniecznie na Vercel)
 
-**Performance & League Stabilization 16.0 — P0**  
-Commit: `aee9d4f4cb53e647d0c85dfc90780ee212a35cbd`  
-Deployment: `dpl_EYRCaYJQBpHMYtvyV8vHbGsQcaqv` · werdykt deploy: **GO**
+**Sprint 18.4a + 18.4a-db — Platform Dashboard & Club Activation**  
+Commit: `77a7257` · branch `main` **ahead 1** względem `origin/main`  
+**Push / deploy Vercel:** oczekuje na polecenie użytkownika.
+
+### Ostatni wdrożony sprint na Vercel (UI)
+
+Sprawdź Vercel Dashboard — **przed pushem** produkcja może być starsza niż `77a7257` (brak dashboardu `/platform` i karty aktywacji w UI).
+
+### Wdrożone wcześniej (referencja)
+
+**Performance & League Stabilization 16.0 — P0** — commit `aee9d4f` (middleware bypass, ISR 300, ingest GLKS-only).
 
 ### Status produkcji
 
@@ -102,12 +111,54 @@ Metryki po P0 (lokalnie): sync **~79 s → ~28 s**; warm TTFB `/` prod **~0,95 s
 
 | Pole | Wartość |
 |------|---------|
-| **Commit** | `aee9d4f4cb53e647d0c85dfc90780ee212a35cbd` |
-| **Deployment ID** | `dpl_EYRCaYJQBpHMYtvyV8vHbGsQcaqv` |
+| **Commit lokalny (18.4a)** | `77a7257` — **nie na remote** (do `git push`) |
+| **Commit remote (sprawdź)** | `git ls-remote origin main` lub GitHub |
 | **URL** | https://pilka-mu.vercel.app |
 | **Region Vercel** | `fra1` |
-| **Status** | ● Ready (production) |
-| **CI (ostatni push)** | Run `26874634689` — **success** (~1m57s) |
+| **Public multi-club** | ✅ `/` directory, `/piorun-wawrzenczyce`, `/pilot-club-test` |
+| **Platform UI 18.4a** | ⚠️ Po push+deploy — dashboard, activation card |
+| **Migracja 18.4a-db** | ✅ `20260604140000_hotfix_184adb_platform_club_writes.sql` na prod |
+
+### Kluby w DB (2026-06-04)
+
+| slug | status | Uwagi |
+|------|--------|-------|
+| `piorun-wawrzenczyce` | active | Klub produkcyjny |
+| `pilot-club-test` | active | Smoke 18.4a (audit kompletny) |
+| `release-184a-*` | onboarding | Śmieciowy klub ze smoke — archiwizuj |
+
+---
+
+## 3b. SPRINT 18.x — PLATFORM & MULTI-CLUB (handoff)
+
+| Sprint | Status | Dokumentacja |
+|--------|--------|--------------|
+| **18.1** Multi-Club Routing | ✅ prod | `docs/architecture/sprint-181-final-report.md` |
+| **18.2** Create Club Wizard | ✅ kod | `docs/architecture/sprint-182-final-report.md` |
+| **18.3** League Setup Wizard | ✅ kod | `docs/architecture/sprint-183-final-report.md` |
+| **18.3d** availability_reasons hotfix | ✅ prod DB | `supabase/migrations/20260604120000_hotfix_183d_*.sql` |
+| **18.4** Audyt operacyjny | 📋 tylko projekt | bez kodu |
+| **18.4a** Dashboard + Activation | ✅ lokalnie | `docs/architecture/sprint-184a-final-report.md` |
+| **18.4a-db** RPC club writes | ✅ prod DB | ta sama migracja co 18.4a-db w raporcie |
+
+**Agent — czytaj obowiązkowo:** [`docs/ai/10-platform-admin-multi-club.md`](../ai/10-platform-admin-multi-club.md)
+
+### Kluczowe pliki 18.4a
+
+| Obszar | Plik |
+|--------|------|
+| Aktywacja | `src/lib/platform/club-activation.ts` |
+| Dashboard | `src/lib/platform/dashboard.ts`, `platform-dashboard.tsx` |
+| RPC writes | `src/lib/platform/club-db-writes.ts` |
+| Actions | `src/features/platform/actions.ts` |
+| Migracja | `supabase/migrations/20260604140000_hotfix_184adb_platform_club_writes.sql` |
+
+### Następny krok operacyjny
+
+1. `git push origin main` (jeśli użytkownik prosi)
+2. Vercel Production deploy → Ready na `77a7257`
+3. Smoke zalogowany: `/platform`, `/platform/clubs/[id]`, aktywacja + League Setup UI
+4. Cleanup klubów testowych `release-184a-*`
 
 ---
 
@@ -254,6 +305,12 @@ Dokumentacja sync: `docs/modules/stage-15b-live-sync.md`, `docs/modules/stage-15
 
 ## 7. OPEN TASKS
 
+### P0 (Platform — deploy)
+
+1. **Push + deploy** commit `77a7257` (18.4a UI na Vercel).
+2. **Post-deploy smoke** platform admin (sesja + `PLATFORM_ADMIN_EMAILS`).
+3. **Archiwizacja** klubów `release-184a-*` po smoke.
+
 ### P1 (następne po P0 — wydajność + dane)
 
 1. **`get_public_home_bundle()`** — jeden RPC zamiast 6–7 na homepage (projekt w audycie 16.0, bez implementacji).
@@ -324,6 +381,15 @@ Kolejny agent **nie powinien ponownie proponować** (już zrobione lub odrzucone
 - [ ] Przebudowa dashboardu lub nowe moduły „na szybko”
 - [ ] Powrót do layoutu **PublicFacebookHome** na `/`
 - [ ] Osobna sekcja „Klub w liczbach” na dole homepage
+- [ ] Sprint **18.1** — multi-club routing, directory `/`, middleware
+- [ ] Sprint **18.2** — Create Club wizard, `createClub()`
+- [ ] Sprint **18.3** — League Setup wizard
+- [ ] Hotfix **18.3d** — `availability_reasons` full unique index
+- [ ] Sprint **18.4a** — platform dashboard, club activation gates, activation card
+- [ ] Hotfix **18.4a-db** — RPC `platform_set_club_status` / `platform_append_club_audit`
+- [ ] Audyt **18.4** — mapa operatora (tylko dokumentacja, bez implementacji)
+- [ ] Ponowne „dodaj aktywację klubu” — jest w 18.4a
+- [ ] Surowy `UPDATE clubs SET status` z panelu — używaj RPC (`club-db-writes.ts`)
 
 ---
 
@@ -343,6 +409,9 @@ Kolejny agent **nie powinien ponownie proponować** (już zrobione lub odrzucone
 | **Brak auto mPZPN w cron** | Token wygasa; ręczny import / JSON |
 | **Treść z Facebooka jako źródło prawdy wizualnego** | Nie stock / nie SVG demo w docelowym stanie |
 | **Bez ETAPU 15.11** | Zamrożone — tylko stabilizacja i treść |
+| **Platform club writes przez RPC** | Trigger `protect_club_columns` — bypass tylko `fcos.platform_club_write` w RPC |
+| **`clubs.status = active` wymagany na public** | Onboarding checklist ≠ aktywacja publiczna |
+| **Create Club / League Setup bez przebudowy** | 18.4a tylko dashboard + activation; wizards z 18.2/18.3 |
 
 ---
 
@@ -352,7 +421,14 @@ Instrukcja dla **nowego agenta** po otwarciu repozytorium:
 
 ### Krok 0 — Baza wiedzy (obowiązkowe)
 
-Przeczytaj **[`docs/ai/README.md`](../ai/README.md)** — pełna architektura, struktura strony, moduły, liga, DB, zasady. Ten handoff to **stan na dziś**; `docs/ai/` to **jak działa cały system**.
+Przeczytaj **[`docs/ai/README.md`](../ai/README.md)** — pełna architektura, struktura strony, moduły, liga, DB, zasady.
+
+Jeśli pracujesz nad **Platform Admin / multi-club / onboarding klubu**, przeczytaj też:
+
+- **[`docs/ai/10-platform-admin-multi-club.md`](../ai/10-platform-admin-multi-club.md)**
+- **[`docs/architecture/sprint-184a-final-report.md`](../architecture/sprint-184a-final-report.md)**
+
+Ten handoff to **stan na dziś**; `docs/ai/` to **jak działa cały system**.
 
 ### Krok 1 — Kontekst (5 min)
 
@@ -388,8 +464,10 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 
 ### Krok 5 — Zaplanuj sprint
 
-- **Rekomendacja produktowa:** **League Player Matching 16.1** (sekcja 8).
-- **Rekomendacja techniczna równoległa:** commit **Regiowyniki goals** + **Etap B** (`get_public_home_bundle`) — patrz P1.
+- **Jeśli 18.4a nie na prod:** push + deploy + smoke platform (P0 w sekcji 7).
+- **Rekomendacja produktowa (liga):** **League Player Matching 16.1** (sekcja 8).
+- **Rekomendacja techniczna:** Regiowyniki goals + `get_public_home_bundle` — patrz P1.
+- **Po deploy 18.4a:** Sprint **18.4b** monitoring / Sentry (z audytu 18.4).
 
 ### Krok 6 — Zasady pracy z użytkownikiem
 
@@ -409,6 +487,23 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 | Homepage | `src/app/(public)/page.tsx`, `src/features/website/components/public-landing-home.tsx` |
 | Middleware | `src/middleware.ts` |
 | Konfig klubu | `src/config/site.ts`, `scripts/lib/league-live-sources.mjs` → `LEAGUE_CONFIG` |
+| Platform admin | `src/lib/platform/`, `src/features/platform/`, `src/app/(platform)/` |
+| Multi-club public | `src/lib/tenant/public-club.ts`, `src/middleware.ts` |
+
+---
+
+## 11. INDEKS DOKUMENTACJI DLA AGENTA (2026-06-04)
+
+| Temat | Plik |
+|-------|------|
+| **START — stan na dziś** | Ten plik |
+| Architektura produktu | `docs/ai/README.md` + `01`–`09` |
+| Platform Admin 18.x | `docs/ai/10-platform-admin-multi-club.md` |
+| Raport 18.4a | `docs/architecture/sprint-184a-final-report.md` |
+| Raporty 18.1–18.3 | `docs/architecture/sprint-181` … `183-final-report.md` |
+| Liga / sync | `docs/ai/07-league-hub-sync.md`, `docs/modules/stage-15b-live-sync.md` |
+| Zasady agenta | `docs/ai/09-agent-rules.md`, `AGENTS.md` |
+| Transkrypt sesji 18.4a | `.cursor/.../agent-transcripts/5d851b90-7784-4802-8f9b-c5f72e0a4bcb.jsonl` |
 
 ---
 

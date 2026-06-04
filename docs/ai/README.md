@@ -16,6 +16,7 @@ Ten katalog jest **źródłem prawdy dla nowych agentów** (Cursor, Claude, itd.
 | 7 | [07-league-hub-sync.md](./07-league-hub-sync.md) | Liga, sync, cron, ograniczenia |
 | 8 | [08-scripts-env-deploy.md](./08-scripts-env-deploy.md) | Skrypty, env, CI, Vercel |
 | 9 | [09-agent-rules.md](./09-agent-rules.md) | Zasady pracy — czego nie robić |
+| 10 | [10-platform-admin-multi-club.md](./10-platform-admin-multi-club.md) | **Platform Admin**, onboarding, aktywacja klubu (Sprint 18.x) |
 
 ## Szybkie fakty
 
@@ -39,4 +40,5 @@ Ten katalog jest **źródłem prawdy dla nowych agentów** (Cursor, Claude, itd.
 Po każdym większym sprincie zaktualizuj:
 
 1. `docs/audit/project-handoff-current.md`
-2. Odpowiedni plik w `docs/ai/` (np. `07-league-hub-sync.md` po zmianach ligi)
+2. `docs/architecture/sprint-*-final-report.md` (np. `sprint-184a-final-report.md`)
+3. Odpowiedni plik w `docs/ai/` (np. `10-platform-admin-multi-club.md`, `07-league-hub-sync.md`)
