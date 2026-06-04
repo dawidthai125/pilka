@@ -11,6 +11,7 @@ export const SYNC_HISTORY_LIMIT = 100;
 export type SyncHistoryRow = {
   jobId: string;
   clubId: string;
+  sourceId: string | null;
   clubSlug: string;
   clubName: string;
   leagueName: string;
@@ -134,6 +135,7 @@ function mapJobRow(row: Record<string, unknown>): SyncHistoryRow {
   return {
     jobId: String(row.id),
     clubId: String(row.club_id),
+    sourceId: row.source_id != null ? String(row.source_id) : null,
     clubSlug: club?.slug ? String(club.slug) : "—",
     clubName: club?.public_name ? String(club.public_name) : "—",
     leagueName: resolveLeagueName(competition, source),
