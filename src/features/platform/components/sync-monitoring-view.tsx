@@ -6,12 +6,13 @@ import {
   SyncCategoryBadge,
 } from "@/features/platform/components/platform-status-badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SyncHistorySection } from "@/features/platform/components/sync-history-section";
 import type { PlatformMonitoringBundle } from "@/lib/platform/health";
 import { cn } from "@/lib/utils";
 
 export function SyncMonitoringView({ data }: { data: PlatformMonitoringBundle }) {
-  const { syncMonitoring, clubHealth, leagueHealth } = data;
-  const { syncs, cron } = syncMonitoring;
+  const { syncMonitoring, clubHealth, leagueHealth, syncHistory } = data;
+  const { cron } = syncMonitoring;
 
   return (
     <div className="space-y-8">
@@ -50,53 +51,6 @@ export function SyncMonitoringView({ data }: { data: PlatformMonitoringBundle })
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Ostatnie synchronizacje</h2>
-        {syncs.length === 0 ? (
-          <p className="text-sm text-white/50">Brak zadań synchronizacji.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-white/10">
-            <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="border-b border-white/10 bg-white/5 text-white/45">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Kategoria</th>
-                  <th className="px-4 py-3 font-medium">Klub</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Czas</th>
-                  <th className="px-4 py-3 font-medium">Rekordy</th>
-                  <th className="px-4 py-3 font-medium">Błąd</th>
-                  <th className="px-4 py-3 font-medium">Data</th>
-                </tr>
-              </thead>
-              <tbody>
-                {syncs.map((sync) => (
-                  <tr key={sync.jobId} className="border-b border-white/5 last:border-0">
-                    <td className="px-4 py-3">
-                      <SyncCategoryBadge category={sync.category} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link href={`/platform/clubs/${sync.clubId}/league`} className="font-medium hover:underline">
-                        {sync.clubName}
-                      </Link>
-                      <span className="ml-2 text-white/45">/{sync.clubSlug}</span>
-                    </td>
-                    <td className="px-4 py-3 uppercase text-white/70">{sync.status}</td>
-                    <td className="px-4 py-3 text-white/60">{sync.durationLabel}</td>
-                    <td className="px-4 py-3 text-white/70">
-                      {sync.recordsProcessed} OK · {sync.recordsFailed} bł.
-                    </td>
-                    <td className="max-w-[200px] truncate px-4 py-3 text-xs text-red-200/80" title={sync.errorMessage ?? undefined}>
-                      {sync.errorMessage ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-white/60">{formatPlatformDate(sync.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      <section className="space-y-3">
         <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Club Health</h2>
         <ClubHealthTable rows={clubHealth} />
       </section>
@@ -105,6 +59,8 @@ export function SyncMonitoringView({ data }: { data: PlatformMonitoringBundle })
         <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">League Health</h2>
         <LeagueHealthTable rows={leagueHealth} />
       </section>
+
+      <SyncHistorySection rows={syncHistory} />
     </div>
   );
 }
