@@ -1,10 +1,15 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { computeClubOnboardingStatus } from "@/lib/platform/onboarding-status";
-import { getNextCronRun, hoursSince } from "@/lib/platform/cron-schedule";
-import { classifySyncJob } from "@/lib/platform/sync-category";
+import { getNextCronRun } from "@/lib/platform/cron-schedule";
+import type { ClubOnboardingStatus, OnboardingStepStatus } from "@/lib/platform/onboarding-status";
 import { loadSyncMonitoring, type SyncMonitoringData } from "@/lib/platform/monitoring";
+import {
+  loadPlatformSyncMetrics,
+  type PlatformSyncMetricsRow,
+} from "@/lib/platform/sync-metrics";
 
 export type HealthLevel = "HEALTHY" | "WARNING" | "CRITICAL";
+
+const HEALTH_WINDOW_DAYS = 7;
 
 export type ClubHealthRow = {
   clubId: string;
@@ -50,6 +55,31 @@ export type PlatformHealthSummary = {
   criticalLeagues: number;
 };
 
+type ClubRecord = {
+  id: string;
+  slug: string;
+  public_name: string;
+  status: string;
+  created_at: string;
+};
+
+type LeagueSourceRecord = {
+  id: string;
+  club_id: string;
+  name: string;
+  is_active: boolean;
+  config: unknown;
+  last_sync_at: string | null;
+};
+
+export type HealthMetricsContext = {
+  windowDays: number;
+  metricsByClubId: Map<string, PlatformSyncMetricsRow>;
+  clubs: ClubRecord[];
+  sourcesByClubId: Map<string, LeagueSourceRecord[]>;
+  onboardingByClubId: Map<string, ClubOnboardingStatus>;
+};
+
 function detectProviderFromConfig(config: Record<string, unknown>): string | null {
   if (config.provider === "manual_import") return "manual_import";
   if (config.provider === "mirror_live" || config.ninetyMinutUrl || config.ninety_minut_url) {
@@ -64,83 +94,253 @@ function levelFromScore(score: number): HealthLevel {
   return "CRITICAL";
 }
 
+export function freshnessScore(freshnessHours: number | null): number {
+  if (freshnessHours == null) return 0;
+  if (freshnessHours <= 24) return 100;
+  if (freshnessHours <= 48) return 80;
+  if (freshnessHours <= 72) return 60;
+  if (freshnessHours <= 96) return 40;
+  return 0;
+}
+
+export function successScore(successRate: number | null, jobCount: number): number {
+  if (jobCount === 0) return 100;
+  if (successRate == null) return 0;
+  return Math.max(0, Math.min(100, successRate));
+}
+
+export function latencyScore(avgDurationMs: number | null): number {
+  if (avgDurationMs == null) return 100;
+  const seconds = avgDurationMs / 1000;
+  if (seconds < 30) return 100;
+  if (seconds < 60) return 80;
+  if (seconds < 120) return 60;
+  if (seconds < 300) return 30;
+  return 0;
+}
+
+export function computeSyncHealthScore(metrics: PlatformSyncMetricsRow | undefined): number {
+  const jobCount = metrics?.jobCount ?? 0;
+  const fresh = freshnessScore(metrics?.freshnessHours ?? null);
+  const success = successScore(metrics?.successRate ?? null, jobCount);
+  const latency = latencyScore(metrics?.avgDurationMs ?? null);
+  const score = fresh * 0.4 + success * 0.35 + latency * 0.25;
+  return Math.round(Math.max(0, Math.min(100, score)));
+}
+
+function formatHours(hours: number): string {
+  return `${Math.round(hours)} h`;
+}
+
+function buildSyncHealthFactors(metrics: PlatformSyncMetricsRow | undefined): string[] {
+  if (!metrics || metrics.jobCount === 0) {
+    return ["Brak jobów sync w oknie 7 dni"];
+  }
+
+  const factors: string[] = [];
+  const fresh = freshnessScore(metrics.freshnessHours);
+  const success = successScore(metrics.successRate, metrics.jobCount);
+  const latency = latencyScore(metrics.avgDurationMs);
+
+  if (metrics.freshnessHours != null) {
+    factors.push(`Świeżość: ${formatHours(metrics.freshnessHours)} (${fresh}/100)`);
+  } else {
+    factors.push("Świeżość: brak udanego syncu (0/100)");
+  }
+
+  factors.push(
+    `Sukces: ${metrics.successRate ?? 0}% · ${metrics.jobCount} jobów (${success}/100)`,
+  );
+
+  if (metrics.avgDurationMs != null) {
+    factors.push(
+      `Latencja śr.: ${Math.round(metrics.avgDurationMs / 1000)} s (${latency}/100)`,
+    );
+  } else {
+    factors.push(`Latencja: brak danych (${latency}/100)`);
+  }
+
+  if (metrics.hasRunningJob) {
+    factors.push("Sync w toku");
+  }
+  if (metrics.failedCount > 0) {
+    factors.push(`${metrics.failedCount} nieudanych jobów w oknie`);
+  }
+
+  return factors;
+}
+
+function stepFromFlags(complete: boolean, started: boolean): OnboardingStepStatus {
+  if (complete) return "complete";
+  if (started) return "in_progress";
+  return "not_started";
+}
+
+async function buildOnboardingByClubId(
+  clubIds: string[],
+  sourcesByClubId: Map<string, LeagueSourceRecord[]>,
+): Promise<Map<string, ClubOnboardingStatus>> {
+  const admin = createAdminClient();
+  const uniqueIds = [...new Set(clubIds)];
+  const map = new Map<string, ClubOnboardingStatus>();
+
+  if (uniqueIds.length === 0) return map;
+
+  const [settingsRes, ownersRes, mediaRes] = await Promise.all([
+    admin
+      .from("website_settings")
+      .select("club_id, logo_path, hero_image_path, public_site_enabled, hero_title")
+      .in("club_id", uniqueIds),
+    admin
+      .from("club_memberships")
+      .select("club_id, status")
+      .in("club_id", uniqueIds)
+      .eq("role", "owner"),
+    admin
+      .from("website_media")
+      .select("club_id")
+      .in("club_id", uniqueIds)
+      .eq("is_active", true),
+  ]);
+
+  if (settingsRes.error) throw new Error(settingsRes.error.message);
+  if (ownersRes.error) throw new Error(ownersRes.error.message);
+  if (mediaRes.error) throw new Error(mediaRes.error.message);
+
+  const settingsByClub = new Map(
+    (settingsRes.data ?? []).map((row) => [String(row.club_id), row]),
+  );
+  const ownerByClub = new Map(
+    (ownersRes.data ?? []).map((row) => [String(row.club_id), row]),
+  );
+  const mediaCountByClub = new Map<string, number>();
+  for (const row of mediaRes.data ?? []) {
+    const id = String(row.club_id);
+    mediaCountByClub.set(id, (mediaCountByClub.get(id) ?? 0) + 1);
+  }
+
+  for (const clubId of uniqueIds) {
+    const settings = settingsByClub.get(clubId);
+    const hasLogo = Boolean(settings?.logo_path);
+    const hasHero = Boolean(settings?.hero_image_path);
+    const branding = stepFromFlags(hasLogo, Boolean(settings));
+
+    const website = stepFromFlags(
+      Boolean(settings?.public_site_enabled && settings?.hero_title),
+      Boolean(settings),
+    );
+
+    const sources = sourcesByClubId.get(clubId) ?? [];
+    const leagueActive = sources.some((s) => s.is_active);
+    const league = stepFromFlags(leagueActive, sources.length > 0);
+
+    const ownerStatus = ownerByClub.get(clubId)?.status ?? null;
+    const owner = stepFromFlags(ownerStatus === "active", Boolean(ownerStatus));
+
+    const mediaCount = mediaCountByClub.get(clubId) ?? 0;
+    const media = stepFromFlags(mediaCount > 0 || hasLogo, mediaCount > 0 || hasHero);
+
+    const values = [branding, website, league, owner, media];
+    const overall: OnboardingStepStatus = values.every((v) => v === "complete")
+      ? "complete"
+      : values.some((v) => v !== "not_started")
+        ? "in_progress"
+        : "not_started";
+
+    map.set(clubId, { branding, website, league, owner, media, overall });
+  }
+
+  return map;
+}
+
+export async function loadHealthMetricsContext(): Promise<HealthMetricsContext> {
+  const admin = createAdminClient();
+
+  const [metrics, clubsRes, sourcesRes] = await Promise.all([
+    loadPlatformSyncMetrics({ windowDays: HEALTH_WINDOW_DAYS }),
+    admin.from("clubs").select("id, slug, public_name, status, created_at").order("public_name"),
+    admin
+      .from("league_sources")
+      .select("id, club_id, name, is_active, config, last_sync_at"),
+  ]);
+
+  if (clubsRes.error) throw new Error(clubsRes.error.message);
+  if (sourcesRes.error) throw new Error(sourcesRes.error.message);
+
+  const clubs = (clubsRes.data ?? []) as ClubRecord[];
+  const sources = (sourcesRes.data ?? []) as LeagueSourceRecord[];
+  const sourcesByClubId = new Map<string, LeagueSourceRecord[]>();
+
+  for (const source of sources) {
+    const clubId = String(source.club_id);
+    const list = sourcesByClubId.get(clubId) ?? [];
+    list.push(source);
+    sourcesByClubId.set(clubId, list);
+  }
+
+  const metricsByClubId = new Map(metrics.map((row) => [row.clubId, row]));
+  const onboardingByClubId = await buildOnboardingByClubId(
+    clubs.map((c) => String(c.id)),
+    sourcesByClubId,
+  );
+
+  return {
+    windowDays: HEALTH_WINDOW_DAYS,
+    metricsByClubId,
+    clubs,
+    sourcesByClubId,
+    onboardingByClubId,
+  };
+}
+
+function deriveLastJobStatus(metrics: PlatformSyncMetricsRow | undefined): string | null {
+  if (!metrics || metrics.jobCount === 0) return null;
+  if (metrics.hasRunningJob) return "running";
+  if (metrics.failedCount > 0 && (metrics.successRate ?? 100) < 100) return "failed";
+  return "completed";
+}
+
 function evaluateClubHealth(input: {
   status: string;
   onboardingOverall: string;
   leagueActive: boolean;
   providerId: string | null;
   lastSyncAt: string | null;
-  lastJobStatus: string | null;
-  lastJobCategory: ReturnType<typeof classifySyncJob> | null;
-  recentFailedSyncs: number;
-  createdAt: string;
+  metrics: PlatformSyncMetricsRow | undefined;
 }): { score: number; level: HealthLevel; factors: string[] } {
-  let score = 100;
-  const factors: string[] = [];
-
-  const createdDays = (Date.now() - new Date(input.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-
   if (input.status === "archived") {
     return { score: 100, level: "HEALTHY", factors: ["Klub zarchiwizowany"] };
   }
 
+  const factors = buildSyncHealthFactors(input.metrics);
+
   if (input.onboardingOverall !== "complete") {
-    score -= 15;
     factors.push("Onboarding niekompletny");
   }
 
-  if (input.status === "active" && input.onboardingOverall !== "complete") {
-    score -= 20;
-    factors.push("Klub aktywny publicznie, ale checklista onboardingowa nie jest complete");
-  }
-
   if (!input.leagueActive) {
-    score -= 25;
     factors.push("Brak aktywnego źródła ligi");
   }
 
-  if (input.recentFailedSyncs >= 2) {
-    score -= 30;
-    factors.push(`${input.recentFailedSyncs} nieudane syncy (ostatnie 7 dni)`);
-  } else if (input.recentFailedSyncs === 1) {
-    score -= 15;
-    factors.push("1 nieudany sync (ostatnie 7 dni)");
+  if (
+    input.providerId === "manual_import" &&
+    input.leagueActive &&
+    !input.lastSyncAt &&
+    (input.metrics?.jobCount ?? 0) === 0
+  ) {
+    factors.push("Import ręczny — brak pierwszego importu");
   }
 
-  if (input.lastJobCategory === "FAIL") {
-    score -= 25;
-    factors.push(`Ostatni sync: ${input.lastJobStatus ?? "failed"}`);
-  } else if (input.lastJobCategory === "WARNING") {
-    score -= 10;
-    factors.push(`Ostatni sync ze statusem ${input.lastJobStatus ?? "warning"}`);
-  }
+  const score =
+    input.providerId === "manual_import" && (input.metrics?.jobCount ?? 0) === 0
+      ? 100
+      : computeSyncHealthScore(input.metrics);
 
-  if (input.providerId === "mirror_live" && input.leagueActive && input.status === "active") {
-    const syncHours = hoursSince(input.lastSyncAt);
-    if (syncHours == null) {
-      score -= 20;
-      factors.push("Mirror live aktywny — brak historii sync");
-    } else if (syncHours > 48) {
-      score -= 30;
-      factors.push(`Ostatni sync >48 h temu (${Math.round(syncHours)} h)`);
-    } else if (syncHours > 30) {
-      score -= 15;
-      factors.push(`Ostatni sync >30 h temu (${Math.round(syncHours)} h)`);
-    }
-  }
-
-  if (input.status === "onboarding" && createdDays > 14 && input.onboardingOverall !== "complete") {
-    score -= 15;
-    factors.push(`Onboarding trwa >14 dni (${Math.round(createdDays)} d)`);
-  }
-
-  if (input.status === "onboarding" && createdDays > 30 && input.onboardingOverall === "not_started") {
-    score -= 20;
-    factors.push("Onboarding bez postępu >30 dni");
-  }
-
-  score = Math.max(0, Math.min(100, score));
-  return { score, level: levelFromScore(score), factors: factors.length ? factors : ["Brak problemów"] };
+  return {
+    score,
+    level: levelFromScore(score),
+    factors: factors.length ? factors : ["Brak problemów"],
+  };
 }
 
 function evaluateLeagueHealth(input: {
@@ -148,84 +348,49 @@ function evaluateLeagueHealth(input: {
   isActive: boolean;
   providerId: string | null;
   lastSyncAt: string | null;
-  lastJobStatus: string | null;
-  lastJobCategory: ReturnType<typeof classifySyncJob> | null;
-  recentErrorCount: number;
-}): { level: HealthLevel; factors: string[] } {
-  const factors: string[] = [];
-
+  metrics: PlatformSyncMetricsRow | undefined;
+}): { level: HealthLevel; factors: string[]; score: number } {
   if (input.clubStatus === "archived") {
-    return { level: "HEALTHY", factors: ["Klub zarchiwizowany"] };
+    return { level: "HEALTHY", factors: ["Klub zarchiwizowany"], score: 100 };
   }
 
   if (input.clubStatus === "active" && !input.isActive) {
-    factors.push("Klub aktywny, ale źródło ligi nieaktywne");
-    return { level: "CRITICAL", factors };
+    return {
+      level: "CRITICAL",
+      factors: ["Klub aktywny, ale źródło ligi nieaktywne"],
+      score: 0,
+    };
   }
 
-  if (input.lastJobCategory === "FAIL") {
-    factors.push(`Ostatni job: ${input.lastJobStatus ?? "failed"}`);
-    return { level: "CRITICAL", factors };
+  if (
+    input.providerId === "manual_import" &&
+    input.isActive &&
+    !input.lastSyncAt &&
+    (input.metrics?.jobCount ?? 0) === 0
+  ) {
+    return {
+      level: "WARNING",
+      factors: ["Import ręczny — brak pierwszego importu"],
+      score: 100,
+    };
   }
 
-  if (input.recentErrorCount >= 2) {
-    factors.push(`${input.recentErrorCount} błędów sync (ostatnie 7 dni)`);
-    return { level: "CRITICAL", factors };
-  }
+  const score = computeSyncHealthScore(input.metrics);
+  const level = levelFromScore(score);
+  const factors = buildSyncHealthFactors(input.metrics);
 
-  if (input.providerId === "mirror_live" && input.isActive && input.clubStatus === "active") {
-    const syncHours = hoursSince(input.lastSyncAt);
-    if (syncHours == null) {
-      factors.push("Mirror live — brak udanego sync");
-      return { level: "CRITICAL", factors };
-    }
-    if (syncHours > 36) {
-      factors.push(`Ostatni sync >36 h (${Math.round(syncHours)} h)`);
-      return { level: "WARNING", factors };
-    }
-  }
-
-  if (input.lastJobCategory === "WARNING") {
-    factors.push(`Ostatni job: ${input.lastJobStatus ?? "warning"}`);
-    return { level: "WARNING", factors };
-  }
-
-  if (input.providerId === "manual_import" && input.isActive && !input.lastSyncAt) {
-    factors.push("Import ręczny — brak pierwszego importu");
-    return { level: "WARNING", factors };
-  }
-
-  return { level: "HEALTHY", factors: ["Liga działa poprawnie"] };
+  return { level, factors, score };
 }
 
-export async function computeClubHealthRows(): Promise<ClubHealthRow[]> {
-  const admin = createAdminClient();
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-
-  const { data: clubs, error } = await admin
-    .from("clubs")
-    .select("id, slug, public_name, status, created_at")
-    .order("public_name");
-
-  if (error) throw new Error(error.message);
-
+export async function computeClubHealthRows(
+  ctx?: HealthMetricsContext,
+): Promise<ClubHealthRow[]> {
+  const context = ctx ?? (await loadHealthMetricsContext());
   const rows: ClubHealthRow[] = [];
 
-  for (const club of clubs ?? []) {
+  for (const club of context.clubs) {
     const clubId = String(club.id);
-
-    const [onboarding, sourcesRes, jobsRes] = await Promise.all([
-      computeClubOnboardingStatus(clubId),
-      admin.from("league_sources").select("id, is_active, config, last_sync_at").eq("club_id", clubId),
-      admin
-        .from("league_sync_jobs")
-        .select("status, records_failed, error_message, started_at, completed_at, created_at")
-        .eq("club_id", clubId)
-        .gte("created_at", sevenDaysAgo)
-        .order("created_at", { ascending: false }),
-    ]);
-
-    const sources = sourcesRes.data ?? [];
+    const sources = context.sourcesByClubId.get(clubId) ?? [];
     const leagueActive = sources.some((s) => s.is_active);
     const primarySource = sources.find((s) => s.is_active) ?? sources[0];
     const config =
@@ -233,33 +398,19 @@ export async function computeClubHealthRows(): Promise<ClubHealthRow[]> {
         ? (primarySource.config as Record<string, unknown>)
         : {};
     const providerId = detectProviderFromConfig(config);
+    const metrics = context.metricsByClubId.get(clubId);
+    const onboarding = context.onboardingByClubId.get(clubId) ?? {
+      branding: "not_started",
+      website: "not_started",
+      league: "not_started",
+      owner: "not_started",
+      media: "not_started",
+      overall: "not_started",
+    };
+
     const lastSyncAt =
-      primarySource?.last_sync_at != null ? String(primarySource.last_sync_at) : null;
-
-    const jobs = jobsRes.data ?? [];
-    const recentFailedSyncs = jobs.filter(
-      (j) =>
-        classifySyncJob({
-          status: String(j.status),
-          recordsFailed: Number(j.records_failed ?? 0),
-          errorMessage: j.error_message != null ? String(j.error_message) : null,
-          startedAt: j.started_at != null ? String(j.started_at) : null,
-          completedAt: j.completed_at != null ? String(j.completed_at) : null,
-          createdAt: String(j.created_at),
-        }) === "FAIL",
-    ).length;
-
-    const latestJob = jobs[0];
-    const lastJobCategory = latestJob
-      ? classifySyncJob({
-          status: String(latestJob.status),
-          recordsFailed: Number(latestJob.records_failed ?? 0),
-          errorMessage: latestJob.error_message != null ? String(latestJob.error_message) : null,
-          startedAt: latestJob.started_at != null ? String(latestJob.started_at) : null,
-          completedAt: latestJob.completed_at != null ? String(latestJob.completed_at) : null,
-          createdAt: String(latestJob.created_at),
-        })
-      : null;
+      metrics?.lastSuccessAt ??
+      (primarySource?.last_sync_at != null ? String(primarySource.last_sync_at) : null);
 
     const health = evaluateClubHealth({
       status: String(club.status),
@@ -267,10 +418,7 @@ export async function computeClubHealthRows(): Promise<ClubHealthRow[]> {
       leagueActive,
       providerId,
       lastSyncAt,
-      lastJobStatus: latestJob ? String(latestJob.status) : null,
-      lastJobCategory,
-      recentFailedSyncs,
-      createdAt: String(club.created_at),
+      metrics,
     });
 
     rows.push({
@@ -283,7 +431,7 @@ export async function computeClubHealthRows(): Promise<ClubHealthRow[]> {
       factors: health.factors,
       lastSyncAt,
       onboardingOverall: onboarding.overall,
-      recentFailedSyncs,
+      recentFailedSyncs: metrics?.failedCount ?? 0,
       leagueActive,
     });
   }
@@ -291,106 +439,65 @@ export async function computeClubHealthRows(): Promise<ClubHealthRow[]> {
   return rows.sort((a, b) => a.score - b.score);
 }
 
-export async function computeLeagueHealthRows(): Promise<LeagueHealthRow[]> {
-  const admin = createAdminClient();
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+export async function computeLeagueHealthRows(
+  ctx?: HealthMetricsContext,
+): Promise<LeagueHealthRow[]> {
+  const context = ctx ?? (await loadHealthMetricsContext());
   const nextCron = getNextCronRun().toISOString();
-
-  const { data: sources, error } = await admin
-    .from("league_sources")
-    .select("id, club_id, name, is_active, config, last_sync_at, created_at")
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-
-  const { data: clubs } = await admin.from("clubs").select("id, slug, public_name, status");
-  const clubById = new Map((clubs ?? []).map((c) => [String(c.id), c]));
-
   const rows: LeagueHealthRow[] = [];
 
-  for (const source of sources ?? []) {
-    const clubId = String(source.club_id);
-    const club = clubById.get(clubId);
-    if (!club) continue;
+  for (const sources of context.sourcesByClubId.values()) {
+    for (const source of sources) {
+      const clubId = String(source.club_id);
+      const club = context.clubs.find((c) => String(c.id) === clubId);
+      if (!club) continue;
 
-    const config =
-      source.config && typeof source.config === "object"
-        ? (source.config as Record<string, unknown>)
-        : {};
-    const providerId = detectProviderFromConfig(config);
+      const config =
+        source.config && typeof source.config === "object"
+          ? (source.config as Record<string, unknown>)
+          : {};
+      const providerId = detectProviderFromConfig(config);
+      const metrics = context.metricsByClubId.get(clubId);
 
-    const { data: jobs } = await admin
-      .from("league_sync_jobs")
-      .select("status, records_failed, error_message, started_at, completed_at, created_at")
-      .eq("club_id", clubId)
-      .eq("source_id", String(source.id))
-      .order("created_at", { ascending: false })
-      .limit(20);
+      const evaluation = evaluateLeagueHealth({
+        clubStatus: String(club.status),
+        isActive: Boolean(source.is_active),
+        providerId,
+        lastSyncAt: source.last_sync_at != null ? String(source.last_sync_at) : null,
+        metrics,
+      });
 
-    const allRecent = (jobs ?? []).filter(
-      (j) => new Date(String(j.created_at)).getTime() >= new Date(sevenDaysAgo).getTime(),
-    );
-    const recentErrorCount = allRecent.filter(
-      (j) =>
-        classifySyncJob({
-          status: String(j.status),
-          recordsFailed: Number(j.records_failed ?? 0),
-          errorMessage: j.error_message != null ? String(j.error_message) : null,
-          startedAt: j.started_at != null ? String(j.started_at) : null,
-          completedAt: j.completed_at != null ? String(j.completed_at) : null,
-          createdAt: String(j.created_at),
-        }) === "FAIL",
-    ).length;
-
-    const latestJob = jobs?.[0];
-    const lastJobCategory = latestJob
-      ? classifySyncJob({
-          status: String(latestJob.status),
-          recordsFailed: Number(latestJob.records_failed ?? 0),
-          errorMessage: latestJob.error_message != null ? String(latestJob.error_message) : null,
-          startedAt: latestJob.started_at != null ? String(latestJob.started_at) : null,
-          completedAt: latestJob.completed_at != null ? String(latestJob.completed_at) : null,
-          createdAt: String(latestJob.created_at),
-        })
-      : null;
-
-    const evaluation = evaluateLeagueHealth({
-      clubStatus: String(club.status),
-      isActive: Boolean(source.is_active),
-      providerId,
-      lastSyncAt: source.last_sync_at != null ? String(source.last_sync_at) : null,
-      lastJobStatus: latestJob ? String(latestJob.status) : null,
-      lastJobCategory,
-      recentErrorCount,
-    });
-
-    rows.push({
-      clubId,
-      clubSlug: String(club.slug),
-      clubName: String(club.public_name),
-      clubStatus: String(club.status),
-      sourceId: String(source.id),
-      sourceName: String(source.name),
-      providerId,
-      isActive: Boolean(source.is_active),
-      lastSyncAt: source.last_sync_at != null ? String(source.last_sync_at) : null,
-      nextCronRunAt: providerId === "mirror_live" && source.is_active ? nextCron : "—",
-      recentErrorCount,
-      lastJobStatus: latestJob ? String(latestJob.status) : null,
-      lastJobAt: latestJob ? String(latestJob.created_at) : null,
-      level: evaluation.level,
-      factors: evaluation.factors,
-    });
+      rows.push({
+        clubId,
+        clubSlug: String(club.slug),
+        clubName: String(club.public_name),
+        clubStatus: String(club.status),
+        sourceId: String(source.id),
+        sourceName: String(source.name),
+        providerId,
+        isActive: Boolean(source.is_active),
+        lastSyncAt: source.last_sync_at != null ? String(source.last_sync_at) : null,
+        nextCronRunAt: providerId === "mirror_live" && source.is_active ? nextCron : "—",
+        recentErrorCount: metrics?.failedCount ?? 0,
+        lastJobStatus: deriveLastJobStatus(metrics),
+        lastJobAt: metrics?.lastSuccessAt ?? null,
+        level: evaluation.level,
+        factors: evaluation.factors,
+      });
+    }
   }
 
   const severity = { CRITICAL: 0, WARNING: 1, HEALTHY: 2 };
   return rows.sort((a, b) => severity[a.level] - severity[b.level]);
 }
 
-export async function computePlatformHealthSummary(): Promise<PlatformHealthSummary> {
+export async function computePlatformHealthSummary(
+  ctx?: HealthMetricsContext,
+): Promise<PlatformHealthSummary> {
+  const context = ctx ?? (await loadHealthMetricsContext());
   const [clubRows, leagueRows] = await Promise.all([
-    computeClubHealthRows(),
-    computeLeagueHealthRows(),
+    computeClubHealthRows(context),
+    computeLeagueHealthRows(context),
   ]);
 
   return {
@@ -413,10 +520,11 @@ export type PlatformMonitoringBundle = {
 };
 
 export async function loadPlatformMonitoringBundle(): Promise<PlatformMonitoringBundle> {
+  const context = await loadHealthMetricsContext();
   const [syncMonitoring, clubHealth, leagueHealth] = await Promise.all([
     loadSyncMonitoring(),
-    computeClubHealthRows(),
-    computeLeagueHealthRows(),
+    computeClubHealthRows(context),
+    computeLeagueHealthRows(context),
   ]);
   return { syncMonitoring, clubHealth, leagueHealth };
 }

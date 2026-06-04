@@ -1,5 +1,7 @@
 import type pg from "pg";
 
+import { connectServerDb } from "@/lib/db/server-client";
+
 export type PlatformSyncMetricsRow = {
   clubId: string;
   lastSuccessAt: string | null;
@@ -46,4 +48,20 @@ export async function fetchPlatformSyncMetrics(
     p95DurationMs: row.p95_duration_ms != null ? Number(row.p95_duration_ms) : null,
     hasRunningJob: Boolean(row.has_running_job),
   }));
+}
+
+/** Single global fetch for Health v2 (all clubs, all providers, default 7d window). */
+export async function loadPlatformSyncMetrics(
+  params?: {
+    clubId?: string;
+    provider?: string;
+    windowDays?: number;
+  },
+): Promise<PlatformSyncMetricsRow[]> {
+  const client = await connectServerDb();
+  try {
+    return await fetchPlatformSyncMetrics(client, params);
+  } finally {
+    await client.end();
+  }
 }
