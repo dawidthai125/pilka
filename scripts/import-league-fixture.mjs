@@ -26,6 +26,7 @@ import {
   parseLeagueFile,
   stableFixtureExternalId,
 } from "./lib/league-import-parsers.mjs";
+import { computeSyncDurationMs } from "./lib/sync-job-meta.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -338,6 +339,7 @@ async function runImportBatch(supabase, batch) {
     throw new Error(`Plik ${batch.fileName} nie zawiera rozpoznanych danych ligowych.`);
   }
 
+  const startedAt = new Date().toISOString();
   const { data: job, error: jobError } = await supabase
     .from("league_sync_jobs")
     .insert({
@@ -346,7 +348,9 @@ async function runImportBatch(supabase, batch) {
       competition_id: COMPETITION_ID,
       import_type: importType,
       status: "running",
-      started_at: new Date().toISOString(),
+      provider: "manual_import",
+      trigger_source: "cli",
+      started_at: startedAt,
       metadata: { fileName: batch.fileName, adapter: "cli-fixture", note: "import:league-fixture" },
     })
     .select("id")
@@ -365,13 +369,15 @@ async function runImportBatch(supabase, batch) {
     importType,
   });
 
+  const completedAt = new Date().toISOString();
   await supabase
     .from("league_sync_jobs")
     .update({
       status: ingest.failed > 0 && ingest.processed === 0 ? "failed" : "completed",
       records_processed: ingest.processed,
       records_failed: ingest.failed,
-      completed_at: new Date().toISOString(),
+      completed_at: completedAt,
+      duration_ms: computeSyncDurationMs(startedAt, completedAt),
     })
     .eq("id", jobId);
 

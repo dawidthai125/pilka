@@ -440,15 +440,22 @@ export async function activateLeagueSync(params: ActivateLeagueSyncParams): Prom
       [sourceId, params.clubId],
     );
 
+    const activationProvider =
+      snapshot.providerId === "manual_import" ? "manual_import" : snapshot.providerId === "mirror_live" ? "mirror_live" : "unknown";
+
     const { rows: jobRows } = await client.query(
-      `INSERT INTO public.league_sync_jobs (club_id, source_id, competition_id, import_type, status, triggered_by, metadata)
-       VALUES ($1, $2, $3, 'full', 'pending', $4, $5::jsonb)
+      `INSERT INTO public.league_sync_jobs (
+         club_id, source_id, competition_id, import_type, status,
+         triggered_by, provider, trigger_source, metadata
+       )
+       VALUES ($1, $2, $3, 'full', 'pending', $4, $5, 'platform_admin', $6::jsonb)
        RETURNING id`,
       [
         params.clubId,
         sourceId,
         competitionId,
         params.actor.id,
+        activationProvider,
         JSON.stringify({ activatedVia: "platform_league_wizard", actorEmail: params.actor.email }),
       ],
     );

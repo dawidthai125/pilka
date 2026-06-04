@@ -9,6 +9,12 @@ import {
   isValidLeagueMatchDate,
   sanitizeLeagueImportText,
 } from "@/lib/league/validation";
+import {
+  buildSyncJobCompleteFields,
+  buildSyncJobStartFields,
+  type LeagueSyncProvider,
+  type LeagueSyncTriggerSource,
+} from "@/lib/league/sync-job-meta";
 import { createClient } from "@/lib/supabase/server";
 import type { LeagueImportType } from "@/types/league";
 
@@ -536,11 +542,24 @@ export async function runLeagueSyncJob(params: {
   jobId: string;
   competitionId: string;
   importType: LeagueImportType;
+  provider?: LeagueSyncProvider;
+  triggerSource?: LeagueSyncTriggerSource;
+  createdAt?: string | null;
 }): Promise<LeagueSyncResult> {
   const supabase = await createClient();
+  const startedAt = new Date().toISOString();
+  const metaFields = buildSyncJobStartFields({
+    provider: params.provider ?? "unknown",
+    triggerSource: params.triggerSource ?? "club_user",
+  });
+
   await supabase
     .from("league_sync_jobs")
-    .update({ status: "running", started_at: new Date().toISOString() })
+    .update({
+      status: "running",
+      started_at: startedAt,
+      ...metaFields,
+    })
     .eq("id", params.jobId)
     .eq("club_id", params.clubId);
 
@@ -554,6 +573,12 @@ export async function runLeagueSyncJob(params: {
 
     const processed = tableRows + matchResult.processed;
     const status = matchResult.failed > 0 ? "failed" : "completed";
+    const completedAt = new Date().toISOString();
+    const timing = buildSyncJobCompleteFields({
+      startedAt,
+      completedAt,
+      createdAt: params.createdAt,
+    });
 
     await supabase
       .from("league_sync_jobs")
@@ -562,7 +587,7 @@ export async function runLeagueSyncJob(params: {
         records_processed: processed,
         records_failed: matchResult.failed,
         records_conflicts: matchResult.conflicts,
-        completed_at: new Date().toISOString(),
+        ...timing,
         error_message: matchResult.failed > 0 ? "Część meczów nie została zsynchronizowana." : null,
       })
       .eq("id", params.jobId);
@@ -582,12 +607,18 @@ export async function runLeagueSyncJob(params: {
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Błąd synchronizacji.";
+    const completedAt = new Date().toISOString();
+    const timing = buildSyncJobCompleteFields({
+      startedAt,
+      completedAt,
+      createdAt: params.createdAt,
+    });
     await supabase
       .from("league_sync_jobs")
       .update({
         status: "failed",
         error_message: message,
-        completed_at: new Date().toISOString(),
+        ...timing,
       })
       .eq("id", params.jobId);
     await appendSyncLog(params.clubId, params.jobId, "error", message);

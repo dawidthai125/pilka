@@ -14,6 +14,7 @@ import {
   normalizeName,
   parseLeaguePlayerName,
 } from "./league-squad-sources.mjs";
+import { computeSyncDurationMs } from "./sync-job-meta.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 dotenv.config({ path: join(root, ".env.local") });
@@ -930,10 +931,12 @@ export async function syncSquadToRegistry(supabase, { jobId, squadData }) {
   return { processed, failed, matched, skipped: false, playersSync };
 }
 
-export async function runLivePipeline(merged, fetchMeta, squadData = null, clubConfigArg = null) {
+export async function runLivePipeline(merged, fetchMeta, squadData = null, clubConfigArg = null, runOpts = {}) {
   if (clubConfigArg) setPipelineClubConfig(clubConfigArg);
   const supabase = createPipelineClient();
   const { clubId, competitionId } = clubConfig();
+  const triggerSource = runOpts.triggerSource === "platform_admin" ? "platform_admin" : "cron";
+  const startedAt = new Date().toISOString();
 
   const { data: job, error: jobError } = await supabase
     .from("league_sync_jobs")
@@ -943,7 +946,9 @@ export async function runLivePipeline(merged, fetchMeta, squadData = null, clubC
       competition_id: competitionId,
       import_type: "full",
       status: "running",
-      started_at: new Date().toISOString(),
+      provider: "mirror_live",
+      trigger_source: triggerSource,
+      started_at: startedAt,
       metadata: {
         adapter: "mirror_live",
         tableSource: fetchMeta.tableSource,
@@ -980,13 +985,15 @@ export async function runLivePipeline(merged, fetchMeta, squadData = null, clubC
       .eq("club_id", clubId);
 
     const status = ingest.failed > 0 && ingest.processed === 0 ? "failed" : "completed";
+    const completedAt = new Date().toISOString();
     await supabase
       .from("league_sync_jobs")
       .update({
         status,
         records_processed: ingest.processed + tableSynced + matchSync.processed + squadSync.processed,
         records_failed: ingest.failed + matchSync.failed + squadSync.failed,
-        completed_at: new Date().toISOString(),
+        completed_at: completedAt,
+        duration_ms: computeSyncDurationMs(startedAt, completedAt),
       })
       .eq("id", jobId);
 
@@ -1001,12 +1008,14 @@ export async function runLivePipeline(merged, fetchMeta, squadData = null, clubC
       glksMietkow: fetchMeta.glksMietkow,
     };
   } catch (err) {
+    const completedAt = new Date().toISOString();
     await supabase
       .from("league_sync_jobs")
       .update({
         status: "failed",
         error_message: err instanceof Error ? err.message : String(err),
-        completed_at: new Date().toISOString(),
+        completed_at: completedAt,
+        duration_ms: computeSyncDurationMs(startedAt, completedAt),
       })
       .eq("id", jobId);
     throw err;

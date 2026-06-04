@@ -98,6 +98,9 @@ export type LeagueSyncJob = {
   competitionId: string | null;
   importType: LeagueImportType;
   status: LeagueSyncStatus;
+  provider: string | null;
+  triggerSource: string | null;
+  durationMs: number | null;
   recordsProcessed: number;
   recordsFailed: number;
   recordsConflicts: number;

@@ -29,8 +29,28 @@ import {
 } from "@/lib/league/player-match-service";
 import { MATCH_AUTO_THRESHOLD } from "@/lib/league/player-matching";
 import { readString } from "@/lib/form-data";
+import {
+  buildSyncJobCompleteFields,
+  buildSyncJobStartFields,
+  detectProviderFromSourceConfig,
+} from "@/lib/league/sync-job-meta";
 import { createClient } from "@/lib/supabase/server";
 import type { LeagueImportType, LeagueSourceAdapter } from "@/types/league";
+
+async function resolveActiveLeagueProvider(clubId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("league_sources")
+    .select("config")
+    .eq("club_id", clubId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const config =
+    data?.config && typeof data.config === "object" ? (data.config as Record<string, unknown>) : null;
+  return detectProviderFromSourceConfig(config);
+}
 
 export type LeagueActionState = { error?: string; success?: string };
 
@@ -91,6 +111,11 @@ export async function importLeagueFileAction(
   });
   if ("error" in ctxCheck) return { error: ctxCheck.error };
 
+  const jobStartMeta = buildSyncJobStartFields({
+    provider: "manual_import",
+    triggerSource: "import",
+  });
+
   const { data: job, error: jobError } = await supabase
     .from("league_sync_jobs")
     .insert({
@@ -100,9 +125,10 @@ export async function importLeagueFileAction(
       import_type: importTypeRaw,
       status: "pending",
       triggered_by: access.userId,
+      ...jobStartMeta,
       metadata: { fileName: file.name, adapter: adapterRaw },
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (jobError || !job) return { error: jobError?.message ?? "Nie udało się utworzyć zadania." };
@@ -141,6 +167,9 @@ export async function importLeagueFileAction(
       jobId,
       competitionId,
       importType: importTypeRaw,
+      provider: "manual_import",
+      triggerSource: "import",
+      createdAt: job.created_at != null ? String(job.created_at) : null,
     });
 
     if (sourceId) {
@@ -156,12 +185,18 @@ export async function importLeagueFileAction(
       success: `Import: ${ingest.processed} rekordów. ${sync.message}`,
     };
   } catch (err) {
+    const completedAt = new Date().toISOString();
+    const timing = buildSyncJobCompleteFields({
+      startedAt: null,
+      completedAt,
+      createdAt: job.created_at != null ? String(job.created_at) : null,
+    });
     await supabase
       .from("league_sync_jobs")
       .update({
         status: "failed",
         error_message: err instanceof Error ? err.message : "Błąd importu.",
-        completed_at: new Date().toISOString(),
+        ...timing,
       })
       .eq("id", jobId)
       .eq("club_id", access.clubId);
@@ -183,6 +218,12 @@ export async function runLeagueSyncAction(
   const belongs = await assertLeagueCompetitionBelongsToClub(supabase, access.clubId, competitionId);
   if (!belongs) return { error: "Rozgrywki nie należą do tego klubu." };
 
+  const provider = await resolveActiveLeagueProvider(access.clubId);
+  const jobStartMeta = buildSyncJobStartFields({
+    provider,
+    triggerSource: "club_user",
+  });
+
   const { data: job, error } = await supabase
     .from("league_sync_jobs")
     .insert({
@@ -191,8 +232,9 @@ export async function runLeagueSyncAction(
       import_type: "full",
       status: "pending",
       triggered_by: access.userId,
+      ...jobStartMeta,
     })
-    .select("id")
+    .select("id, created_at")
     .single();
 
   if (error || !job) return { error: error?.message ?? "Błąd tworzenia zadania." };
@@ -204,6 +246,9 @@ export async function runLeagueSyncAction(
       jobId: String(job.id),
       competitionId,
       importType: "full",
+      provider,
+      triggerSource: "club_user",
+      createdAt: job.created_at != null ? String(job.created_at) : null,
     });
     revalidateLeaguePaths();
     return { success: result.message };
