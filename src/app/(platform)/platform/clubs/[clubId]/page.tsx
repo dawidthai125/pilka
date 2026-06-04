@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 
 import { getPlatformClubDetail } from "@/lib/platform/onboarding-status";
+import { evaluateClubActivationGates } from "@/lib/platform/club-activation";
+import { ClubActivationCard } from "@/features/platform/components/club-activation-card";
 import { OnboardingStatusGrid, OnboardingStatusBadge } from "@/features/platform/components/onboarding-status-grid";
 import { PlatformShell } from "@/features/platform/components/platform-shell";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,6 +15,8 @@ export default async function PlatformClubDetailPage({ params }: Props) {
   const { clubId } = await params;
   const club = await getPlatformClubDetail(clubId);
   if (!club) notFound();
+
+  const activationGates = await evaluateClubActivationGates(clubId);
 
   return (
     <PlatformShell title={club.publicName} subtitle={`/${club.slug} · status: ${club.status}`}>
@@ -27,6 +31,12 @@ export default async function PlatformClubDetailPage({ params }: Props) {
             <OnboardingStatusGrid onboarding={club.onboarding} />
           </div>
         </section>
+
+        {activationGates ? (
+          <section>
+            <ClubActivationCard gates={activationGates} />
+          </section>
+        ) : null}
 
         <section className="grid gap-4 sm:grid-cols-2 text-sm">
           <div className="rounded-xl border border-white/10 bg-white/5 p-4">

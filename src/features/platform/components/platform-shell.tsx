@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, Plus, Shield } from "lucide-react";
+import { Building2, LayoutDashboard, Plus, Shield } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/platform/clubs", label: "Kluby", icon: Building2 },
-  { href: "/platform/clubs/new", label: "Nowy klub", icon: Plus },
+  { href: "/platform", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/platform/clubs", label: "Kluby", icon: Building2, exact: false },
+  { href: "/platform/clubs/new", label: "Nowy klub", icon: Plus, exact: true },
 ];
 
 export function PlatformNav() {
@@ -16,8 +17,8 @@ export function PlatformNav() {
 
   return (
     <nav className="flex flex-col gap-1">
-      {links.map(({ href, label, icon: Icon }) => {
-        const active = pathname === href || pathname.startsWith(`${href}/`);
+      {links.map(({ href, label, icon: Icon, exact }) => {
+        const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link
             key={href}

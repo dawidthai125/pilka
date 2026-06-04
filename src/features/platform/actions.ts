@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requirePlatformAdmin } from "@/lib/platform/admin";
+import { activateClub, evaluateClubActivationGates } from "@/lib/platform/club-activation";
 import { createClub } from "@/lib/platform/club-bootstrap";
 import { listPlatformClubs } from "@/lib/platform/onboarding-status";
 import {
@@ -74,4 +75,47 @@ export async function createClubAction(
 export async function fetchPlatformClubs(filter?: string) {
   await requirePlatformAdmin();
   return listPlatformClubs(filter);
+}
+
+export async function fetchClubActivationGates(clubId: string) {
+  await requirePlatformAdmin();
+  return evaluateClubActivationGates(clubId);
+}
+
+export async function activateClubAction(
+  _prev: PlatformActionState,
+  formData: FormData,
+): Promise<PlatformActionState> {
+  const actor = await requirePlatformAdmin();
+  const clubId = String(formData.get("clubId") ?? "").trim();
+  if (!clubId) return { error: "Brak identyfikatora klubu." };
+
+  try {
+    const result = await activateClub({
+      clubId,
+      actor: { id: actor.id, email: actor.email ?? "" },
+    });
+
+    revalidatePath("/platform");
+    revalidatePath("/platform/clubs");
+    revalidatePath(`/platform/clubs/${clubId}`);
+    revalidatePath(`/${result.slug}`);
+
+    if (result.noop) {
+      return {
+        success: `Klub „${result.publicName}” jest już aktywny.`,
+        clubId: result.clubId,
+        slug: result.slug,
+      };
+    }
+
+    return {
+      success: `Klub „${result.publicName}” aktywowany. Strona publiczna: /${result.slug}`,
+      clubId: result.clubId,
+      slug: result.slug,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Aktywacja klubu nie powiodła się.";
+    return { error: message };
+  }
 }

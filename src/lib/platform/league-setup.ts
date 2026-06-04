@@ -3,10 +3,10 @@ import type pg from "pg";
 import { connectServerDb } from "@/lib/db/server-client";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  appendAuditToClubSettings,
   buildPlatformAuditEntry,
   logPlatformAudit,
 } from "@/lib/platform/audit";
+import { platformAppendClubAudit } from "@/lib/platform/club-db-writes";
 import {
   mergeValidationResults,
   validateLeagueConfigurationInput,
@@ -248,11 +248,7 @@ async function saveLeagueConfigurationTransaction(
     seasonName: params.seasonName,
     competitionName: params.competitionName,
   });
-  const settings = appendAuditToClubSettings(club.settings ?? {}, auditEntry);
-  await client.query(`UPDATE public.clubs SET settings = $2::jsonb WHERE id = $1`, [
-    params.clubId,
-    JSON.stringify(settings),
-  ]);
+  await platformAppendClubAudit(client, params.clubId, auditEntry);
 
   const { rows: seasonRows } = await client.query(
     `SELECT id FROM public.league_seasons WHERE club_id = $1 ORDER BY created_at DESC LIMIT 1`,
@@ -458,20 +454,12 @@ export async function activateLeagueSync(params: ActivateLeagueSyncParams): Prom
     );
     jobId = String(jobRows[0]!.id);
 
-    const { rows: clubRows } = await client.query(`SELECT settings FROM public.clubs WHERE id = $1`, [params.clubId]);
     const auditEntry = buildPlatformAuditEntry("league_sync_activated", params.actor, {
       clubId: params.clubId,
       sourceId,
       jobId,
     });
-    const settings = appendAuditToClubSettings(
-      (clubRows[0]?.settings as Record<string, unknown>) ?? {},
-      auditEntry,
-    );
-    await client.query(`UPDATE public.clubs SET settings = $2::jsonb WHERE id = $1`, [
-      params.clubId,
-      JSON.stringify(settings),
-    ]);
+    await platformAppendClubAudit(client, params.clubId, auditEntry);
 
     await client.query("COMMIT");
     logPlatformAudit(auditEntry);
