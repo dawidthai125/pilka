@@ -132,7 +132,49 @@ export async function listPlatformClubs(filter?: string): Promise<PlatformClubLi
   return items;
 }
 
+/** Pojedynczy klub — ~5–6 zapytań stałych (bez listPlatformClubs / N+1). */
 export async function getPlatformClubDetail(clubId: string): Promise<PlatformClubListItem | null> {
-  const items = await listPlatformClubs();
-  return items.find((c) => c.id === clubId) ?? null;
+  const admin = createAdminClient();
+
+  const { data: club, error } = await admin
+    .from("clubs")
+    .select("id, slug, public_name, status, settings, created_at")
+    .eq("id", clubId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!club) return null;
+
+  const [onboarding, ownerMembershipRes] = await Promise.all([
+    computeClubOnboardingStatus(clubId),
+    admin
+      .from("club_memberships")
+      .select("status, user_id")
+      .eq("club_id", clubId)
+      .eq("role", "owner")
+      .maybeSingle(),
+  ]);
+
+  let ownerEmail: string | null = null;
+  const ownerMembership = ownerMembershipRes.data;
+  if (ownerMembership?.user_id) {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("email")
+      .eq("id", ownerMembership.user_id)
+      .maybeSingle();
+    ownerEmail = profile?.email ?? null;
+  }
+
+  return {
+    id: club.id,
+    slug: club.slug,
+    publicName: club.public_name,
+    status: club.status,
+    ownerEmail,
+    ownerStatus: ownerMembership?.status ?? null,
+    createdAt: club.created_at,
+    onboarding,
+    publicUrl: `/${club.slug}`,
+  };
 }

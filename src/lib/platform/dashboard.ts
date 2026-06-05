@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTestClub, parseClubSettings } from "@/lib/platform/club-test";
 import type { ClubOnboardingStatus } from "@/lib/platform/onboarding-status";
-import type { PlatformAuditEntry } from "@/lib/platform/audit";
+import { parsePlatformAuditFromSettings } from "@/lib/platform/audit";
 import {
   computeClubHealthRows,
   computeLeagueHealthRows,
@@ -191,25 +191,13 @@ function parseAuditEntries(
   clubSlug: string,
   settings: Record<string, unknown> | null,
 ): PlatformRecentActionRow[] {
-  const raw = settings?.platformAudit;
-  if (!Array.isArray(raw)) return [];
-
-  return raw
-    .filter((entry): entry is PlatformAuditEntry => {
-      return (
-        entry &&
-        typeof entry === "object" &&
-        typeof (entry as PlatformAuditEntry).action === "string" &&
-        typeof (entry as PlatformAuditEntry).at === "string"
-      );
-    })
-    .map((entry) => ({
-      action: entry.action,
-      at: entry.at,
-      actorEmail: entry.actorEmail,
-      clubSlug,
-      metadata: entry.metadata,
-    }));
+  return parsePlatformAuditFromSettings(settings).map((entry) => ({
+    action: entry.action,
+    at: entry.at,
+    actorEmail: entry.actorEmail,
+    clubSlug,
+    metadata: entry.metadata,
+  }));
 }
 
 export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {

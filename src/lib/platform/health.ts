@@ -533,17 +533,65 @@ export async function computePlatformHealthSummary(
   return platformHealthSummaryFromRows(clubRows, leagueRows);
 }
 
+export const MONITORING_HEALTH_PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+export const MONITORING_DEFAULT_HEALTH_PAGE_SIZE = 50;
+
+export type MonitoringHealthPagination = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+};
+
 export type PlatformMonitoringBundle = {
   syncMonitoring: SyncMonitoringData;
   alerts: PlatformAlert[];
   clubHealth: ClubHealthRow[];
   leagueHealth: LeagueHealthRow[];
   syncHistory: SyncHistoryRow[];
+  clubHealthPagination: MonitoringHealthPagination;
+  leagueHealthPagination: MonitoringHealthPagination;
 };
 
-export async function loadPlatformMonitoringBundle(): Promise<PlatformMonitoringBundle> {
+export type PlatformMonitoringBundleQuery = {
+  clubHealthPage?: number;
+  leagueHealthPage?: number;
+  healthPageSize?: number;
+};
+
+function normalizeHealthPageSize(pageSize?: number): number {
+  if (pageSize === 25 || pageSize === 100) return pageSize;
+  return MONITORING_DEFAULT_HEALTH_PAGE_SIZE;
+}
+
+function paginateRows<T>(rows: T[], page: number, pageSize: number): {
+  slice: T[];
+  pagination: MonitoringHealthPagination;
+} {
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const offset = (safePage - 1) * pageSize;
+  return {
+    slice: rows.slice(offset, offset + pageSize),
+    pagination: {
+      page: safePage,
+      pageSize,
+      total,
+      totalPages,
+    },
+  };
+}
+
+export async function loadPlatformMonitoringBundle(
+  query: PlatformMonitoringBundleQuery = {},
+): Promise<PlatformMonitoringBundle> {
+  const healthPageSize = normalizeHealthPageSize(query.healthPageSize);
+  const clubHealthPage = Math.max(1, query.clubHealthPage ?? 1);
+  const leagueHealthPage = Math.max(1, query.leagueHealthPage ?? 1);
+
   const context = await loadHealthMetricsContext();
-  const [syncMonitoring, clubHealth, leagueHealth, syncHistory] = await Promise.all([
+  const [syncMonitoring, clubHealthAll, leagueHealthAll, syncHistory] = await Promise.all([
     loadSyncMonitoring(),
     computeClubHealthRows(context),
     computeLeagueHealthRows(context),
@@ -551,9 +599,21 @@ export async function loadPlatformMonitoringBundle(): Promise<PlatformMonitoring
   ]);
   const alerts = evaluatePlatformAlerts({
     ctx: context,
-    clubHealth,
-    leagueHealth,
+    clubHealth: clubHealthAll,
+    leagueHealth: leagueHealthAll,
     cronStatus: syncMonitoring.cron.status,
   });
-  return { syncMonitoring, alerts, clubHealth, leagueHealth, syncHistory };
+
+  const clubPaged = paginateRows(clubHealthAll, clubHealthPage, healthPageSize);
+  const leaguePaged = paginateRows(leagueHealthAll, leagueHealthPage, healthPageSize);
+
+  return {
+    syncMonitoring,
+    alerts,
+    clubHealth: clubPaged.slice,
+    leagueHealth: leaguePaged.slice,
+    syncHistory,
+    clubHealthPagination: clubPaged.pagination,
+    leagueHealthPagination: leaguePaged.pagination,
+  };
 }

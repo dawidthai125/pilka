@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import {
   archiveClubAction,
@@ -15,7 +15,12 @@ import {
   HealthLevelBadge,
 } from "@/features/platform/components/platform-status-badges";
 import { Button, buttonVariants } from "@/components/ui/button";
-import type { ClubOperationsRegistryRow } from "@/lib/platform/club-operations-registry";
+import {
+  REGISTRY_PAGE_SIZE_OPTIONS,
+  type ClubOperationsRegistryResult,
+  type ClubOperationsRegistryRow,
+  type ClubRegistryStatusFilter,
+} from "@/lib/platform/club-operations-registry";
 import { cn } from "@/lib/utils";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -23,13 +28,6 @@ const STATUS_LABELS: Record<string, string> = {
   onboarding: "Onboarding",
   archived: "Archiwum",
 };
-
-export type ClubRegistryStatusFilter =
-  | ""
-  | "active"
-  | "onboarding"
-  | "archived"
-  | "attention";
 
 const FILTER_OPTIONS: { value: ClubRegistryStatusFilter; label: string }[] = [
   { value: "", label: "Wszystkie" },
@@ -39,10 +37,29 @@ const FILTER_OPTIONS: { value: ClubRegistryStatusFilter; label: string }[] = [
   { value: "attention", label: "Requires Attention" },
 ];
 
-function matchesStatusFilter(row: ClubOperationsRegistryRow, filter: ClubRegistryStatusFilter): boolean {
-  if (!filter) return true;
-  if (filter === "attention") return row.requiresAttention;
-  return row.status === filter;
+function registryHref(
+  query: ClubOperationsRegistryResult["query"],
+  patch: Partial<{
+    page: number;
+    pageSize: number;
+    status: ClubRegistryStatusFilter;
+    search: string;
+    hideTest: boolean;
+  }>,
+): string {
+  const page = patch.page ?? query.page;
+  const pageSize = patch.pageSize ?? query.pageSize;
+  const status = patch.status ?? query.status;
+  const search = patch.search ?? query.search;
+  const hideTest = patch.hideTest ?? query.hideTest;
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  if (page > 1) params.set("page", String(page));
+  if (pageSize !== 25) params.set("pageSize", String(pageSize));
+  if (search) params.set("q", search);
+  if (!hideTest) params.set("hideTest", "0");
+  const qs = params.toString();
+  return qs ? `/platform/clubs?${qs}` : "/platform/clubs";
 }
 
 function LifecycleConfirmButton({
@@ -173,42 +190,9 @@ function ResendOwnerInviteButton({ row }: { row: ClubOperationsRegistryRow }) {
   );
 }
 
-export function ClubOperationsRegistry({
-  rows,
-  initialStatusFilter,
-}: {
-  rows: ClubOperationsRegistryRow[];
-  initialStatusFilter?: string;
-}) {
-  const searchParams = useSearchParams();
-  const statusFromUrl = (searchParams.get("status") ?? initialStatusFilter ?? "") as ClubRegistryStatusFilter;
-  const [search, setSearch] = useState("");
-
-  const statusFilter = FILTER_OPTIONS.some((f) => f.value === statusFromUrl) ? statusFromUrl : "";
-  const [hideTestClubs, setHideTestClubs] = useState(true);
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return rows.filter((row) => {
-      if (hideTestClubs && row.isTest) return false;
-      if (!matchesStatusFilter(row, statusFilter)) return false;
-      if (!q) return true;
-      return (
-        row.publicName.toLowerCase().includes(q) || row.slug.toLowerCase().includes(q)
-      );
-    });
-  }, [rows, search, statusFilter, hideTestClubs]);
-
-  const summary = useMemo(
-    () => ({
-      total: rows.length,
-      active: rows.filter((r) => r.status === "active").length,
-      onboarding: rows.filter((r) => r.status === "onboarding").length,
-      archived: rows.filter((r) => r.status === "archived").length,
-      attention: rows.filter((r) => r.requiresAttention).length,
-    }),
-    [rows],
-  );
+export function ClubOperationsRegistry({ data }: { data: ClubOperationsRegistryResult }) {
+  const { rows, summary, pagination, query } = data;
+  const statusFilter = query.status;
 
   return (
     <div className="space-y-4">
@@ -239,7 +223,7 @@ export function ClubOperationsRegistry({
           {FILTER_OPTIONS.map((f) => (
             <Link
               key={f.value || "all"}
-              href={f.value ? `/platform/clubs?status=${f.value}` : "/platform/clubs"}
+              href={registryHref(query, { status: f.value, page: 1 })}
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium transition",
                 statusFilter === f.value
@@ -252,29 +236,67 @@ export function ClubOperationsRegistry({
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex min-w-[200px] flex-1 items-center gap-2 sm:max-w-xs">
+          <form
+            action="/platform/clubs"
+            method="get"
+            className="flex min-w-[200px] flex-1 items-center gap-2 sm:max-w-xs"
+          >
+            {statusFilter ? <input type="hidden" name="status" value={statusFilter} /> : null}
+            {query.pageSize !== 25 ? (
+              <input type="hidden" name="pageSize" value={String(query.pageSize)} />
+            ) : null}
+            {!query.hideTest ? <input type="hidden" name="hideTest" value="0" /> : null}
             <span className="sr-only">Szukaj</span>
             <input
               type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              name="q"
+              defaultValue={query.search}
               placeholder="Nazwa lub slug…"
               className="h-9 w-full rounded-lg border border-white/15 bg-[#041810] px-3 text-sm text-white placeholder:text-white/35"
             />
-          </label>
-          <label className="flex items-center gap-2 text-xs text-white/55">
-            <input
-              type="checkbox"
-              checked={hideTestClubs}
-              onChange={(e) => setHideTestClubs(e.target.checked)}
-              className="rounded border-white/20"
-            />
-            Ukryj kluby testowe
-          </label>
+            <Button type="submit" variant="outline" className="h-9 border-white/20 bg-transparent text-white">
+              Szukaj
+            </Button>
+          </form>
+          <Link
+            href={registryHref(query, { hideTest: !query.hideTest, page: 1 })}
+            className={cn(
+              "rounded-lg border px-3 py-2 text-xs transition",
+              query.hideTest
+                ? "border-white/15 bg-white/5 text-white/70"
+                : "border-sky-500/30 bg-sky-500/10 text-sky-200",
+            )}
+          >
+            {query.hideTest ? "Ukryj testowe: ON" : "Ukryj testowe: OFF"}
+          </Link>
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-white/50">
+        <span>
+          Wyniki {pagination.totalFiltered === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1}–
+          {Math.min(pagination.page * pagination.pageSize, pagination.totalFiltered)} z {pagination.totalFiltered}
+        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span>Na stronie:</span>
+          {REGISTRY_PAGE_SIZE_OPTIONS.map((size) => (
+            <Link
+              key={size}
+              href={registryHref(query, { pageSize: size, page: 1 })}
+              className={cn(
+                "rounded px-2 py-0.5",
+                pagination.pageSize === size
+                  ? "bg-white/15 text-white"
+                  : "text-white/55 hover:text-white/80",
+              )}
+            >
+              {size}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {rows.length === 0 ? (
         <div className="rounded-xl border border-dashed border-white/15 p-10 text-center text-white/60">
           <p>Brak klubów dla wybranych filtrów.</p>
           <Link href="/platform/clubs/new" className={cn(buttonVariants(), "mt-4 inline-flex")}>
@@ -299,7 +321,7 @@ export function ClubOperationsRegistry({
               </tr>
             </thead>
             <tbody className="divide-y divide-white/8">
-              {filtered.map((row) => (
+              {rows.map((row) => (
                 <tr key={row.id} className="hover:bg-white/[0.03]">
                   <td className="px-3 py-3 font-medium">
                     {row.publicName}
@@ -379,6 +401,31 @@ export function ClubOperationsRegistry({
           </table>
         </div>
       )}
+
+      {pagination.totalPages > 1 ? (
+        <nav className="flex flex-wrap items-center justify-center gap-2 text-sm" aria-label="Paginacja">
+          {pagination.page > 1 ? (
+            <Link
+              href={registryHref(query, { page: pagination.page - 1 })}
+              className="rounded-lg border border-white/15 px-3 py-1.5 text-white/70 hover:bg-white/5"
+            >
+              ← Poprzednia
+            </Link>
+          ) : null}
+          <span className="tabular-nums text-white/55">
+            Strona {pagination.page} / {pagination.totalPages}
+          </span>
+          {pagination.page < pagination.totalPages ? (
+            <Link
+              href={registryHref(query, { page: pagination.page + 1 })}
+              className="rounded-lg border border-white/15 px-3 py-1.5 text-white/70 hover:bg-white/5"
+            >
+              Następna →
+            </Link>
+          ) : null}
+        </nav>
+      ) : null}
+
       <p className="text-xs text-white/40">
         Restore: archived → onboarding (nie active). Wymaga hotfix SQL{' '}
         <code className="text-white/55">scripts/sql/hotfix-192b-platform-restore-club.sql</code> na

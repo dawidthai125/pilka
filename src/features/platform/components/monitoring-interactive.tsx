@@ -7,9 +7,15 @@ import {
   formatPlatformDate,
   HealthLevelBadge,
 } from "@/features/platform/components/platform-status-badges";
+import type { MonitoringViewQuery } from "@/features/platform/components/sync-monitoring-view";
 import { PlatformAlertsPanel } from "@/features/platform/components/platform-alerts-panel";
 import { SyncHistorySection } from "@/features/platform/components/sync-history-section";
-import type { ClubHealthRow, LeagueHealthRow } from "@/lib/platform/health";
+import type {
+  ClubHealthRow,
+  LeagueHealthRow,
+  MonitoringHealthPagination,
+} from "@/lib/platform/health";
+import { MONITORING_HEALTH_PAGE_SIZE_OPTIONS } from "@/lib/platform/health";
 import type { PlatformAlert } from "@/lib/platform/platform-alerts";
 import {
   EMPTY_SYNC_HISTORY_FILTERS,
@@ -28,7 +34,84 @@ type MonitoringInteractiveProps = {
   leagueHealth: LeagueHealthRow[];
   syncHistory: SyncHistoryRow[];
   initialClubId?: string;
+  clubHealthPagination: MonitoringHealthPagination;
+  leagueHealthPagination: MonitoringHealthPagination;
+  monitoringQuery: MonitoringViewQuery;
 };
+
+function monitoringHref(
+  query: MonitoringViewQuery,
+  patch: Partial<MonitoringViewQuery & { clubId?: string }>,
+): string {
+  const clubPage = patch.clubPage ?? query.clubPage;
+  const leaguePage = patch.leaguePage ?? query.leaguePage;
+  const healthPageSize = patch.healthPageSize ?? query.healthPageSize;
+  const params = new URLSearchParams();
+  if (patch.clubId) params.set("clubId", patch.clubId);
+  if (clubPage > 1) params.set("clubPage", String(clubPage));
+  if (leaguePage > 1) params.set("leaguePage", String(leaguePage));
+  if (healthPageSize !== 50) params.set("healthPageSize", String(healthPageSize));
+  const qs = params.toString();
+  return qs ? `/platform/monitoring?${qs}` : "/platform/monitoring";
+}
+
+function HealthTablePagination({
+  label,
+  pagination,
+  query,
+  pageKey,
+}: {
+  label: string;
+  pagination: MonitoringHealthPagination;
+  query: MonitoringViewQuery;
+  pageKey: "clubPage" | "leaguePage";
+}) {
+  if (pagination.total <= pagination.pageSize && pagination.totalPages <= 1) {
+    return (
+      <p className="text-xs text-white/40">
+        {label}: {pagination.total} {pagination.total === 1 ? "wiersz" : "wierszy"}
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-white/50">
+      <span>
+        {label}: {pagination.total} łącznie · strona {pagination.page}/{pagination.totalPages}
+      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {MONITORING_HEALTH_PAGE_SIZE_OPTIONS.map((size) => (
+          <Link
+            key={size}
+            href={monitoringHref(query, { healthPageSize: size, clubPage: 1, leaguePage: 1 })}
+            className={cn(
+              "rounded px-2 py-0.5",
+              pagination.pageSize === size ? "bg-white/15 text-white" : "hover:text-white/80",
+            )}
+          >
+            {size}
+          </Link>
+        ))}
+        {pagination.page > 1 ? (
+          <Link
+            href={monitoringHref(query, { [pageKey]: pagination.page - 1 } as Partial<MonitoringViewQuery>)}
+            className="rounded border border-white/15 px-2 py-0.5 hover:bg-white/5"
+          >
+            ←
+          </Link>
+        ) : null}
+        {pagination.page < pagination.totalPages ? (
+          <Link
+            href={monitoringHref(query, { [pageKey]: pagination.page + 1 } as Partial<MonitoringViewQuery>)}
+            className="rounded border border-white/15 px-2 py-0.5 hover:bg-white/5"
+          >
+            →
+          </Link>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export function MonitoringInteractive({
   alerts,
@@ -36,6 +119,9 @@ export function MonitoringInteractive({
   leagueHealth,
   syncHistory,
   initialClubId,
+  clubHealthPagination,
+  leagueHealthPagination,
+  monitoringQuery,
 }: MonitoringInteractiveProps) {
   const historyRef = useRef<HTMLElement>(null);
   const resolvedInitialClubId =
@@ -119,6 +205,12 @@ export function MonitoringInteractive({
           <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Club Health</h2>
           <p className="text-xs text-white/40">Kliknij wiersz → filtruj Sync History</p>
         </div>
+        <HealthTablePagination
+          label="Club Health"
+          pagination={clubHealthPagination}
+          query={monitoringQuery}
+          pageKey="clubPage"
+        />
         <ClubHealthPanel
           rows={clubHealth}
           healthFocus={healthFocus}
@@ -131,6 +223,12 @@ export function MonitoringInteractive({
           <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">League Health</h2>
           <p className="text-xs text-white/40">Kliknij wiersz → filtruj Sync History</p>
         </div>
+        <HealthTablePagination
+          label="League Health"
+          pagination={leagueHealthPagination}
+          query={monitoringQuery}
+          pageKey="leaguePage"
+        />
         <LeagueHealthPanel
           rows={leagueHealth}
           healthFocus={healthFocus}

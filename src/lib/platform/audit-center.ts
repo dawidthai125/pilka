@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { PlatformAuditEntry } from "@/lib/platform/audit";
+import { parsePlatformAuditFromSettings } from "@/lib/platform/audit";
 import {
   isPlatformAuditAction,
   PLATFORM_AUDIT_ACTIONS,
@@ -41,27 +41,15 @@ function parseClubAuditEntries(
   clubName: string,
   settings: Record<string, unknown> | null,
 ): AuditCenterEntry[] {
-  const raw = settings?.platformAudit;
-  if (!Array.isArray(raw)) return [];
-
-  return raw
-    .filter((entry): entry is PlatformAuditEntry => {
-      return (
-        entry &&
-        typeof entry === "object" &&
-        typeof (entry as PlatformAuditEntry).action === "string" &&
-        typeof (entry as PlatformAuditEntry).at === "string"
-      );
-    })
-    .map((entry) => ({
-      clubId,
-      clubSlug,
-      clubName,
-      action: entry.action,
-      at: entry.at,
-      actorEmail: entry.actorEmail,
-      metadata: entry.metadata,
-    }));
+  return parsePlatformAuditFromSettings(settings).map((entry) => ({
+    clubId,
+    clubSlug,
+    clubName,
+    action: entry.action,
+    at: entry.at,
+    actorEmail: entry.actorEmail,
+    metadata: entry.metadata,
+  }));
 }
 
 function inDateRange(at: string, dateFrom?: string, dateTo?: string): boolean {

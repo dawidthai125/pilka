@@ -123,10 +123,79 @@ function mergeRow(
   };
 }
 
-/**
- * Jedno ładowanie kontekstu Health v2 + health rows + bulk owners (bez N+1 per klub).
- */
-export async function loadClubOperationsRegistry(): Promise<ClubOperationsRegistryRow[]> {
+export const REGISTRY_PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+export const REGISTRY_DEFAULT_PAGE_SIZE = 25;
+
+export type ClubRegistryStatusFilter = "" | "active" | "onboarding" | "archived" | "attention";
+
+export type ClubOperationsRegistryQuery = {
+  page?: number;
+  pageSize?: number;
+  status?: ClubRegistryStatusFilter;
+  search?: string;
+  /** Domyślnie true — ukryj kluby testowe. */
+  hideTest?: boolean;
+};
+
+export type ClubOperationsRegistrySummary = {
+  total: number;
+  active: number;
+  onboarding: number;
+  archived: number;
+  attention: number;
+};
+
+export type ClubOperationsRegistryPagination = {
+  page: number;
+  pageSize: number;
+  totalFiltered: number;
+  totalPages: number;
+};
+
+export type ClubOperationsRegistryResult = {
+  rows: ClubOperationsRegistryRow[];
+  summary: ClubOperationsRegistrySummary;
+  pagination: ClubOperationsRegistryPagination;
+  query: Required<Pick<ClubOperationsRegistryQuery, "page" | "pageSize" | "hideTest">> & {
+    status: ClubRegistryStatusFilter;
+    search: string;
+  };
+};
+
+function normalizePageSize(pageSize?: number): number {
+  if (pageSize === 50 || pageSize === 100) return pageSize;
+  return REGISTRY_DEFAULT_PAGE_SIZE;
+}
+
+function matchesRegistryFilters(
+  row: ClubOperationsRegistryRow,
+  query: Pick<ClubOperationsRegistryQuery, "status" | "search" | "hideTest">,
+): boolean {
+  if (query.hideTest !== false && row.isTest) return false;
+  const status = query.status ?? "";
+  if (status === "attention") {
+    if (!row.requiresAttention) return false;
+  } else if (status && row.status !== status) {
+    return false;
+  }
+  const q = query.search?.trim().toLowerCase();
+  if (q) {
+    return row.publicName.toLowerCase().includes(q) || row.slug.toLowerCase().includes(q);
+  }
+  return true;
+}
+
+function buildRegistrySummary(rows: ClubOperationsRegistryRow[]): ClubOperationsRegistrySummary {
+  return {
+    total: rows.length,
+    active: rows.filter((r) => r.status === "active").length,
+    onboarding: rows.filter((r) => r.status === "onboarding").length,
+    archived: rows.filter((r) => r.status === "archived").length,
+    attention: rows.filter((r) => r.requiresAttention).length,
+  };
+}
+
+async function buildAllClubOperationsRegistryRows(): Promise<ClubOperationsRegistryRow[]> {
   const ctx = await loadHealthMetricsContext();
   const healthRows = await computeClubHealthRows(ctx);
   const healthByClubId = new Map(healthRows.map((row) => [row.clubId, row]));
@@ -153,6 +222,53 @@ export async function loadClubOperationsRegistry(): Promise<ClubOperationsRegist
   }
 
   return rows.sort((a, b) => a.publicName.localeCompare(b.publicName, "pl"));
+}
+
+/**
+ * Jedno ładowanie kontekstu Health v2 + health rows + bulk owners (bez N+1 per klub).
+ */
+export async function loadClubOperationsRegistry(): Promise<ClubOperationsRegistryRow[]> {
+  return buildAllClubOperationsRegistryRows();
+}
+
+/** Server-side filtr + paginacja (payload HTML ograniczony do pageSize). */
+export async function loadClubOperationsRegistryPage(
+  query: ClubOperationsRegistryQuery = {},
+): Promise<ClubOperationsRegistryResult> {
+  const pageSize = normalizePageSize(query.pageSize);
+  const page = Math.max(1, query.page ?? 1);
+  const hideTest = query.hideTest !== false;
+  const status = query.status ?? "";
+  const search = query.search?.trim() ?? "";
+
+  const allRows = await buildAllClubOperationsRegistryRows();
+  const summary = buildRegistrySummary(allRows);
+  const filtered = allRows.filter((row) =>
+    matchesRegistryFilters(row, { status, search, hideTest }),
+  );
+
+  const totalFiltered = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const offset = (safePage - 1) * pageSize;
+
+  return {
+    rows: filtered.slice(offset, offset + pageSize),
+    summary,
+    pagination: {
+      page: safePage,
+      pageSize,
+      totalFiltered,
+      totalPages,
+    },
+    query: {
+      page: safePage,
+      pageSize,
+      status,
+      search,
+      hideTest,
+    },
+  };
 }
 
 export type ClubOperationsRegistryQueryStats = {

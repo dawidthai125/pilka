@@ -26,7 +26,11 @@ function testSources() {
   assert(registry.includes("computeClubHealthRows"), "must reuse health rows");
   assert(!registry.includes("listPlatformClubs"), "no N+1 listPlatformClubs");
   assert(registry.includes("loadOwnerByClubId"), "bulk owners");
-  assert(page.includes("loadClubOperationsRegistry"), "clubs page uses registry loader");
+  assert(
+    page.includes("loadClubOperationsRegistryPage") || page.includes("loadClubOperationsRegistry"),
+    "clubs page uses registry loader",
+  );
+  assert(registry.includes("loadClubOperationsRegistryPage"), "paginated registry loader");
   assert(view.includes("Requires Attention"), "attention filter");
   assert(view.includes("attention"), "attention query param");
   assert(view.includes("/platform/monitoring?clubId="), "monitoring deep link");

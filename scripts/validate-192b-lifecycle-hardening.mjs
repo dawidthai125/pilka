@@ -30,7 +30,10 @@ function testSources() {
   assert(audit.includes("owner_invite_resent"), "audit action owner_invite_resent");
   assert(registry.includes("restoreClubAction"), "Restore UI");
   assert(registry.includes("resendOwnerInviteAction"), "Resend UI");
-  assert(registry.includes("hideTestClubs"), "hide test filter");
+  assert(
+    registry.includes("hideTest") || registry.includes("hideTestClubs"),
+    "hide test filter",
+  );
   assert(clubTest.includes("isTestClubFromSettings"), "settings.isTest");
   assert(clubTest.includes("isTestClubSlug"), "slug fallback");
   assert(sql.includes("'onboarding'"), "SQL extends platform_set_club_status");
