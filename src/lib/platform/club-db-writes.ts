@@ -21,10 +21,12 @@ export type PlatformSetClubStatusResult = {
   noop: boolean;
 };
 
+export type PlatformClubTargetStatus = "active" | "archived" | "onboarding";
+
 export async function platformSetClubStatus(
   client: pg.Client,
   clubId: string,
-  status: "active" | "archived",
+  status: PlatformClubTargetStatus,
   auditEntry?: PlatformAuditEntry,
 ): Promise<PlatformSetClubStatusResult> {
   const { rows } = await client.query(

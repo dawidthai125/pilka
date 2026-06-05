@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requirePlatformAdmin } from "@/lib/platform/admin";
 import { activateClub, evaluateClubActivationGates } from "@/lib/platform/club-activation";
+import { archiveClub, resendOwnerInvite, restoreClub } from "@/lib/platform/club-lifecycle";
 import { createClub } from "@/lib/platform/club-bootstrap";
 import { listPlatformClubs } from "@/lib/platform/onboarding-status";
 import {
@@ -51,12 +52,15 @@ export async function createClubAction(
   }
 
   try {
+    const isTest = formData.get("isTest") === "on" || formData.get("isTest") === "true";
+
     const result = await createClub({
       slug,
       publicName,
       shortName,
       colors: { primary: primaryColor, secondary: secondaryColor, accent: accentColor },
       ownerEmail,
+      isTest,
       actor: { id: actor.id, email: actor.email ?? "" },
     });
 
@@ -116,6 +120,111 @@ export async function activateClubAction(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Aktywacja klubu nie powiodła się.";
+    return { error: message };
+  }
+}
+
+export async function archiveClubAction(
+  _prev: PlatformActionState,
+  formData: FormData,
+): Promise<PlatformActionState> {
+  const actor = await requirePlatformAdmin();
+  const clubId = String(formData.get("clubId") ?? "").trim();
+  if (!clubId) return { error: "Brak identyfikatora klubu." };
+
+  try {
+    const result = await archiveClub({
+      clubId,
+      actor: { id: actor.id, email: actor.email ?? "" },
+    });
+
+    revalidatePath("/platform");
+    revalidatePath("/platform/clubs");
+    revalidatePath("/platform/monitoring");
+    revalidatePath(`/platform/clubs/${clubId}`);
+
+    if (result.noop) {
+      return {
+        success: `Klub „${result.publicName}” jest już zarchiwizowany.`,
+        clubId: result.clubId,
+        slug: result.slug,
+      };
+    }
+
+    return {
+      success: `Klub „${result.publicName}” został zarchiwizowany.`,
+      clubId: result.clubId,
+      slug: result.slug,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Archiwizacja klubu nie powiodła się.";
+    return { error: message };
+  }
+}
+
+export async function restoreClubAction(
+  _prev: PlatformActionState,
+  formData: FormData,
+): Promise<PlatformActionState> {
+  const actor = await requirePlatformAdmin();
+  const clubId = String(formData.get("clubId") ?? "").trim();
+  if (!clubId) return { error: "Brak identyfikatora klubu." };
+
+  try {
+    const result = await restoreClub({
+      clubId,
+      actor: { id: actor.id, email: actor.email ?? "" },
+    });
+
+    revalidatePath("/platform");
+    revalidatePath("/platform/clubs");
+    revalidatePath("/platform/monitoring");
+    revalidatePath(`/platform/clubs/${clubId}`);
+
+    if (result.noop) {
+      return {
+        success: `Klub „${result.publicName}” jest już w onboardingu.`,
+        clubId: result.clubId,
+        slug: result.slug,
+      };
+    }
+
+    return {
+      success: `Klub „${result.publicName}” przywrócony do onboardingu. Przejdź bramki aktywacji przed publikacją.`,
+      clubId: result.clubId,
+      slug: result.slug,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Przywrócenie klubu nie powiodło się.";
+    return { error: message };
+  }
+}
+
+export async function resendOwnerInviteAction(
+  _prev: PlatformActionState,
+  formData: FormData,
+): Promise<PlatformActionState> {
+  const actor = await requirePlatformAdmin();
+  const clubId = String(formData.get("clubId") ?? "").trim();
+  if (!clubId) return { error: "Brak identyfikatora klubu." };
+
+  try {
+    const result = await resendOwnerInvite({
+      clubId,
+      actor: { id: actor.id, email: actor.email ?? "" },
+    });
+
+    revalidatePath("/platform/clubs");
+    revalidatePath(`/platform/clubs/${clubId}`);
+
+    return {
+      success: `Zaproszenie wysłane ponownie na ${result.ownerEmail}.`,
+      clubId: result.clubId,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Ponowne zaproszenie nie powiodło się.";
     return { error: message };
   }
 }

@@ -6,7 +6,10 @@ export default async function PlatformDashboardPage() {
   const data = await loadPlatformDashboard();
 
   return (
-    <PlatformShell title="Dashboard" subtitle="Stan platformy FC OS — kluby, sync, operacje.">
+    <PlatformShell
+      title="Dashboard"
+      subtitle="Co wymaga uwagi teraz — kluby, alerty i onboarding bez przechodzenia do Monitoring Center."
+    >
       <PlatformDashboardView data={data} />
     </PlatformShell>
   );

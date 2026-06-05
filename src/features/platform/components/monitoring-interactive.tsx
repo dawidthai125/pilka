@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   formatPlatformDate,
@@ -27,6 +27,7 @@ type MonitoringInteractiveProps = {
   clubHealth: ClubHealthRow[];
   leagueHealth: LeagueHealthRow[];
   syncHistory: SyncHistoryRow[];
+  initialClubId?: string;
 };
 
 export function MonitoringInteractive({
@@ -34,10 +35,17 @@ export function MonitoringInteractive({
   clubHealth,
   leagueHealth,
   syncHistory,
+  initialClubId,
 }: MonitoringInteractiveProps) {
   const historyRef = useRef<HTMLElement>(null);
-  const [filters, setFilters] = useState<SyncHistoryFilters>(EMPTY_SYNC_HISTORY_FILTERS);
-  const [healthFocus, setHealthFocus] = useState<string | null>(null);
+  const resolvedInitialClubId =
+    initialClubId && clubHealth.some((c) => c.clubId === initialClubId) ? initialClubId : "";
+  const [filters, setFilters] = useState<SyncHistoryFilters>(() =>
+    resolvedInitialClubId ? filtersFromClub(resolvedInitialClubId) : EMPTY_SYNC_HISTORY_FILTERS,
+  );
+  const [healthFocus, setHealthFocus] = useState<string | null>(() =>
+    resolvedInitialClubId ? `club:${resolvedInitialClubId}` : null,
+  );
 
   const criticalClubIds = useMemo(
     () => clubHealth.filter((c) => c.level === "CRITICAL").map((c) => c.clubId),
@@ -60,6 +68,12 @@ export function MonitoringInteractive({
   const scrollToHistory = useCallback(() => {
     historyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
+
+  useEffect(() => {
+    if (resolvedInitialClubId) {
+      scrollToHistory();
+    }
+  }, [resolvedInitialClubId, scrollToHistory]);
 
   const applyFromClub = useCallback(
     (row: ClubHealthRow) => {

@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { parseClubSettings } from "@/lib/platform/club-test";
 import { getNextCronRun } from "@/lib/platform/cron-schedule";
 import type { ClubOnboardingStatus, OnboardingStepStatus } from "@/lib/platform/onboarding-status";
 import { loadSyncMonitoring, type SyncMonitoringData } from "@/lib/platform/monitoring";
@@ -63,6 +64,7 @@ type ClubRecord = {
   public_name: string;
   status: string;
   created_at: string;
+  settings: Record<string, unknown> | null;
 };
 
 type LeagueSourceRecord = {
@@ -260,7 +262,10 @@ export async function loadHealthMetricsContext(): Promise<HealthMetricsContext> 
 
   const [metrics, clubsRes, sourcesRes] = await Promise.all([
     loadPlatformSyncMetrics({ windowDays: HEALTH_WINDOW_DAYS }),
-    admin.from("clubs").select("id, slug, public_name, status, created_at").order("public_name"),
+    admin
+      .from("clubs")
+      .select("id, slug, public_name, status, created_at, settings")
+      .order("public_name"),
     admin
       .from("league_sources")
       .select("id, club_id, name, is_active, config, last_sync_at"),
@@ -269,7 +274,14 @@ export async function loadHealthMetricsContext(): Promise<HealthMetricsContext> 
   if (clubsRes.error) throw new Error(clubsRes.error.message);
   if (sourcesRes.error) throw new Error(sourcesRes.error.message);
 
-  const clubs = (clubsRes.data ?? []) as ClubRecord[];
+  const clubs: ClubRecord[] = (clubsRes.data ?? []).map((row) => ({
+    id: String(row.id),
+    slug: String(row.slug),
+    public_name: String(row.public_name),
+    status: String(row.status),
+    created_at: String(row.created_at),
+    settings: parseClubSettings(row.settings),
+  }));
   const sources = (sourcesRes.data ?? []) as LeagueSourceRecord[];
   const sourcesByClubId = new Map<string, LeagueSourceRecord[]>();
 
@@ -493,15 +505,10 @@ export async function computeLeagueHealthRows(
   return rows.sort((a, b) => severity[a.level] - severity[b.level]);
 }
 
-export async function computePlatformHealthSummary(
-  ctx?: HealthMetricsContext,
-): Promise<PlatformHealthSummary> {
-  const context = ctx ?? (await loadHealthMetricsContext());
-  const [clubRows, leagueRows] = await Promise.all([
-    computeClubHealthRows(context),
-    computeLeagueHealthRows(context),
-  ]);
-
+export function platformHealthSummaryFromRows(
+  clubRows: ClubHealthRow[],
+  leagueRows: LeagueHealthRow[],
+): PlatformHealthSummary {
   return {
     activeClubs: clubRows.filter((c) => c.status === "active").length,
     onboardingClubs: clubRows.filter((c) => c.status === "onboarding").length,
@@ -513,6 +520,17 @@ export async function computePlatformHealthSummary(
     warningLeagues: leagueRows.filter((l) => l.level === "WARNING").length,
     criticalLeagues: leagueRows.filter((l) => l.level === "CRITICAL").length,
   };
+}
+
+export async function computePlatformHealthSummary(
+  ctx?: HealthMetricsContext,
+): Promise<PlatformHealthSummary> {
+  const context = ctx ?? (await loadHealthMetricsContext());
+  const [clubRows, leagueRows] = await Promise.all([
+    computeClubHealthRows(context),
+    computeLeagueHealthRows(context),
+  ]);
+  return platformHealthSummaryFromRows(clubRows, leagueRows);
 }
 
 export type PlatformMonitoringBundle = {

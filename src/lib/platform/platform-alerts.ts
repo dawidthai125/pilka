@@ -1,6 +1,27 @@
 import type { SyncCategory } from "@/lib/platform/sync-category";
 import type { ClubHealthRow, HealthMetricsContext, LeagueHealthRow } from "@/lib/platform/health";
 
+/** Zgodne z `club-test.ts` — lokalna kopia dla importów Node (validate-186b). */
+const TEST_CLUB_SLUGS = new Set(["pilot-club-test"]);
+const TEST_CLUB_SLUG_PREFIXES = ["release-184a-", "pilot-club-"];
+
+export function isTestClubSlug(slug: string): boolean {
+  if (TEST_CLUB_SLUGS.has(slug)) return true;
+  return TEST_CLUB_SLUG_PREFIXES.some((prefix) => slug.startsWith(prefix));
+}
+
+function parseClubSettings(settings: unknown): Record<string, unknown> | null {
+  if (settings && typeof settings === "object" && !Array.isArray(settings)) {
+    return settings as Record<string, unknown>;
+  }
+  return null;
+}
+
+function isTestClub(slug: string, settings?: Record<string, unknown> | null): boolean {
+  if (settings?.isTest === true) return true;
+  return isTestClubSlug(slug);
+}
+
 export type PlatformAlertSeverity = "CRITICAL" | "WARNING" | "INFO";
 
 /** Kolejność wyświetlania (niżej = ważniejsze). */
@@ -44,10 +65,6 @@ const PRIORITY_GROUP_ORDER: Record<PlatformAlertPriorityGroup, number> = {
   info: 5,
 };
 
-const TEST_CLUB_SLUGS = new Set(["pilot-club-test"]);
-
-const TEST_CLUB_SLUG_PREFIXES = ["release-184a-", "pilot-club-"];
-
 const CLUB_GROUPABLE_TYPES = new Set([
   "club_health_critical",
   "club_health_warning",
@@ -82,9 +99,9 @@ function detectProviderFromConfig(config: Record<string, unknown>): string | nul
   return null;
 }
 
-export function isTestClubSlug(slug: string): boolean {
-  if (TEST_CLUB_SLUGS.has(slug)) return true;
-  return TEST_CLUB_SLUG_PREFIXES.some((prefix) => slug.startsWith(prefix));
+function clubSettingsFor(ctx: HealthMetricsContext, clubId: string): Record<string, unknown> | null {
+  const club = ctx.clubs.find((c) => String(c.id) === clubId);
+  return parseClubSettings(club?.settings);
 }
 
 function clubHasMirrorLive(ctx: HealthMetricsContext, clubId: string): boolean {
@@ -148,7 +165,7 @@ function collectRawAlerts(input: {
 
   for (const club of clubHealth) {
     if (club.status === "archived") continue;
-    if (isTestClubSlug(club.slug)) continue;
+    if (isTestClub(club.slug, clubSettingsFor(ctx, club.clubId))) continue;
 
     const metrics = ctx.metricsByClubId.get(club.clubId);
     const onboarding = ctx.onboardingByClubId.get(club.clubId);
@@ -269,7 +286,7 @@ function collectRawAlerts(input: {
 
   for (const league of leagueHealth) {
     if (league.clubStatus === "archived") continue;
-    if (isTestClubSlug(league.clubSlug)) continue;
+    if (isTestClub(league.clubSlug, clubSettingsFor(ctx, league.clubId))) continue;
     if (league.level !== "CRITICAL" && league.level !== "WARNING") continue;
 
     const isCritical = league.level === "CRITICAL";
@@ -289,7 +306,9 @@ function collectRawAlerts(input: {
 
   }
 
-  const testClubCount = clubHealth.filter((c) => isTestClubSlug(c.slug)).length;
+  const testClubCount = clubHealth.filter((c) =>
+    isTestClub(c.slug, clubSettingsFor(ctx, c.clubId)),
+  ).length;
   if (testClubCount > 0) {
     raw.push({
       severity: "INFO",

@@ -2,7 +2,10 @@ import { SyncMonitoringView } from "@/features/platform/components/sync-monitori
 import { PlatformShell } from "@/features/platform/components/platform-shell";
 import { loadPlatformMonitoringBundle } from "@/lib/platform/health";
 
-export default async function PlatformMonitoringPage() {
+type Props = { searchParams: Promise<{ clubId?: string }> };
+
+export default async function PlatformMonitoringPage({ searchParams }: Props) {
+  const { clubId } = await searchParams;
   const data = await loadPlatformMonitoringBundle();
 
   return (
@@ -10,7 +13,7 @@ export default async function PlatformMonitoringPage() {
       title="Monitoring"
       subtitle="Synchronizacje ligowe, cron, zdrowie klubów i lig — bez logów i SQL."
     >
-      <SyncMonitoringView data={data} />
+      <SyncMonitoringView data={data} initialClubId={clubId?.trim() || undefined} />
     </PlatformShell>
   );
 }

@@ -1,25 +1,30 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { listPlatformClubs } from "@/lib/platform/onboarding-status";
-import { ClubDirectoryFilters, ClubDirectoryTable } from "@/features/platform/components/club-directory-table";
+import { ClubOperationsRegistry } from "@/features/platform/components/club-operations-registry";
 import { PlatformShell } from "@/features/platform/components/platform-shell";
 import { buttonVariants } from "@/components/ui/button";
+import { loadClubOperationsRegistry } from "@/lib/platform/club-operations-registry";
 
 type Props = { searchParams: Promise<{ status?: string }> };
 
 export default async function PlatformClubsPage({ searchParams }: Props) {
   const { status } = await searchParams;
-  const clubs = await listPlatformClubs(status);
+  const rows = await loadClubOperationsRegistry();
 
   return (
-    <PlatformShell title="Kluby" subtitle="Zarządzanie tenantami FC OS — tworzenie i onboarding klubów.">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <ClubDirectoryFilters current={status} />
+    <PlatformShell
+      title="Kluby"
+      subtitle="Rejestr operacyjny — status, health i synchronizacje bez przechodzenia do Monitoring Center."
+    >
+      <div className="mb-6 flex flex-wrap items-center justify-end gap-4">
         <Link href="/platform/clubs/new" className={buttonVariants()}>
           + Nowy klub
         </Link>
       </div>
-      <ClubDirectoryTable clubs={clubs} />
+      <Suspense fallback={<p className="text-sm text-white/50">Ładowanie rejestru…</p>}>
+        <ClubOperationsRegistry rows={rows} initialStatusFilter={status} />
+      </Suspense>
     </PlatformShell>
   );
 }

@@ -20,6 +20,7 @@ function testSources() {
   assert(alerts.includes("evaluatePlatformAlerts"), "evaluatePlatformAlerts missing");
   assert(alerts.includes("dedupeAndPolishAlerts"), "dedupeAndPolishAlerts missing");
   assert(alerts.includes("isTestClubSlug"), "isTestClubSlug missing");
+  assert(alerts.includes("isTestClub"), "isTestClub with settings.isTest");
   assert(alerts.includes("summarizePlatformAlerts"), "summarizePlatformAlerts missing");
   assert(!alerts.includes("platform_sync_metrics(") || alerts.includes("metricsByClubId"), "use context only");
   assert(!alerts.includes("loadPlatformSyncMetrics"), "no extra loader in alerts");

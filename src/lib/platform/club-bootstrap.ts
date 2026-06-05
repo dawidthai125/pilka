@@ -27,6 +27,7 @@ export type ClubBootstrapInput = {
   ownerEmail: string;
   seasonName?: string;
   leagueName?: string;
+  isTest?: boolean;
   actor: { id: string; email: string };
 };
 
@@ -91,6 +92,7 @@ async function bootstrapClubTransaction(
       shortName: input.shortName,
       bootstrappedAt: new Date().toISOString(),
       bootstrappedVia: "platform_wizard",
+      ...(input.isTest ? { isTest: true } : {}),
     },
     auditEntry,
   );

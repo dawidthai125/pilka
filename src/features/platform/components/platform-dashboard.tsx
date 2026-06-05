@@ -10,6 +10,18 @@ import type { PlatformDashboardData } from "@/lib/platform/dashboard";
 import { PLATFORM_AUDIT_ACTION_LABELS } from "@/lib/platform/platform-audit-actions";
 import { cn } from "@/lib/utils";
 
+const SEVERITY_STYLES = {
+  CRITICAL: "text-red-300",
+  WARNING: "text-amber-300",
+  INFO: "text-sky-300",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  active: "Aktywny",
+  onboarding: "Onboarding",
+  archived: "Archiwum",
+};
+
 function syncStatusClass(status: string) {
   if (status === "completed") return "text-emerald-300";
   if (status === "failed") return "text-red-300";
@@ -18,7 +30,17 @@ function syncStatusClass(status: string) {
 }
 
 export function PlatformDashboardView({ data }: { data: PlatformDashboardData }) {
-  const { kpi, platformHealth, onboardingClubs, recentSyncs, recentActions } = data;
+  const {
+    kpi,
+    platformHealth,
+    clubsRequiringAttention,
+    topAlerts,
+    onboardingNeedingAction,
+    recentSyncs,
+    recentActions,
+  } = data;
+
+  const criticalAlertCount = topAlerts.filter((a) => a.severity === "CRITICAL").length;
 
   return (
     <div className="space-y-8">
@@ -38,17 +60,197 @@ export function PlatformDashboardView({ data }: { data: PlatformDashboardData })
         ))}
       </div>
 
+      <section className="rounded-xl border border-white/10 bg-white/5 p-4">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Szybkie akcje</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {[
+            { href: "/platform/clubs", label: "Wszystkie kluby" },
+            { href: "/platform/monitoring", label: "Monitoring Center" },
+            {
+              href: "/platform/monitoring",
+              label: "Alerty krytyczne",
+              hint: criticalAlertCount > 0 ? String(criticalAlertCount) : undefined,
+            },
+            { href: "/platform/clubs?status=attention", label: "Kluby wymagające uwagi" },
+          ].map(({ href, label, hint }) => (
+            <Link
+              key={label}
+              href={href}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#041810] px-3 py-1.5 text-xs font-medium text-white/85 transition hover:border-[var(--club-secondary,#F4C430)]/40 hover:text-white"
+            >
+              {label}
+              {hint ? (
+                <span className="rounded-full bg-red-500/20 px-1.5 py-0.5 text-[10px] font-bold text-red-200">
+                  {hint}
+                </span>
+              ) : null}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">
+            Kluby wymagające uwagi
+          </h2>
+          <Link
+            href="/platform/clubs?status=attention"
+            className="text-xs text-[var(--club-secondary,#F4C430)] hover:underline"
+          >
+            Pełny rejestr →
+          </Link>
+        </div>
+        {clubsRequiringAttention.length === 0 ? (
+          <p className="rounded-xl border border-emerald-500/20 bg-emerald-950/20 px-4 py-3 text-sm text-emerald-100/85">
+            Brak klubów wymagających natychmiastowej uwagi.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="w-full min-w-[720px] text-left text-sm text-white">
+              <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wide text-white/45">
+                <tr>
+                  <th className="px-4 py-3">Klub</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Health</th>
+                  <th className="px-4 py-3">Score</th>
+                  <th className="px-4 py-3">Główny problem</th>
+                  <th className="px-4 py-3 text-right">Akcja</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/8">
+                {clubsRequiringAttention.map((club) => (
+                  <tr key={club.id} className="hover:bg-white/[0.03]">
+                    <td className="px-4 py-3 font-medium">{club.publicName}</td>
+                    <td className="px-4 py-3 text-white/70">
+                      {STATUS_LABELS[club.status] ?? club.status}
+                    </td>
+                    <td className="px-4 py-3">
+                      <HealthLevelBadge level={club.healthLevel} />
+                    </td>
+                    <td className="px-4 py-3 tabular-nums font-semibold">{club.healthScore}</td>
+                    <td className="max-w-xs px-4 py-3 text-white/60">{club.mainProblem}</td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Link
+                          href={`/platform/monitoring?clubId=${club.id}`}
+                          className="text-xs text-[var(--club-secondary,#F4C430)] hover:underline"
+                        >
+                          Monitoring
+                        </Link>
+                        <Link
+                          href={`/platform/clubs/${club.id}`}
+                          className="text-xs text-white/55 hover:text-white/80 hover:underline"
+                        >
+                          Szczegóły
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">
+            Najważniejsze alerty
+          </h2>
+          <Link href="/platform/monitoring" className="text-xs text-[var(--club-secondary,#F4C430)] hover:underline">
+            Monitoring →
+          </Link>
+        </div>
+        {topAlerts.length === 0 ? (
+          <p className="text-sm text-white/50">Brak aktywnych alertów platformy.</p>
+        ) : (
+          <ul className="space-y-2">
+            {topAlerts.map((alert, index) => (
+              <li key={`${alert.title}-${index}`}>
+                <Link
+                  href={alert.monitoringHref}
+                  className="block rounded-xl border border-white/10 bg-white/5 p-3 transition hover:bg-white/10"
+                >
+                  <div className="flex flex-wrap items-start gap-2">
+                    <span
+                      className={cn(
+                        "text-xs font-bold uppercase",
+                        SEVERITY_STYLES[alert.severity],
+                      )}
+                    >
+                      {alert.severity}
+                    </span>
+                    <span className="min-w-0 flex-1 font-medium text-white">{alert.title}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-white/55 line-clamp-2">{alert.description}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">
+            Onboarding wymagający działań
+          </h2>
+          <Link href="/platform/clubs?status=onboarding" className="text-xs text-[var(--club-secondary,#F4C430)] hover:underline">
+            Wszystkie w onboardingu →
+          </Link>
+        </div>
+        {onboardingNeedingAction.length === 0 ? (
+          <p className="text-sm text-white/50">Brak klubów w onboardingu z brakującymi krokami.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="w-full min-w-[640px] text-left text-sm text-white">
+              <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wide text-white/45">
+                <tr>
+                  <th className="px-4 py-3">Klub</th>
+                  <th className="px-4 py-3">Postęp</th>
+                  <th className="px-4 py-3">Brakujące elementy</th>
+                  <th className="px-4 py-3 text-right">Akcja</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/8">
+                {onboardingNeedingAction.map((club) => (
+                  <tr key={club.id} className="hover:bg-white/[0.03]">
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{club.publicName}</p>
+                      <p className="text-xs text-white/45">/{club.slug}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <OnboardingStatusBadge
+                        status={club.overall as "not_started" | "in_progress" | "complete"}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-white/65">
+                      {club.missingSteps.length > 0 ? club.missingSteps.join(" · ") : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/platform/clubs/${club.id}`}
+                        className="text-xs text-[var(--club-secondary,#F4C430)] hover:underline"
+                      >
+                        Kontynuuj onboarding
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Platform Health</h2>
-          <div className="flex gap-3 text-xs">
-            <Link href="/platform/monitoring" className="text-[var(--club-secondary,#F4C430)] hover:underline">
-              Monitoring →
-            </Link>
-            <Link href="/platform/audit" className="text-[var(--club-secondary,#F4C430)] hover:underline">
-              Audit Center →
-            </Link>
-          </div>
+          <Link href="/platform/audit" className="text-xs text-[var(--club-secondary,#F4C430)] hover:underline">
+            Audit Center →
+          </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {[
@@ -77,61 +279,6 @@ export function PlatformDashboardView({ data }: { data: PlatformDashboardData })
             </Card>
           ))}
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[
-            { label: "Ligi HEALTHY", value: platformHealth.healthyLeagues, level: "HEALTHY" as const },
-            { label: "Ligi WARNING", value: platformHealth.warningLeagues, level: "WARNING" as const },
-            { label: "Ligi CRITICAL", value: platformHealth.criticalLeagues, level: "CRITICAL" as const },
-          ].map(({ label, value, level }) => (
-            <Card key={label} className="border-white/10 bg-white/5 text-white">
-              <CardContent className="flex items-center justify-between pt-6">
-                <div>
-                  <p className="text-sm text-white/45">{label}</p>
-                  <p className="text-2xl font-bold tabular-nums">{value}</p>
-                </div>
-                {value > 0 ? <HealthLevelBadge level={level} /> : null}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Kluby w onboardingu</h2>
-        {onboardingClubs.length === 0 ? (
-          <p className="text-sm text-white/50">Brak klubów w onboardingu.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-white/10">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead className="border-b border-white/10 bg-white/5 text-white/45">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Klub</th>
-                  <th className="px-4 py-3 font-medium">Slug</th>
-                  <th className="px-4 py-3 font-medium">Postęp</th>
-                  <th className="px-4 py-3 font-medium">Utworzono</th>
-                  <th className="px-4 py-3 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {onboardingClubs.map((club) => (
-                  <tr key={club.id} className="border-b border-white/5 last:border-0">
-                    <td className="px-4 py-3 font-medium">{club.publicName}</td>
-                    <td className="px-4 py-3 text-white/60">/{club.slug}</td>
-                    <td className="px-4 py-3">
-                      <OnboardingStatusBadge status={club.overall as "not_started" | "in_progress" | "complete"} />
-                    </td>
-                    <td className="px-4 py-3 text-white/60">{formatPlatformDate(club.createdAt)}</td>
-                    <td className="px-4 py-3 text-right">
-                      <Link href={`/platform/clubs/${club.id}`} className="text-[var(--club-secondary,#F4C430)] hover:underline">
-                        Szczegóły
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </section>
 
       <section className="space-y-3">
@@ -140,7 +287,7 @@ export function PlatformDashboardView({ data }: { data: PlatformDashboardData })
           <p className="text-sm text-white/50">Brak zadań synchronizacji.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-white/10">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm text-white">
               <thead className="border-b border-white/10 bg-white/5 text-white/45">
                 <tr>
                   <th className="px-4 py-3 font-medium">Klub</th>
@@ -179,7 +326,7 @@ export function PlatformDashboardView({ data }: { data: PlatformDashboardData })
           <p className="text-sm text-white/50">Brak wpisów audit log.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-white/10">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm text-white">
               <thead className="border-b border-white/10 bg-white/5 text-white/45">
                 <tr>
                   <th className="px-4 py-3 font-medium">Akcja</th>

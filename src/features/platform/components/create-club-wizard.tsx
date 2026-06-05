@@ -25,6 +25,7 @@ export function CreateClubWizard() {
   const [primaryColor, setPrimaryColor] = useState("#0B3D2E");
   const [secondaryColor, setSecondaryColor] = useState("#F4C430");
   const [accentColor, setAccentColor] = useState("#FFFFFF");
+  const [isTest, setIsTest] = useState(false);
   const [state, action, pending] = useActionState(createClubAction, initialState);
 
   const suggestedSlug = useMemo(() => slugifyClubInput(publicName), [publicName]);
@@ -165,6 +166,18 @@ export function CreateClubWizard() {
               <div><dt className="text-white/45">Nazwa</dt><dd className="font-medium">{publicName}</dd></div>
               <div><dt className="text-white/45">Slug</dt><dd className="font-mono">/{slug}</dd></div>
               <div><dt className="text-white/45">Właściciel</dt><dd>{ownerEmail}</dd></div>
+              <div className="sm:col-span-2">
+                <label className="flex items-center gap-2 text-sm text-white/70">
+                  <input
+                    type="checkbox"
+                    name="isTestPreview"
+                    checked={isTest}
+                    onChange={(e) => setIsTest(e.target.checked)}
+                    className="rounded border-white/20"
+                  />
+                  Klub testowy (settings.isTest — ukryty w alertach i attention)
+                </label>
+              </div>
               <div className="flex gap-2">
                 {[primaryColor, secondaryColor, accentColor].map((c) => (
                   <span key={c} className="size-8 rounded border border-white/20" style={{ backgroundColor: c }} title={c} />
@@ -203,6 +216,7 @@ export function CreateClubWizard() {
             <input type="hidden" name="primaryColor" value={primaryColor} />
             <input type="hidden" name="secondaryColor" value={secondaryColor} />
             <input type="hidden" name="accentColor" value={accentColor} />
+            {isTest ? <input type="hidden" name="isTest" value="true" /> : null}
             <Button type="submit" disabled={pending}>
               {pending ? "Tworzenie…" : "Utwórz klub"}
             </Button>

@@ -7,7 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PlatformMonitoringBundle } from "@/lib/platform/health";
 import { cn } from "@/lib/utils";
 
-export function SyncMonitoringView({ data }: { data: PlatformMonitoringBundle }) {
+export function SyncMonitoringView({
+  data,
+  initialClubId,
+}: {
+  data: PlatformMonitoringBundle;
+  initialClubId?: string;
+}) {
   const { syncMonitoring, alerts, clubHealth, leagueHealth, syncHistory } = data;
   const { cron } = syncMonitoring;
 
@@ -61,6 +67,7 @@ export function SyncMonitoringView({ data }: { data: PlatformMonitoringBundle })
         clubHealth={clubHealth}
         leagueHealth={leagueHealth}
         syncHistory={syncHistory}
+        initialClubId={initialClubId}
       />
     </div>
   );
