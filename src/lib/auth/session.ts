@@ -205,6 +205,7 @@ export type ClubMemberRow = {
   id: string;
   role: ClubRole;
   status: string;
+  created_at: string;
   team_id: string | null;
   user_id: string;
   profile: { id: string; email: string; full_name: string | null } | null;
@@ -346,9 +347,10 @@ export const getClubMembers = cache(
     const supabase = await createClient();
     const { data: memberships, error } = await supabase
       .from("club_memberships")
-      .select("id, role, status, team_id, user_id")
+      .select("id, role, status, team_id, user_id, created_at")
       .eq("club_id", tenantClubId)
-      .order("role");
+      .in("status", ["active", "invited", "suspended"])
+      .order("created_at", { ascending: false });
 
     if (error) throw new Error(error.message);
     if (!memberships?.length) return [];
@@ -377,6 +379,7 @@ export const getClubMembers = cache(
           id: membership.id,
           role: parsedRole.data,
           status: membership.status,
+          created_at: membership.created_at,
           team_id: membership.team_id,
           user_id: membership.user_id,
           profile: profileMap.get(membership.user_id) ?? null,
@@ -390,6 +393,8 @@ export const getClubMembers = cache(
 export const getDashboardContext = cache(async (clubId?: string) => {
   const tenantClubId = await resolveSessionClubId(clubId);
   const user = await requireUser();
+  const { activateInvitedMemberships } = await import("@/lib/members/activate-invited-memberships");
+  await activateInvitedMemberships(user.id);
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_app_layout_context", { p_club_id: tenantClubId });
 
@@ -511,6 +516,12 @@ export function getRoleLabels(roles: ClubRole[]): string[] {
 
 export function requireMemberReadAccess(access: UserAccessContext) {
   if (!hasPermission(access, "member:read")) {
+    redirect("/dashboard");
+  }
+}
+
+export function requireMemberManageAccess(access: UserAccessContext) {
+  if (!hasPermission(access, "member:manage")) {
     redirect("/dashboard");
   }
 }
@@ -1372,7 +1383,7 @@ export const getCoaches = cache(async (clubId?: string) => {
 const supabase = await createClient();
   const { data: memberships, error } = await supabase
     .from("club_memberships")
-    .select("id, role, status, team_id, user_id")
+    .select("id, role, status, team_id, user_id, created_at")
     .eq("club_id", tenantClubId)
     .eq("status", "active")
     .in("role", ["coach", "owner", "president", "sports_director"]);
@@ -1398,6 +1409,7 @@ const supabase = await createClient();
         id: membership.id,
         role: parsedRole.data,
         status: membership.status,
+        created_at: membership.created_at,
         team_id: membership.team_id,
         user_id: membership.user_id,
         profile: profileMap.get(membership.user_id) ?? null,

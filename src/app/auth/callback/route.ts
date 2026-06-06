@@ -10,9 +10,13 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      if (data.user) {
+        const { activateInvitedMemberships } = await import("@/lib/members/activate-invited-memberships");
+        await activateInvitedMemberships(data.user.id);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

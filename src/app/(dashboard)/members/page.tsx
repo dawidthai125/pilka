@@ -1,9 +1,11 @@
 import {
   ALL_PERMISSIONS,
+  canManageMembers,
   CLUB_ROLES,
   ROLE_LABELS,
   ROLE_PERMISSIONS,
 } from "@/config/permissions";
+import { MembersPanel } from "@/features/members/components/members-panel";
 import { getClubMembers, getDashboardContext, requireMemberReadAccess } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,15 +20,29 @@ export default async function MembersPage() {
   const { access } = await getDashboardContext();
   requireMemberReadAccess(access);
   const members = await getClubMembers();
+  const canManage = canManageMembers(access.roles);
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Role i uprawnienia</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Członkowie</h1>
         <p className="text-sm text-muted-foreground">
-          Macierz RBAC oraz członkowie klubu.
+          Zarządzanie członkami klubu oraz macierz uprawnień RBAC.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Członkowie klubu</CardTitle>
+          <CardDescription>
+            {members.length} {members.length === 1 ? "członek" : "członków"}
+            {canManage ? " · masz uprawnienia do zarządzania" : " · widok tylko do odczytu"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MembersPanel members={members} actorRoles={access.roles} canManage={canManage} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -69,32 +85,6 @@ export default async function MembersPage() {
               ))}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Członkowie klubu</CardTitle>
-          <CardDescription>{members.length} przypisań ról</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {members.map((member) => (
-              <div key={member.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-4">
-                <div>
-                  <p className="font-medium">
-                    {member.profile?.full_name ?? member.profile?.email ?? "Użytkownik"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{member.profile?.email}</p>
-                  {member.team?.name ? (
-                    <p className="text-xs text-muted-foreground">Drużyna: {member.team.name}</p>
-                  ) : null}
-                </div>
-                <div className="flex gap-2">
-                  <Badge>{ROLE_LABELS[member.role]}</Badge>
-                  <Badge variant="outline">{member.status}</Badge>
-                </div>
-              </div>
-            ))}
         </CardContent>
       </Card>
     </div>

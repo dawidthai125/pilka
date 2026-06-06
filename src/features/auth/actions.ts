@@ -23,10 +23,15 @@ export async function signInWithPassword(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { error: "Nieprawidłowy email lub hasło." };
+  }
+
+  if (data.user) {
+    const { activateInvitedMemberships } = await import("@/lib/members/activate-invited-memberships");
+    await activateInvitedMemberships(data.user.id);
   }
 
   redirect("/dashboard");
