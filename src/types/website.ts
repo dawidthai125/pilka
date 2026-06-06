@@ -229,6 +229,7 @@ export type PublicHeroMediaImage = {
 };
 
 export type PublicAcademyMediaImage = {
+  id?: string;
   slotKey: string;
   url: string | null;
   caption: string | null;

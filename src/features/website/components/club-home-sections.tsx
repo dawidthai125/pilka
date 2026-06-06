@@ -447,6 +447,38 @@ function sortTeamsForAcademyPath(teams: PublicTeamCard[]): PublicTeamCard[] {
   });
 }
 
+function academyMediaIdentity(item: PublicAcademyMediaImage): string | null {
+  return item.id ?? (item.slotKey && item.slotKey !== "undefined" ? item.slotKey : null);
+}
+
+function pickAcademySectionImages(images: PublicAcademyMediaImage[]): PublicAcademyMediaImage[] {
+  if (images.length === 0) return [];
+
+  const primary = images.find((item) => item.slotKey === "kids") ?? images[0];
+  if (!primary) return [];
+
+  const primaryIdentity = academyMediaIdentity(primary);
+
+  const secondary =
+    images.find((item) => item.slotKey === "training") ??
+    images.find((item) => {
+      const identity = academyMediaIdentity(item);
+      if (identity && primaryIdentity) return identity !== primaryIdentity;
+      return item !== primary;
+    }) ??
+    images[1];
+
+  const seen = new Set<string>();
+  return [primary, secondary]
+    .filter((item): item is PublicAcademyMediaImage => Boolean(item))
+    .filter((item, index) => {
+      const key = academyMediaIdentity(item) ?? `academy-img-${index}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
 export function PublicAcademySection({
   clubSlug,
   teams,
@@ -464,8 +496,7 @@ export function PublicAcademySection({
 }) {
   const paths = buildPublicClubPaths(clubSlug);
   const displayPath = sortTeamsForAcademyPath(teams);
-  const primaryImage = academyImages.find((item) => item.slotKey === "kids") ?? academyImages[0];
-  const secondaryImage = academyImages.find((item) => item.slotKey === "training") ?? academyImages[1];
+  const displayImages = pickAcademySectionImages(academyImages);
 
   return (
     <HomeDarkSection
@@ -481,9 +512,9 @@ export function PublicAcademySection({
       <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:items-start">
         <HomeDarkPanel className="p-3 sm:p-4">
           <div className="grid grid-cols-2 gap-3">
-            {[primaryImage, secondaryImage].filter(Boolean).map((item) => (
+            {displayImages.map((item, index) => (
               <div
-                key={item?.slotKey ?? "placeholder"}
+                key={item.id ?? item.slotKey ?? `academy-img-${index}`}
                 className={cn(
                   "overflow-hidden rounded-xl border border-white/10",
                   item?.slotKey === "kids" ? "col-span-2 aspect-[16/10]" : "aspect-square",

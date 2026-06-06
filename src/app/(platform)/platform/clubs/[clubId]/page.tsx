@@ -5,6 +5,7 @@ import { ExternalLink } from "lucide-react";
 import { getPlatformClubDetail } from "@/lib/platform/onboarding-status";
 import { evaluateClubActivationGates } from "@/lib/platform/club-activation";
 import { ClubActivationCard } from "@/features/platform/components/club-activation-card";
+import { ClubLifecycleActionBar } from "@/features/platform/components/club-lifecycle-actions";
 import { OnboardingStatusGrid, OnboardingStatusBadge } from "@/features/platform/components/onboarding-status-grid";
 import { PlatformShell } from "@/features/platform/components/platform-shell";
 import { buttonVariants } from "@/components/ui/button";
@@ -50,6 +51,23 @@ export default async function PlatformClubDetailPage({ params }: Props) {
           </div>
         </section>
 
+        <section className="rounded-xl border border-white/10 bg-white/5 p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-white/45">Operacje lifecycle</h2>
+          <p className="mt-1 text-xs text-white/50">Te same akcje co w rejestrze klubów — archiwizacja, przywracanie, zaproszenie.</p>
+          <div className="mt-4">
+            <ClubLifecycleActionBar
+              row={{
+                id: club.id,
+                slug: club.slug,
+                publicName: club.publicName,
+                status: club.status,
+                ownerEmail: club.ownerEmail,
+                ownerStatus: club.ownerStatus,
+              }}
+            />
+          </div>
+        </section>
+
         <div className="flex flex-wrap gap-3">
           <Link
             href="/platform/clubs"
@@ -61,13 +79,13 @@ export default async function PlatformClubDetailPage({ params }: Props) {
             href={`/platform/clubs/${clubId}/league/setup`}
             className={buttonVariants({ variant: "outline", className: "border-white/20 bg-transparent text-white hover:bg-white/10" })}
           >
-            League Setup
+            Konfiguracja ligi
           </Link>
           <Link
             href={`/platform/clubs/${clubId}/league`}
             className={buttonVariants({ variant: "outline", className: "border-white/20 bg-transparent text-white hover:bg-white/10" })}
           >
-            League Status
+            Status ligi
           </Link>
           <Link href={club.publicUrl} target="_blank" className={buttonVariants({ className: "inline-flex items-center" })}>
             <ExternalLink className="mr-2 size-4" />

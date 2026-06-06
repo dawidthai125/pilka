@@ -1,15 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import {
-  archiveClubAction,
-  resendOwnerInviteAction,
-  restoreClubAction,
-  type PlatformActionState,
-} from "@/features/platform/actions";
+  ArchiveClubButton,
+  ResendOwnerInviteButton,
+  RestoreClubButton,
+} from "@/features/platform/components/club-lifecycle-actions";
 import {
   formatPlatformDate,
   HealthLevelBadge,
@@ -60,134 +57,6 @@ function registryHref(
   if (!hideTest) params.set("hideTest", "0");
   const qs = params.toString();
   return qs ? `/platform/clubs?${qs}` : "/platform/clubs";
-}
-
-function LifecycleConfirmButton({
-  row,
-  action,
-  label,
-  title,
-  description,
-  confirmLabel,
-  tone = "default",
-}: {
-  row: ClubOperationsRegistryRow;
-  action: (_prev: PlatformActionState, formData: FormData) => Promise<PlatformActionState>;
-  label: string;
-  title: string;
-  description: string;
-  confirmLabel: string;
-  tone?: "default" | "danger" | "restore";
-}) {
-  const router = useRouter();
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(action, {} as PlatformActionState);
-
-  useEffect(() => {
-    if (state.success) {
-      setConfirmOpen(false);
-      router.refresh();
-    }
-  }, [state.success, router]);
-
-  const btnClass =
-    tone === "danger"
-      ? "text-red-300/90 hover:text-red-200"
-      : tone === "restore"
-        ? "text-emerald-300/90 hover:text-emerald-200"
-        : "text-amber-300/90 hover:text-amber-200";
-
-  return (
-    <>
-      <button type="button" onClick={() => setConfirmOpen(true)} className={cn("text-xs hover:underline", btnClass)}>
-        {label}
-      </button>
-      {confirmOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div
-            className="max-w-md rounded-xl border border-white/15 bg-[#0a1410] p-5 text-sm text-white shadow-xl"
-            role="dialog"
-          >
-            <h3 className="text-base font-semibold">{title}</h3>
-            <p className="mt-2 text-white/65">{description}</p>
-            {state.error ? <p className="mt-3 text-red-300">{state.error}</p> : null}
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="border-white/20 bg-transparent text-white hover:bg-white/10"
-                onClick={() => setConfirmOpen(false)}
-                disabled={pending}
-              >
-                Anuluj
-              </Button>
-              <form action={formAction}>
-                <input type="hidden" name="clubId" value={row.id} />
-                <Button
-                  type="submit"
-                  disabled={pending}
-                  className={cn(
-                    tone === "danger" && "bg-red-700 hover:bg-red-600",
-                    tone === "restore" && "bg-emerald-700 hover:bg-emerald-600",
-                  )}
-                >
-                  {pending ? "…" : confirmLabel}
-                </Button>
-              </form>
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </>
-  );
-}
-
-function ArchiveClubButton({ row }: { row: ClubOperationsRegistryRow }) {
-  if (row.status !== "active") return null;
-
-  return (
-    <LifecycleConfirmButton
-      row={row}
-      action={archiveClubAction}
-      label="Archive"
-      title="Archiwizować klub?"
-      description={`Klub ${row.publicName} (/${row.slug}) zostanie oznaczony jako archiwum. Strona publiczna i cron sync przestaną działać.`}
-      confirmLabel="Archiwizuj"
-      tone="danger"
-    />
-  );
-}
-
-function RestoreClubButton({ row }: { row: ClubOperationsRegistryRow }) {
-  if (row.status !== "archived") return null;
-
-  return (
-    <LifecycleConfirmButton
-      row={row}
-      action={restoreClubAction}
-      label="Restore"
-      title="Przywrócić klub do onboardingu?"
-      description={`Klub ${row.publicName} wróci do statusu onboarding (nie active). Operator musi ponownie przejść bramki aktywacji.`}
-      confirmLabel="Przywróć"
-      tone="restore"
-    />
-  );
-}
-
-function ResendOwnerInviteButton({ row }: { row: ClubOperationsRegistryRow }) {
-  if (row.ownerStatus === "active") return null;
-
-  return (
-    <LifecycleConfirmButton
-      row={row}
-      action={resendOwnerInviteAction}
-      label="Resend invite"
-      title="Ponowić zaproszenie właściciela?"
-      description={`Wyśle ponownie invite na ${row.ownerEmail ?? "email właściciela"} (Supabase Auth). Działa tylko gdy owner nie ma statusu active.`}
-      confirmLabel="Wyślij"
-      tone="default"
-    />
-  );
 }
 
 export function ClubOperationsRegistry({ data }: { data: ClubOperationsRegistryResult }) {

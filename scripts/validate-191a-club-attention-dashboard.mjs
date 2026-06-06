@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Sprint 19.1 — Club Attention Dashboard validation.
+ * Sprint 19.1 / 20.3C — Club Attention Dashboard validation.
  */
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -26,12 +26,14 @@ function testSources() {
   assert(!dashboard.includes("computePlatformHealthSummary()"), "no duplicate health summary load");
   assert(dashboard.includes("clubsRequiringAttention"), "attention section data");
   assert(dashboard.includes("topAlerts"), "top alerts data");
+  assert(dashboard.includes("pendingOwnerInvites"), "pending owner invites data");
   assert(dashboard.includes("onboardingNeedingAction"), "onboarding section data");
-  assert(view.includes("Kluby wymagające uwagi"), "attention UI");
-  assert(view.includes("Najważniejsze alerty"), "alerts UI");
-  assert(view.includes("Onboarding wymagający działań"), "onboarding UI");
-  assert(view.includes("Szybkie akcje"), "quick links");
-  assert(view.includes("/platform/clubs?status=attention"), "attention registry link");
+  assert(view.includes("Wymaga dzisiaj"), "today priority UI");
+  assert(view.includes("Stan platformy"), "platform status KPI UI");
+  assert(view.includes("Monitoring i operacje"), "operations section UI");
+  assert(!view.includes("Szybkie akcje"), "removed duplicate quick actions");
+  assert(!view.includes("Platform Health"), "removed duplicate health section title");
+  assert(view.includes("/platform/clubs?status=onboarding"), "onboarding registry link");
   assert(view.includes("monitoring?clubId="), "monitoring deep link");
   console.log("OK source constraints");
 }

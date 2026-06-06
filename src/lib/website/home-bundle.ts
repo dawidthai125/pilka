@@ -45,7 +45,7 @@ export type HydratedPublicHomePage = {
   players: PublicPlayer[];
   topScorers: PublicPlayer[];
   teams: PublicTeamCard[];
-  academyImages: Array<{ slotKey: string; url: string | null; caption: string | null }>;
+  academyImages: Array<{ id?: string; slotKey: string; url: string | null; caption: string | null }>;
   contactPhone: string | null;
   contactAddress: string | null;
   sponsors: PublicSponsor[];

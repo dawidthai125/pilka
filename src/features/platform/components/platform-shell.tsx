@@ -6,35 +6,57 @@ import { Activity, Building2, ClipboardList, LayoutDashboard, Plus, Shield } fro
 
 import { cn } from "@/lib/utils";
 
-const links = [
-  { href: "/platform", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/platform/monitoring", label: "Monitoring", icon: Activity, exact: false },
-  { href: "/platform/audit", label: "Audit Center", icon: ClipboardList, exact: true },
-  { href: "/platform/clubs", label: "Kluby", icon: Building2, exact: false },
-  { href: "/platform/clubs/new", label: "Nowy klub", icon: Plus, exact: true },
-];
+const NAV_SECTIONS = [
+  {
+    label: null as string | null,
+    items: [{ href: "/platform", label: "Pulpit", icon: LayoutDashboard, exact: true }],
+  },
+  {
+    label: "Operacje",
+    items: [
+      { href: "/platform/clubs", label: "Rejestr klubów", icon: Building2, exact: false },
+      { href: "/platform/clubs/new", label: "Nowy klub", icon: Plus, exact: true },
+    ],
+  },
+  {
+    label: "Observability",
+    items: [
+      { href: "/platform/monitoring", label: "Monitoring", icon: Activity, exact: false },
+      { href: "/platform/audit", label: "Audit", icon: ClipboardList, exact: true },
+    ],
+  },
+] as const;
 
 export function PlatformNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-1">
-      {links.map(({ href, label, icon: Icon, exact }) => {
-        const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition",
-              active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
-            )}
-          >
-            <Icon className="size-4 shrink-0" />
-            {label}
-          </Link>
-        );
-      })}
+    <nav className="flex flex-col gap-4">
+      {NAV_SECTIONS.map((section) => (
+        <div key={section.label ?? "pulpit"} className="space-y-1">
+          {section.label ? (
+            <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/40">
+              {section.label}
+            </p>
+          ) : null}
+          {section.items.map(({ href, label, icon: Icon, exact }) => {
+            const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition",
+                  active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }

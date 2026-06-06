@@ -19,6 +19,10 @@ function testSources() {
     join(root, "src/features/platform/components/club-operations-registry.tsx"),
     "utf8",
   );
+  const lifecycleUi = readFileSync(
+    join(root, "src/features/platform/components/club-lifecycle-actions.tsx"),
+    "utf8",
+  );
   const clubTest = readFileSync(join(root, "src/lib/platform/club-test.ts"), "utf8");
   const sql = readFileSync(join(root, "scripts/sql/hotfix-192b-platform-restore-club.sql"), "utf8");
 
@@ -28,8 +32,14 @@ function testSources() {
   assert(lifecycle.includes("resendOwnerInvite"), "owner resend");
   assert(audit.includes("club_restored"), "audit action club_restored");
   assert(audit.includes("owner_invite_resent"), "audit action owner_invite_resent");
-  assert(registry.includes("restoreClubAction"), "Restore UI");
-  assert(registry.includes("resendOwnerInviteAction"), "Resend UI");
+  assert(
+    lifecycleUi.includes("restoreClubAction") && registry.includes("RestoreClubButton"),
+    "Restore UI",
+  );
+  assert(
+    lifecycleUi.includes("resendOwnerInviteAction") && registry.includes("ResendOwnerInviteButton"),
+    "Resend UI",
+  );
   assert(
     registry.includes("hideTest") || registry.includes("hideTestClubs"),
     "hide test filter",

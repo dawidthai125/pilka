@@ -24,6 +24,17 @@ export type PlatformDashboardKpi = {
   activeClubs: number;
   onboardingClubs: number;
   activeLeagues: number;
+  testClubs: number;
+  cronStatus: string;
+};
+
+export type DashboardPendingOwnerRow = {
+  clubId: string;
+  slug: string;
+  publicName: string;
+  ownerEmail: string | null;
+  daysPending: number;
+  ownerStatus: string;
 };
 
 export type ClubAttentionRow = {
@@ -78,6 +89,8 @@ export type PlatformDashboardData = {
   platformHealth: PlatformHealthSummary;
   clubsRequiringAttention: ClubAttentionRow[];
   topAlerts: DashboardTopAlertRow[];
+  pendingOwnerInvites: DashboardPendingOwnerRow[];
+  failedRecentSyncs: PlatformRecentSyncRow[];
   onboardingNeedingAction: DashboardOnboardingAttentionRow[];
   recentSyncs: PlatformRecentSyncRow[];
   recentActions: PlatformRecentActionRow[];
@@ -86,7 +99,10 @@ export type PlatformDashboardData = {
 export { PLATFORM_AUDIT_ACTION_LABELS };
 
 const DASHBOARD_SYNC_JOB_LIMIT = 50;
-const DASHBOARD_RECENT_SYNC_LIMIT = 10;
+const DASHBOARD_RECENT_SYNC_LIMIT = 5;
+const DASHBOARD_RECENT_ACTION_LIMIT = 5;
+const DASHBOARD_ONBOARDING_LIMIT = 5;
+const DASHBOARD_PENDING_OWNER_LIMIT = 10;
 
 const ONBOARDING_STEP_LABELS: Record<
   keyof Omit<ClubOnboardingStatus, "overall">,
@@ -161,6 +177,79 @@ function buildClubsRequiringAttention(
     .map((c) => c.row);
 }
 
+function countTestClubs(ctx: HealthMetricsContext): number {
+  return ctx.clubs.filter((club) =>
+    isTestClub(String(club.slug), parseClubSettings(club.settings as Record<string, unknown> | null)),
+  ).length;
+}
+
+async function buildPendingOwnerInvites(
+  ctx: HealthMetricsContext,
+): Promise<DashboardPendingOwnerRow[]> {
+  const admin = createAdminClient();
+  const eligibleClubIds = ctx.clubs
+    .filter((c) => c.status !== "archived")
+    .filter(
+      (c) => !isTestClub(String(c.slug), parseClubSettings(c.settings as Record<string, unknown> | null)),
+    )
+    .map((c) => String(c.id));
+
+  if (eligibleClubIds.length === 0) return [];
+
+  const { data: memberships, error } = await admin
+    .from("club_memberships")
+    .select("club_id, status, created_at, user_id")
+    .eq("role", "owner")
+    .eq("status", "invited")
+    .in("club_id", eligibleClubIds);
+
+  if (error) throw new Error(error.message);
+  if (!memberships?.length) return [];
+
+  const userIds = [
+    ...new Set(
+      memberships
+        .map((m) => (m.user_id != null ? String(m.user_id) : null))
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  const profileByUserId = new Map<string, string>();
+  if (userIds.length > 0) {
+    const { data: profiles, error: profileError } = await admin
+      .from("profiles")
+      .select("id, email")
+      .in("id", userIds);
+    if (profileError) throw new Error(profileError.message);
+    for (const profile of profiles ?? []) {
+      profileByUserId.set(String(profile.id), String(profile.email ?? ""));
+    }
+  }
+
+  const clubById = new Map(ctx.clubs.map((c) => [String(c.id), c]));
+  const now = Date.now();
+
+  return memberships
+    .map((membership) => {
+      const clubId = String(membership.club_id);
+      const club = clubById.get(clubId);
+      if (!club) return null;
+      const createdAt = new Date(String(membership.created_at)).getTime();
+      const daysPending = Math.max(0, Math.floor((now - createdAt) / (1000 * 60 * 60 * 24)));
+      return {
+        clubId,
+        slug: String(club.slug),
+        publicName: String(club.public_name),
+        ownerEmail: profileByUserId.get(String(membership.user_id)) ?? null,
+        daysPending,
+        ownerStatus: String(membership.status),
+      };
+    })
+    .filter((row): row is DashboardPendingOwnerRow => row != null)
+    .sort((a, b) => b.daysPending - a.daysPending)
+    .slice(0, DASHBOARD_PENDING_OWNER_LIMIT);
+}
+
 function buildTopAlerts(alerts: PlatformAlert[]): DashboardTopAlertRow[] {
   return alerts.slice(0, 5).map((alert) => ({
     severity: alert.severity,
@@ -190,7 +279,7 @@ function buildOnboardingNeedingAction(ctx: HealthMetricsContext): DashboardOnboa
       };
     })
     .filter((row) => row.missingSteps.length > 0 || row.overall !== "complete")
-    .slice(0, 10);
+    .slice(0, DASHBOARD_ONBOARDING_LIMIT);
 }
 
 function parseAuditEntries(
@@ -228,7 +317,7 @@ export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
   const ctx = await loadHealthMetricsContext();
   const clubById = clubLookupFromContext(ctx);
 
-  const [jobsRes, clubHealth, leagueHealth] = await Promise.all([
+  const [jobsRes, clubHealth, leagueHealth, pendingOwnerInvites] = await Promise.all([
     admin
       .from("league_sync_jobs")
       .select(
@@ -238,6 +327,7 @@ export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
       .limit(DASHBOARD_SYNC_JOB_LIMIT),
     computeClubHealthRows(ctx),
     computeLeagueHealthRows(ctx),
+    buildPendingOwnerInvites(ctx),
   ]);
 
   if (jobsRes.error) throw new Error(jobsRes.error.message);
@@ -274,18 +364,24 @@ export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
     };
   });
 
+  const failedRecentSyncs = recentSyncs.filter((sync) => sync.status === "failed");
+
   return {
     kpi: {
       totalClubs: ctx.clubs.length,
       activeClubs: platformHealth.activeClubs,
       onboardingClubs: platformHealth.onboardingClubs,
       activeLeagues: countActiveLeagues(ctx),
+      testClubs: countTestClubs(ctx),
+      cronStatus: syncMonitoring.cron.status,
     },
     platformHealth,
     clubsRequiringAttention: buildClubsRequiringAttention(clubHealth, ctx),
     topAlerts: buildTopAlerts(alerts),
+    pendingOwnerInvites,
+    failedRecentSyncs,
     onboardingNeedingAction: buildOnboardingNeedingAction(ctx),
     recentSyncs,
-    recentActions: allActions.slice(0, 15),
+    recentActions: allActions.slice(0, DASHBOARD_RECENT_ACTION_LIMIT),
   };
 }

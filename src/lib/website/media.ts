@@ -63,6 +63,7 @@ export async function buildPublicWebsiteMediaBundle(items: WebsiteMediaItem[]) {
   );
 
   const academyImages = grouped.academy.map((item) => ({
+    id: item.id,
     slotKey: item.slotKey,
     url: urlMap.get(item.id) ?? null,
     caption: item.caption,

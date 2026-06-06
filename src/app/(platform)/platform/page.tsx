@@ -7,8 +7,8 @@ export default async function PlatformDashboardPage() {
 
   return (
     <PlatformShell
-      title="Dashboard"
-      subtitle="Co wymaga uwagi teraz — kluby, alerty i onboarding bez przechodzenia do Monitoring Center."
+      title="Pulpit"
+      subtitle="Priorytet operatora: pilne działania, stan platformy i skróty operacyjne."
     >
       <PlatformDashboardView data={data} />
     </PlatformShell>

@@ -77,6 +77,15 @@ export function DashboardHeader({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          {showPlatformAdmin ? (
+            <Link
+              href="/platform"
+              className="hidden items-center gap-1.5 rounded-lg border border-[var(--club-secondary)]/35 bg-[var(--club-secondary)]/10 px-3 py-1.5 text-xs font-semibold text-[var(--club-secondary)] transition hover:bg-[var(--club-secondary)]/20 sm:inline-flex"
+            >
+              <Shield className="size-3.5 shrink-0" />
+              Platforma
+            </Link>
+          ) : null}
           <Link
             href="/"
             target="_blank"
@@ -125,9 +134,9 @@ export function DashboardHeader({
               <DropdownMenuItem render={<Link href="/profile" />}>Profil użytkownika</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/notifications" />}>Powiadomienia</DropdownMenuItem>
               {showPlatformAdmin ? (
-                <DropdownMenuItem render={<Link href="/platform/clubs" />}>
+                <DropdownMenuItem render={<Link href="/platform" />}>
                   <Shield className="size-4" />
-                  Platform — kluby
+                  Panel platformy
                 </DropdownMenuItem>
               ) : null}
               <DropdownMenuSeparator />

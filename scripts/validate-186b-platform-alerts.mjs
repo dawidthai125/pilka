@@ -26,7 +26,10 @@ function testSources() {
   assert(!alerts.includes("loadPlatformSyncMetrics"), "no extra loader in alerts");
   assert(!alerts.includes("league_sync_jobs"), "no direct jobs query");
   assert(health.includes("evaluatePlatformAlerts"), "bundle must evaluate alerts");
-  assert(health.includes("alerts:"), "bundle must expose alerts");
+  assert(
+    health.includes("alerts:") || /return\s*\{[\s\S]*\balerts\b/.test(health),
+    "bundle must expose alerts",
+  );
   const interactive = readFileSync(
     join(root, "src/features/platform/components/monitoring-interactive.tsx"),
     "utf8",

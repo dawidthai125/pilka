@@ -15,6 +15,10 @@ function assert(cond, msg) {
 function testSources() {
   const onboarding = readFileSync(join(root, "src/lib/platform/onboarding-status.ts"), "utf8");
   const registry = readFileSync(join(root, "src/lib/platform/club-operations-registry.ts"), "utf8");
+  const registryTypes = readFileSync(
+    join(root, "src/lib/platform/club-operations-registry-types.ts"),
+    "utf8",
+  );
   const health = readFileSync(join(root, "src/lib/platform/health.ts"), "utf8");
   const audit = readFileSync(join(root, "src/lib/platform/audit.ts"), "utf8");
   const clubsPage = readFileSync(join(root, "src/app/(platform)/platform/clubs/page.tsx"), "utf8");
@@ -31,8 +35,15 @@ function testSources() {
   assert(!onboarding.includes("listPlatformClubs()") || !/getPlatformClubDetail[\s\S]*listPlatformClubs/.test(onboarding), "detail must not call listPlatformClubs");
   assert(onboarding.includes(".eq(\"id\", clubId)"), "single-club fetch in detail");
   assert(registry.includes("loadClubOperationsRegistryPage"), "registry pagination loader");
-  assert(registry.includes("REGISTRY_DEFAULT_PAGE_SIZE"), "registry default page size");
-  assert(registry.includes("25"), "page size 25 option");
+  assert(registry.includes("REGISTRY_DEFAULT_PAGE_SIZE"), "registry imports default page size");
+  assert(registry.includes("REGISTRY_PAGE_SIZE_OPTIONS"), "registry exports page size options");
+  assert(registryTypes.includes("REGISTRY_DEFAULT_PAGE_SIZE"), "registry default page size constant");
+  assert(registryTypes.includes("REGISTRY_PAGE_SIZE_OPTIONS"), "registry page size options constant");
+  assert(
+    /REGISTRY_PAGE_SIZE_OPTIONS\s*=\s*\[[^\]]*\b25\b/.test(registryTypes),
+    "page size 25 in REGISTRY_PAGE_SIZE_OPTIONS",
+  );
+  assert(registryView.includes("REGISTRY_PAGE_SIZE_OPTIONS"), "registry UI uses page size options");
   assert(clubsPage.includes("loadClubOperationsRegistryPage"), "clubs page uses paginated loader");
   assert(registryView.includes("pagination.totalPages"), "registry pagination UI");
   assert(health.includes("clubHealthPagination"), "monitoring health pagination");
