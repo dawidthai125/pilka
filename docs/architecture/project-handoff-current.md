@@ -106,7 +106,7 @@ Commit: `ef7873e909e2961e0c789ce6aa37f944530f437f`
 - **20.3C.1 UX Stabilization** — `pickAcademySectionImages`, academy media `id` w public bundle.
 - **20.3C.2 Release Gate Cleanup** — walidatory `193b`, `validate-doc-links-202a1` PASS.
 
-Walidatory: `validate-203b-club-navigation-v2.mjs`, `validate-203c-platform-ux.mjs` · Smoke: `scripts/_smoke-prod-203.mjs` (lokalny).
+Walidatory: `validate-203b-club-navigation-v2.mjs`, `validate-203c-platform-ux.mjs` · Smoke prod: `node scripts/_smoke-prod-203.mjs`
 
 ### Stabilization Sprint 15.10A
 
