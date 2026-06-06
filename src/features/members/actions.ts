@@ -15,8 +15,11 @@ import {
   canResendInvitation,
   canRevokeInvitation,
 } from "@/lib/members/invitation-utils";
+import { AuthInviteRateLimitError } from "@/lib/members/auth-invite-guard";
 import {
+  existingUserInviteMessage,
   inviteClubMember,
+  newUserInviteMessage,
   resendClubInvite,
   revokeClubInvite,
 } from "@/lib/members/invite-service";
@@ -27,6 +30,7 @@ import type { ClubRole } from "@/types/rbac";
 export type MemberActionState = {
   error?: string;
   success?: string;
+  inviteDelivery?: "email" | "login_required";
 };
 
 type MembershipRow = {
@@ -289,11 +293,16 @@ export async function inviteMember(
 
     revalidatePath("/members");
     return {
-      success: result.created
-        ? `Zaproszenie wysłane na ${result.email}.`
-        : `Dodano zaproszenie dla istniejącego użytkownika ${result.email}.`,
+      success:
+        result.delivery === "email"
+          ? newUserInviteMessage(result.email)
+          : existingUserInviteMessage(result.email),
+      inviteDelivery: result.delivery,
     };
   } catch (err) {
+    if (err instanceof AuthInviteRateLimitError) {
+      return { error: err.message };
+    }
     return { error: err instanceof Error ? err.message : "Nie udało się wysłać zaproszenia." };
   }
 }
@@ -345,8 +354,17 @@ export async function resendInvite(
       membershipId,
     });
     revalidatePath("/members");
-    return { success: `Ponownie wysłano zaproszenie na ${result.email}.` };
+    return {
+      success:
+        result.delivery === "email"
+          ? `Ponownie wysłano e-mail z zaproszeniem na ${result.email}.`
+          : `Odświeżono zaproszenie dla ${result.email}. Użytkownik ma już konto — powinien się zalogować, aby aktywować członkostwo.`,
+      inviteDelivery: result.delivery,
+    };
   } catch (err) {
+    if (err instanceof AuthInviteRateLimitError) {
+      return { error: err.message };
+    }
     return { error: err instanceof Error ? err.message : "Nie udało się ponowić zaproszenia." };
   }
 }

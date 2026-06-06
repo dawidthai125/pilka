@@ -2,7 +2,14 @@ import { getSiteUrl } from "@/config/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ClubRole } from "@/types/rbac";
 
+import {
+  type InviteDelivery,
+  inviteUserByEmailWithGuard,
+  isAuthUserConfirmed,
+} from "./auth-invite-guard";
 import { isInvitableClubRole } from "./invite-roles";
+
+export type { InviteDelivery } from "./auth-invite-guard";
 
 export type InviteMemberInput = {
   clubId: string;
@@ -14,11 +21,33 @@ export type InviteMemberInput = {
 export type InviteMemberResult = {
   userId: string;
   email: string;
+  /** @deprecated use delivery — true when Supabase Auth invite email was sent */
   created: boolean;
+  delivery: InviteDelivery;
+};
+
+export type ResendInviteResult = {
+  email: string;
+  delivery: InviteDelivery;
 };
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
+}
+
+const EXISTING_USER_SUCCESS_HINT =
+  "Użytkownik ma już konto w systemie — nie wysłano e-maila. " +
+  "Po zalogowaniu status zmieni się automatycznie na aktywny. " +
+  "Zaproszenie jest widoczne w zakładce Zaproszenia (Oczekujące).";
+
+export function existingUserInviteMessage(email: string): string {
+  return (
+    `Dodano zaproszenie dla istniejącego użytkownika ${email}. ${EXISTING_USER_SUCCESS_HINT}`
+  );
+}
+
+export function newUserInviteMessage(email: string): string {
+  return `Zaproszenie e-mailem wysłane na ${email}. Użytkownik pojawi się w zakładce Zaproszenia jako Oczekujące.`;
 }
 
 export async function inviteClubMember(input: InviteMemberInput): Promise<InviteMemberResult> {
@@ -65,53 +94,49 @@ export async function inviteClubMember(input: InviteMemberInput): Promise<Invite
       throw new Error("Użytkownik jest zawieszony — przywróć członkostwo przed zaproszeniem.");
     }
 
+    const now = new Date().toISOString();
     const { error: membershipError } = await admin.from("club_memberships").upsert(
       {
         club_id: input.clubId,
         user_id: userId,
         role: input.role,
         status: "invited",
+        updated_at: now,
       },
       { onConflict: "club_id,user_id,role" },
     );
 
     if (membershipError) throw new Error(membershipError.message);
 
-    return { userId, email: normalized, created: false };
+    return { userId, email: normalized, created: false, delivery: "login_required" };
   }
 
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(normalized, {
+  const { userId } = await inviteUserByEmailWithGuard(admin, input.clubId, normalized, {
     data: { full_name: fullName },
     redirectTo: `${getSiteUrl()}/auth/callback`,
   });
 
-  if (error || !data.user) {
-    throw new Error(
-      `Zaproszenie nie powiodło się: ${error?.message ?? "unknown"}. ` +
-        "Jeśli użytkownik ma już konto, użyj innego adresu lub skontaktuj się z administratorem.",
-    );
-  }
-
   const { error: membershipError } = await admin.from("club_memberships").upsert(
     {
       club_id: input.clubId,
-      user_id: data.user.id,
+      user_id: userId,
       role: input.role,
       status: "invited",
+      updated_at: new Date().toISOString(),
     },
     { onConflict: "club_id,user_id,role" },
   );
 
   if (membershipError) throw new Error(membershipError.message);
 
-  return { userId: data.user.id, email: normalized, created: true };
+  return { userId, email: normalized, created: true, delivery: "email" };
 }
 
 export async function resendClubInvite(input: {
   clubId: string;
   membershipId: string;
   fullName?: string | null;
-}): Promise<{ email: string }> {
+}): Promise<ResendInviteResult> {
   const admin = createAdminClient();
 
   const { data: membership, error: membershipError } = await admin
@@ -138,24 +163,33 @@ export async function resendClubInvite(input: {
   const email = profile?.email?.trim();
   if (!email) throw new Error("Brak adresu e-mail w profilu.");
 
-  const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
+  const { data: authData, error: authError } = await admin.auth.admin.getUserById(membership.user_id);
+
+  if (authError) throw new Error(authError.message);
+
+  const authUser = authData.user;
+  const now = new Date().toISOString();
+
+  if (authUser && isAuthUserConfirmed(authUser)) {
+    await admin
+      .from("club_memberships")
+      .update({ status: "invited", updated_at: now })
+      .eq("id", input.membershipId);
+
+    return { email, delivery: "login_required" };
+  }
+
+  await inviteUserByEmailWithGuard(admin, input.clubId, email, {
     data: { full_name: input.fullName ?? profile?.full_name ?? "Członek klubu" },
     redirectTo: `${getSiteUrl()}/auth/callback`,
   });
 
-  if (inviteError) {
-    throw new Error(
-      `Nie udało się ponowić zaproszenia: ${inviteError.message}. ` +
-        "Supabase Auth może blokować ponowne zaproszenie — użytkownik może użyć pierwotnego linku lub reset hasła.",
-    );
-  }
-
   await admin
     .from("club_memberships")
-    .update({ status: "invited", updated_at: new Date().toISOString() })
+    .update({ status: "invited", updated_at: now })
     .eq("id", input.membershipId);
 
-  return { email };
+  return { email, delivery: "email" };
 }
 
 export async function revokeClubInvite(input: {
@@ -180,7 +214,7 @@ export async function revokeClubInvite(input: {
 
   const { error } = await admin
     .from("club_memberships")
-    .update({ status: "archived" })
+    .update({ status: "archived", updated_at: new Date().toISOString() })
     .eq("id", input.membershipId)
     .eq("club_id", input.clubId);
 

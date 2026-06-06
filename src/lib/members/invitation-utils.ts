@@ -70,3 +70,27 @@ export function computeMembersDashboardCounts(
 
   return { active, invited, suspended, pendingInvites };
 }
+
+export type InvitationStatusCounts = Record<InvitationDisplayStatus, number>;
+
+export function countInvitationsByStatus(
+  invitations: ClubInvitationRow[],
+): InvitationStatusCounts {
+  return {
+    pending: invitations.filter((i) => i.status === "pending").length,
+    accepted: invitations.filter((i) => i.status === "accepted").length,
+    expired: invitations.filter((i) => i.status === "expired").length,
+    revoked: invitations.filter((i) => i.status === "revoked").length,
+  };
+}
+
+export function countInvitationsRequiringAction(invitations: ClubInvitationRow[]): number {
+  return invitations.filter((i) => i.status === "pending" || i.status === "expired").length;
+}
+
+export const INVITATION_STATUS_ORDER: InvitationDisplayStatus[] = [
+  "pending",
+  "expired",
+  "accepted",
+  "revoked",
+];

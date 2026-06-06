@@ -7,8 +7,39 @@ import { ROLE_LABELS } from "@/config/permissions";
 import { inviteMember, type MemberActionState } from "@/features/members/actions";
 import { INVITABLE_CLUB_ROLES } from "@/lib/members/invite-roles";
 import type { ClubRole } from "@/types/rbac";
+import { cn } from "@/lib/utils";
 
-const inputClass = "border-input min-h-[44px] w-full rounded-md border bg-background px-3 text-foreground";
+const inputClass =
+  "border-input min-h-[44px] w-full rounded-md border bg-background px-3 text-foreground";
+
+function InviteSuccessNotice({ state }: { state: MemberActionState }) {
+  if (!state.success) return null;
+
+  const isExistingAccount = state.inviteDelivery === "login_required";
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border px-4 py-3 text-sm",
+        isExistingAccount
+          ? "border-amber-500/40 bg-amber-500/10 text-amber-950 dark:text-amber-50"
+          : "border-green-500/40 bg-green-500/10 text-green-900 dark:text-green-50",
+      )}
+      role="status"
+    >
+      <p className="font-medium">
+        {isExistingAccount ? "Zaproszenie dodane — konto już istnieje" : "Zaproszenie wysłane e-mailem"}
+      </p>
+      <p className="mt-1 text-pretty opacity-90">{state.success}</p>
+      {isExistingAccount ? (
+        <p className="mt-2 text-xs opacity-80">
+          Sprawdź zakładkę <strong>Zaproszenia → Oczekujące</strong>. Poproś użytkownika o logowanie na
+          ten sam adres e-mail.
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 export function InviteMemberForm({ assignableRoles }: { assignableRoles: ClubRole[] }) {
   const [state, action, pending] = useActionState(inviteMember, {} as MemberActionState);
@@ -20,7 +51,8 @@ export function InviteMemberForm({ assignableRoles }: { assignableRoles: ClubRol
       <div>
         <h3 className="font-semibold">Zaproś członka</h3>
         <p className="text-sm text-muted-foreground">
-          Wyślij zaproszenie e-mailem. Rola właściciela nie jest dostępna.
+          Nowy użytkownik otrzyma e-mail z linkiem. Jeśli konto już istnieje, zaproszenie pojawi się w
+          zakładce Zaproszenia — użytkownik musi się zalogować.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -53,7 +85,7 @@ export function InviteMemberForm({ assignableRoles }: { assignableRoles: ClubRol
         {pending ? "Wysyłanie…" : "Wyślij zaproszenie"}
       </Button>
       {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-      {state.success ? <p className="text-sm text-green-600">{state.success}</p> : null}
+      <InviteSuccessNotice state={state} />
     </form>
   );
 }

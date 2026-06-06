@@ -252,7 +252,7 @@ export const dashboardNavSections: DashboardNavSection[] = [
         icon: Link2,
         audience: "integration_staff",
       },
-      { title: "Role", href: "/members", icon: Shield },
+      { title: "Członkowie", href: "/members", icon: Shield },
       { title: "Profil klubu", href: "/club", icon: Building2 },
       {
         title: "Ustawienia",
