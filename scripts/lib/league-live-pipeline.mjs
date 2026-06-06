@@ -199,8 +199,16 @@ export async function ingestMergedPayload(supabase, { jobId, merged, metadata = 
       (String(existing.match_date) !== String(row.matchDate) ||
         String(existing.match_time ?? "11:00").slice(0, 5) !== String(row.matchTime ?? "11:00").slice(0, 5) ||
         Number(existing.round_number ?? 0) !== Number(row.roundNumber ?? 0));
+    const namesChanged =
+      existing &&
+      (normalizeTeamKey(existing.home_team_name) !== normalizeTeamKey(homeTeamName) ||
+        normalizeTeamKey(existing.away_team_name) !== normalizeTeamKey(awayTeamName));
     const syncStatus =
-      !existing || scoresChanged || metaChanged ? "pending" : existing.sync_status === "synced" ? "synced" : "pending";
+      !existing || scoresChanged || metaChanged || namesChanged
+        ? "pending"
+        : existing.sync_status === "synced"
+          ? "synced"
+          : "pending";
 
     upsertRows.push({
       club_id: clubId,
@@ -286,10 +294,12 @@ export async function syncTableToPublicModule(supabase) {
     .eq("competition_id", competitionId)
     .eq("snapshot_at", latest.snapshot_at);
 
+  const snapshotKeys = new Set();
   let processed = 0;
   for (const row of rows ?? []) {
     const leagueName = String(row.team_name);
-    const publicName = resolveDisplayName(leagueName, teams ?? []);
+    const publicName = normalizeTeamName(resolveDisplayName(leagueName, teams ?? []));
+    snapshotKeys.add(normalizeTeamKey(publicName));
     const { error } = await supabase.from("league_table_entries").upsert(
       {
         club_id: clubId,
@@ -309,6 +319,22 @@ export async function syncTableToPublicModule(supabase) {
     );
     if (!error) processed += 1;
   }
+
+  const { data: existingEntries } = await supabase
+    .from("league_table_entries")
+    .select("id, team_name")
+    .eq("club_id", clubId)
+    .eq("competition", String(comp.name))
+    .eq("season", seasonName);
+
+  const staleIds = (existingEntries ?? [])
+    .filter((entry) => !snapshotKeys.has(normalizeTeamKey(entry.team_name)))
+    .map((entry) => entry.id);
+
+  if (staleIds.length) {
+    await supabase.from("league_table_entries").delete().in("id", staleIds);
+  }
+
   return processed;
 }
 
@@ -571,7 +597,7 @@ export async function syncMatchesToModule(supabase, jobId) {
     .select("*")
     .eq("club_id", meta.clubId)
     .eq("competition_id", meta.competitionId)
-    .in("sync_status", ["pending", "conflict"]);
+    .in("sync_status", ["pending", "conflict", "synced"]);
 
   let processed = 0;
   let failed = 0;

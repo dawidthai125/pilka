@@ -4,6 +4,24 @@
 
 const MIRROR_SOURCE_NAME = "Mirror live";
 
+/**
+ * Ensures mirror URLs are absolute (Node fetch requires a scheme).
+ * Legacy configs stored shorthand paths like regionalnyfutbol.pl/wroclaw-vii.
+ */
+export function normalizeMirrorUrl(raw, fallback = "") {
+  const s = String(raw ?? "").trim();
+  if (!s) return fallback;
+  if (/^https?:\/\//i.test(s)) return s;
+  if (s.startsWith("//")) return `https:${s}`;
+  if (/^[\w.-]+(\/|$)/.test(s)) {
+    if (/90minut/i.test(s)) {
+      return s.startsWith("www.") ? `http://${s}` : `http://www.${s}`;
+    }
+    return `https://${s}`;
+  }
+  return fallback || s;
+}
+
 function buildRegiowynikiKadraUrl(leagueTeamName) {
   const slug = String(leagueTeamName ?? "")
     .trim()
@@ -97,21 +115,26 @@ export async function loadLeagueClubConfig(supabase, clubId) {
   const config = source.config && typeof source.config === "object" ? source.config : {};
   const lnpRaw = config.lnp && typeof config.lnp === "object" ? config.lnp : {};
 
-  const ninetyMinutUrl =
+  const ninetyMinutDefault = "http://www.90minut.pl/liga/1/liga14526.html";
+  const regionalnyDefault =
+    "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html";
+
+  const ninetyMinutRaw =
     config.ninetyMinutUrl ||
     config.ninety_minut_url ||
     (Array.isArray(config.sources)
       ? config.sources.find((s) => String(s).includes("90minut"))
-      : null) ||
-    "http://www.90minut.pl/liga/1/liga14526.html";
+      : null);
 
-  const regionalnyFutbolUrl =
+  const regionalnyRaw =
     config.regionalnyFutbolUrl ||
     config.regionalny_futbol_url ||
     (Array.isArray(config.sources)
       ? config.sources.find((s) => String(s).includes("regionalnyfutbol"))
-      : null) ||
-    "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html";
+      : null);
+
+  const ninetyMinutUrl = normalizeMirrorUrl(ninetyMinutRaw, ninetyMinutDefault);
+  const regionalnyFutbolUrl = normalizeMirrorUrl(regionalnyRaw, regionalnyDefault);
 
   return {
     clubId,

@@ -9,7 +9,12 @@ VALUES (
   'Mirror (mPZPN/ŁNP)',
   TRUE,
   '{
-    "sources": ["90minut.pl/liga14526", "regionalnyfutbol.pl/wroclaw-vii"],
+    "ninetyMinutUrl": "http://www.90minut.pl/liga/1/liga14526.html",
+    "regionalnyFutbolUrl": "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html",
+    "sources": [
+      "http://www.90minut.pl/liga/1/liga14526.html",
+      "https://regionalnyfutbol.pl/liga,klasa-b-dolnoslaska-grupa-wroclaw-vii-sezon-2025-2026,tabela-terminarz.html"
+    ],
     "ownLeagueName": "GLKS Mietków",
     "ownDisplayName": "Piorun Wawrzeńczyce",
     "cron": "0 6 */3 * *",

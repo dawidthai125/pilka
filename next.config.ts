@@ -16,6 +16,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  outputFileTracingIncludes: {
+    "/api/cron/league-sync": ["./scripts/lib/**/*"],
+    "/platform/clubs/[clubId]/league": ["./scripts/lib/**/*"],
+  },
   async headers() {
     return [
       {

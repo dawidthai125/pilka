@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { spawnSync } from "node:child_process";
-import { join } from "node:path";
 
+import { runLeagueSync } from "@/lib/league/runtime";
 import { requirePlatformAdmin } from "@/lib/platform/admin";
 import {
   activateLeagueSync,
@@ -150,21 +149,30 @@ export async function triggerLeagueLiveSyncAction(
     return { error: "Live sync dostępny tylko dla źródła Mirror live." };
   }
 
-  const scriptPath = join(process.cwd(), "scripts/sync-league-live.mjs");
-  const result = spawnSync(process.execPath, [scriptPath, "--club-id", clubId, "--json"], {
-    env: process.env,
-    encoding: "utf8",
-    maxBuffer: 10 * 1024 * 1024,
-  });
+  try {
+    const result = await runLeagueSync({
+      clubId,
+      triggerSource: "platform_admin",
+    });
 
-  if (result.status !== 0) {
+    if (!result.ok) {
+      const clubError = result.results.find((r) => !r.ok)?.error;
+      return {
+        error: clubError ?? "Live sync zakończył się błędem.",
+      };
+    }
+
+    const clubResult = result.results.find((r) => r.clubId === clubId) ?? result.results[0];
+    revalidateLeaguePlatformPaths(clubId);
     return {
-      error: result.stderr?.trim() || result.stdout?.trim() || "Live sync zakończył się błędem.",
+      success: `Live sync zakończony (${clubResult?.recordsProcessed ?? 0} rekordów). Odśwież status poniżej.`,
+      jobId: clubResult?.jobId ?? undefined,
+    };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Live sync zakończył się błędem.",
     };
   }
-
-  revalidateLeaguePlatformPaths(clubId);
-  return { success: "Live sync zakończony. Odśwież status poniżej." };
 }
 
 export async function getLeagueSetupSnapshotAction(clubId: string) {

@@ -1,6 +1,12 @@
 import type { SyncCategory } from "@/lib/platform/sync-category";
 import type { ClubHealthRow, LeagueHealthRow } from "@/lib/platform/health-types";
 import type { HealthMetricsContext } from "@/lib/platform/health";
+import type { PlatformSyncMetricsRow } from "@/lib/platform/sync-metrics";
+
+function mirrorFreshnessHours(metrics: PlatformSyncMetricsRow | undefined): number | null {
+  if (!metrics) return null;
+  return metrics.mirrorLiveFreshnessHours ?? metrics.freshnessHours ?? null;
+}
 
 /** Zgodne z `club-test.ts` — lokalna kopia dla importów Node (validate-186b). */
 const TEST_CLUB_SLUGS = new Set(["pilot-club-test"]);
@@ -71,6 +77,7 @@ const CLUB_GROUPABLE_TYPES = new Set([
   "club_health_warning",
   "freshness_critical",
   "freshness_warning",
+  "league_sync_stale",
   "sync_failures_critical",
   "sync_failure_warning",
   "slow_sync",
@@ -81,6 +88,7 @@ const CLUB_GROUPABLE_TYPES = new Set([
 const TYPE_SORT_IN_GROUP: Record<string, number> = {
   sync_failures_critical: 0,
   freshness_critical: 1,
+  league_sync_stale: 1,
   club_health_critical: 2,
   sync_failure_warning: 3,
   freshness_warning: 4,
@@ -196,26 +204,26 @@ function collectRawAlerts(input: {
     }
 
     if (mirrorLive && club.status === "active") {
-      const freshness = metrics?.freshnessHours ?? null;
-      if (freshness != null && freshness > 96) {
+      const freshness = mirrorFreshnessHours(metrics);
+      if (freshness != null && freshness > 48) {
         raw.push({
           severity: "CRITICAL",
-          title: `Brak aktualnych danych — ${name}`,
-          description: `Dane klubu ${name} nie były pomyślnie synchronizowane od ${Math.round(freshness)} godzin (mirror live).`,
+          title: `League Sync Stale — ${name}`,
+          description: `Mirror live klubu ${name} nie wykonał udanego syncu od ${Math.round(freshness)} godzin (próg CRITICAL: >48 h).`,
           clubId: club.clubId,
           sourceId: null,
           provider: "mirror_live",
-          type: "freshness_critical",
+          type: "league_sync_stale",
         });
-      } else if (freshness != null && freshness > 48) {
+      } else if (freshness != null && freshness > 24) {
         raw.push({
           severity: "WARNING",
-          title: `Dane nieaktualne — ${name}`,
-          description: `Ostatni udany sync klubu ${name} był ${Math.round(freshness)} godzin temu (próg 48–96 h).`,
+          title: `League Sync Stale — ${name}`,
+          description: `Mirror live klubu ${name} nie wykonał udanego syncu od ${Math.round(freshness)} godzin (próg WARNING: >24 h).`,
           clubId: club.clubId,
           sourceId: null,
           provider: "mirror_live",
-          type: "freshness_warning",
+          type: "league_sync_stale",
         });
       }
     }

@@ -9,6 +9,7 @@ import { evaluatePlatformAlerts } from "@/lib/platform/platform-alerts";
 import { loadSyncHistory } from "@/lib/platform/sync-history";
 import {
   loadPlatformSyncMetrics,
+  mirrorFreshnessHours,
   type PlatformSyncMetricsRow,
 } from "@/lib/platform/sync-metrics";
 import type {
@@ -105,7 +106,7 @@ export function latencyScore(avgDurationMs: number | null): number {
 
 export function computeSyncHealthScore(metrics: PlatformSyncMetricsRow | undefined): number {
   const jobCount = metrics?.jobCount ?? 0;
-  const fresh = freshnessScore(metrics?.freshnessHours ?? null);
+  const fresh = freshnessScore(mirrorFreshnessHours(metrics));
   const success = successScore(metrics?.successRate ?? null, jobCount);
   const latency = latencyScore(metrics?.avgDurationMs ?? null);
   const score = fresh * 0.4 + success * 0.35 + latency * 0.25;
@@ -122,14 +123,21 @@ function buildSyncHealthFactors(metrics: PlatformSyncMetricsRow | undefined): st
   }
 
   const factors: string[] = [];
-  const fresh = freshnessScore(metrics.freshnessHours);
+  const mirrorFresh = mirrorFreshnessHours(metrics);
+  const fresh = freshnessScore(mirrorFresh);
   const success = successScore(metrics.successRate, metrics.jobCount);
   const latency = latencyScore(metrics.avgDurationMs);
 
-  if (metrics.freshnessHours != null) {
-    factors.push(`Świeżość: ${formatHours(metrics.freshnessHours)} (${fresh}/100)`);
+  if (mirrorFresh != null) {
+    factors.push(`Świeżość mirror live: ${formatHours(mirrorFresh)} (${fresh}/100)`);
   } else {
-    factors.push("Świeżość: brak udanego syncu (0/100)");
+    factors.push("Świeżość mirror live: brak udanego syncu (0/100)");
+  }
+
+  if (metrics.manualImportFreshnessHours != null) {
+    factors.push(
+      `Import ręczny: ${formatHours(metrics.manualImportFreshnessHours)} temu`,
+    );
   }
 
   factors.push(
@@ -406,6 +414,7 @@ export async function computeClubHealthRows(
     };
 
     const lastSyncAt =
+      metrics?.lastMirrorLiveAt ??
       metrics?.lastSuccessAt ??
       (primarySource?.last_sync_at != null ? String(primarySource.last_sync_at) : null);
 
@@ -477,7 +486,7 @@ export async function computeLeagueHealthRows(
         nextCronRunAt: providerId === "mirror_live" && source.is_active ? nextCron : "—",
         recentErrorCount: metrics?.failedCount ?? 0,
         lastJobStatus: deriveLastJobStatus(metrics),
-        lastJobAt: metrics?.lastSuccessAt ?? null,
+        lastJobAt: metrics?.lastMirrorLiveAt ?? metrics?.lastSuccessAt ?? null,
         level: evaluation.level,
         factors: evaluation.factors,
       });
