@@ -14,21 +14,37 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Produkcja commit (Vercel)** | `eb29e7a` — 20.1 + deploy recovery **LIVE** |
-| **origin/main** | `eb29e7a` |
+| **Produkcja commit (Vercel)** | `af3a485` — **Sprint 20.3** navigation + platform UX **LIVE** |
+| **origin/main** | `af3a485` |
+| **Tag checkpointu (20.3)** | `post-20-3-navigation-ux` → `af3a485` |
 | **Tag checkpointu Platform** | `pre-20-2-platform-roadmap` → `ed324b7` |
-| **Faza Platform** | ✅ 18.5A → **20.1** zamknięta |
+| **Faza Platform** | ✅ 18.5A → **20.1** zamknięta · ✅ **20.3** UX/navigation zamknięta |
+| **Sprint 20.3** | ✅ **Completed** — status **PASS**, production **GO** |
 | **Production Readiness** | **GO** (20 / 50 / 100 klubów) |
 | **Następny sprint (rekomendacja)** | **20.2 — Club Management** |
 | **Hotfixy SQL na prod** | `192b` ✅ · `193b` ✅ · `201a` ✅ |
 
+### Sprint 20.3 Completed (wdrożone `af3a485`)
+
+| Pod-sprint | Zakres |
+|------------|--------|
+| **20.3B** | Club Navigation v2 — grouped sidebar, AI hub, PL labels, RBAC filter |
+| **20.3C** | Platform UX Cleanup — dashboard 3 sekcje, lifecycle na detail, Platforma CTA |
+| **20.3C.1** | UX Stabilization — fix academy images duplicate React keys |
+| **20.3C.2** | Release Gate Cleanup — walidatory `193b` + doc-links PASS |
+
+**Walidacja:** typecheck + walidatory 18.5–20.3C — **PASS** · **Smoke prod:** GO  
+**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · **Propozycja nav (audyt):** [`navigation-v2-proposal.md`](./navigation-v2-proposal.md)
+
 **Kluczowe trasy Platform:** `/platform`, `/platform/clubs`, `/platform/monitoring`, `/platform/audit`
+
+**Kluczowe trasy Club (nav v2):** `/dashboard`, `/players` (Kadra), `/ai` (hub), `/members` (Role, Administracja zwinięta)
 
 **Reguła architektury (P0):** komponenty `"use client"` w Platform **nie** importują value z `health.ts` — używaj `health-types.ts` / `club-operations-registry-types.ts`. Patrz [deploy-recovery RCA](./sprint-201a-deploy-recovery-rca.md).
 
-**Archiwum dokumentacji (Sprint 20.2A):** historyczne raporty sprintów i audytów → **[`../archive/`](../archive/)** (np. `18-5-health/`, `19-3-scale/`, `audit/`). Aktywne pliki Platform: ten katalog [`docs/architecture/`](./AGENTS.md).
+**Archiwum dokumentacji (Sprint 20.2A):** historyczne raporty sprintów i audytów → **[`../archive/`](../archive/)** (np. `18-5-health/`, `19-3-scale/`, `audit/`). Audyt nawigacji 20.3A: [`../archive/audit/`](../archive/audit/). Aktywne pliki Platform: ten katalog [`docs/architecture/`](./AGENTS.md).
 
-**Nie rób ponownie:** deploy recovery (naprawione w `eb29e7a`), re-apply hotfixów SQL bez potrzeby.
+**Nie rób ponownie:** deploy recovery (naprawione w `eb29e7a`), re-apply hotfixów SQL bez potrzeby, ponowny release gate 20.3C.2 (zamknięty).
 
 > **Historia sprzed 18.5:** sekcje poniżej (backup PRE 18.5, sprinty 15.x–18.4b) — kontekst archiwalny.
 
@@ -80,6 +96,17 @@ Commit: `ef7873e909e2961e0c789ce6aa37f944530f437f`
 ---
 
 ## 2. RECENT COMPLETED SPRINTS
+
+### Sprint 20.3 — Navigation & Platform UX (2026-06-06)
+
+**Commit:** `af3a485` · **Tag:** `post-20-3-navigation-ux` · **Status:** PASS · **Production:** GO
+
+- **20.3B Club Navigation v2** — `dashboardNavSections`, AI hub + sub-nav, PL naming, `filter-dashboard-nav.ts`.
+- **20.3C Platform UX Cleanup** — platform dashboard reorder, `ClubLifecycleActionBar`, header **Platforma**.
+- **20.3C.1 UX Stabilization** — `pickAcademySectionImages`, academy media `id` w public bundle.
+- **20.3C.2 Release Gate Cleanup** — walidatory `193b`, `validate-doc-links-202a1` PASS.
+
+Walidatory: `validate-203b-club-navigation-v2.mjs`, `validate-203c-platform-ux.mjs` · Smoke: `scripts/_smoke-prod-203.mjs` (lokalny).
 
 ### Stabilization Sprint 15.10A
 
@@ -146,8 +173,9 @@ Metryki po P0 (lokalnie): sync **~79 s → ~28 s**; warm TTFB `/` prod **~0,95 s
 
 | Pole | Wartość |
 |------|---------|
-| **Commit prod** | `ef7873e` (18.4b) |
-| **origin/main** | `ef7873e` |
+| **Commit prod** | `af3a485` (20.3 navigation + platform UX) |
+| **origin/main** | `af3a485` |
+| **Tag checkpointu** | `post-20-3-navigation-ux` |
 | **Backup tag** | `pre-18-5-platform-complete` |
 | **URL** | https://pilka-mu.vercel.app |
 | **Region Vercel** | `fra1` |
@@ -496,7 +524,7 @@ Wymagane w `.env.local`: `NEXT_PUBLIC_SUPABASE_*`, `SUPABASE_SERVICE_ROLE_KEY` (
 
 - Otwórz https://pilka-mu.vercel.app — `/`, `/druzyna`, `/tabela`.
 - GitHub: `gh run list --branch main -L 3`
-- Vercel: ostatni deployment = commit `ef7873e` (18.4b).
+- Vercel: ostatni deployment = commit `af3a485` (20.3 navigation + platform UX).
 
 ### Krok 4 — Zweryfikuj ligę
 
@@ -542,7 +570,9 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 | Temat | Plik |
 |-------|------|
 | **START — stan na dziś** | Ten plik (sekcja 0) |
+| **Changelog / 20.3** | `CHANGELOG.md` |
 | **Platform handoff 20.1** | `docs/architecture/project-handoff-20.1.md` |
+| **Navigation v2 (20.3)** | `docs/architecture/navigation-v2-proposal.md` |
 | **Archiwum sprintów** | `docs/archive/` |
 | **Backup PRE 18.5** | `docs/archive/audit/pre-18-5-backup-handoff.md` |
 | Architektura produktu | `docs/ai/README.md` + `01`–`09` |
