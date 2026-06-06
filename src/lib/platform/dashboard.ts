@@ -12,7 +12,10 @@ import {
   type HealthMetricsContext,
   type PlatformHealthSummary,
 } from "@/lib/platform/health";
-import { loadSyncMonitoring } from "@/lib/platform/monitoring";
+import {
+  buildSyncMonitoringData,
+  type SyncClubLookupEntry,
+} from "@/lib/platform/monitoring";
 import { evaluatePlatformAlerts, type PlatformAlert } from "@/lib/platform/platform-alerts";
 import { PLATFORM_AUDIT_ACTION_LABELS } from "@/lib/platform/platform-audit-actions";
 
@@ -81,6 +84,9 @@ export type PlatformDashboardData = {
 };
 
 export { PLATFORM_AUDIT_ACTION_LABELS };
+
+const DASHBOARD_SYNC_JOB_LIMIT = 50;
+const DASHBOARD_RECENT_SYNC_LIMIT = 10;
 
 const ONBOARDING_STEP_LABELS: Record<
   keyof Omit<ClubOnboardingStatus, "overall">,
@@ -200,25 +206,44 @@ function parseAuditEntries(
   }));
 }
 
+function countActiveLeagues(ctx: HealthMetricsContext): number {
+  let count = 0;
+  for (const sources of ctx.sourcesByClubId.values()) {
+    count += sources.filter((s) => s.is_active).length;
+  }
+  return count;
+}
+
+function clubLookupFromContext(ctx: HealthMetricsContext): Map<string, SyncClubLookupEntry> {
+  return new Map(
+    ctx.clubs.map((c) => [
+      String(c.id),
+      { id: String(c.id), slug: String(c.slug), public_name: String(c.public_name) },
+    ]),
+  );
+}
+
 export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
   const admin = createAdminClient();
   const ctx = await loadHealthMetricsContext();
+  const clubById = clubLookupFromContext(ctx);
 
-  const [syncMonitoring, leaguesRes, syncsRes, clubsAuditRes, clubHealth, leagueHealth] =
-    await Promise.all([
-      loadSyncMonitoring(),
-      admin.from("league_sources").select("id", { count: "exact", head: true }).eq("is_active", true),
-      admin
-        .from("league_sync_jobs")
-        .select("id, club_id, status, records_processed, records_failed, error_message, created_at")
-        .order("created_at", { ascending: false })
-        .limit(10),
-      admin.from("clubs").select("id, slug, status, settings"),
-      computeClubHealthRows(ctx),
-      computeLeagueHealthRows(ctx),
-    ]);
+  const [jobsRes, clubHealth, leagueHealth] = await Promise.all([
+    admin
+      .from("league_sync_jobs")
+      .select(
+        "id, club_id, status, records_processed, records_failed, error_message, started_at, completed_at, created_at, import_type",
+      )
+      .order("created_at", { ascending: false })
+      .limit(DASHBOARD_SYNC_JOB_LIMIT),
+    computeClubHealthRows(ctx),
+    computeLeagueHealthRows(ctx),
+  ]);
 
-  if (clubsAuditRes.error) throw new Error(clubsAuditRes.error.message);
+  if (jobsRes.error) throw new Error(jobsRes.error.message);
+
+  const jobs = (jobsRes.data ?? []) as Parameters<typeof buildSyncMonitoringData>[0];
+  const syncMonitoring = buildSyncMonitoringData(jobs, clubById, DASHBOARD_SYNC_JOB_LIMIT);
 
   const alerts = evaluatePlatformAlerts({
     ctx,
@@ -228,17 +253,13 @@ export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
   });
 
   const platformHealth = platformHealthSummaryFromRows(clubHealth, leagueHealth);
-  const clubsAudit = clubsAuditRes.data ?? [];
-  const clubById = new Map(
-    ctx.clubs.map((c) => [String(c.id), c]),
-  );
 
-  const allActions = clubsAudit.flatMap((club) =>
+  const allActions = ctx.clubs.flatMap((club) =>
     parseAuditEntries(String(club.slug), club.settings as Record<string, unknown> | null),
   );
   allActions.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
-  const recentSyncs: PlatformRecentSyncRow[] = (syncsRes.data ?? []).map((row) => {
+  const recentSyncs: PlatformRecentSyncRow[] = jobs.slice(0, DASHBOARD_RECENT_SYNC_LIMIT).map((row) => {
     const club = clubById.get(String(row.club_id));
     return {
       jobId: String(row.id),
@@ -258,7 +279,7 @@ export async function loadPlatformDashboard(): Promise<PlatformDashboardData> {
       totalClubs: ctx.clubs.length,
       activeClubs: platformHealth.activeClubs,
       onboardingClubs: platformHealth.onboardingClubs,
-      activeLeagues: leaguesRes.count ?? 0,
+      activeLeagues: countActiveLeagues(ctx),
     },
     platformHealth,
     clubsRequiringAttention: buildClubsRequiringAttention(clubHealth, ctx),

@@ -57,15 +57,21 @@ async function ensureOwnerViaAuth(
   const admin = createAdminClient();
   const normalized = ownerEmail.trim().toLowerCase();
 
-  const { data: listed } = await admin.auth.admin.listUsers({ perPage: 1000 });
-  const existing = listed?.users?.find((u) => u.email?.toLowerCase() === normalized);
+  const { data: profile, error: profileError } = await admin
+    .from("profiles")
+    .select("id")
+    .ilike("email", normalized)
+    .maybeSingle();
 
-  if (existing) {
+  if (profileError) throw new Error(profileError.message);
+
+  if (profile?.id) {
+    const userId = String(profile.id);
     await admin.from("club_memberships").upsert(
-      { club_id: clubId, user_id: existing.id, role: "owner", status: "active" },
+      { club_id: clubId, user_id: userId, role: "owner", status: "active" },
       { onConflict: "club_id,user_id,role" },
     );
-    return existing.id;
+    return userId;
   }
 
   const { data, error } = await admin.auth.admin.inviteUserByEmail(normalized, {

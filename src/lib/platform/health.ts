@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseClubSettings } from "@/lib/platform/club-test";
 import { getNextCronRun } from "@/lib/platform/cron-schedule";
@@ -257,7 +259,7 @@ async function buildOnboardingByClubId(
   return map;
 }
 
-export async function loadHealthMetricsContext(): Promise<HealthMetricsContext> {
+async function loadHealthMetricsContextImpl(): Promise<HealthMetricsContext> {
   const admin = createAdminClient();
 
   const [metrics, clubsRes, sourcesRes] = await Promise.all([
@@ -306,6 +308,9 @@ export async function loadHealthMetricsContext(): Promise<HealthMetricsContext> 
     onboardingByClubId,
   };
 }
+
+/** Per-request dedup — max one DB round-trip set per RSC request tree. */
+export const loadHealthMetricsContext = cache(loadHealthMetricsContextImpl);
 
 function deriveLastJobStatus(metrics: PlatformSyncMetricsRow | undefined): string | null {
   if (!metrics || metrics.jobCount === 0) return null;
@@ -591,8 +596,14 @@ export async function loadPlatformMonitoringBundle(
   const leagueHealthPage = Math.max(1, query.leagueHealthPage ?? 1);
 
   const context = await loadHealthMetricsContext();
+  const clubLookup = new Map(
+    context.clubs.map((c) => [
+      String(c.id),
+      { id: String(c.id), slug: String(c.slug), public_name: String(c.public_name) },
+    ]),
+  );
   const [syncMonitoring, clubHealthAll, leagueHealthAll, syncHistory] = await Promise.all([
-    loadSyncMonitoring(),
+    loadSyncMonitoring(50, clubLookup),
     computeClubHealthRows(context),
     computeLeagueHealthRows(context),
     loadSyncHistory(),

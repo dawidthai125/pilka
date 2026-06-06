@@ -6,7 +6,6 @@ import { requirePlatformAdmin } from "@/lib/platform/admin";
 import { activateClub, evaluateClubActivationGates } from "@/lib/platform/club-activation";
 import { archiveClub, resendOwnerInvite, restoreClub } from "@/lib/platform/club-lifecycle";
 import { createClub } from "@/lib/platform/club-bootstrap";
-import { listPlatformClubs } from "@/lib/platform/onboarding-status";
 import {
   deriveShortName,
   slugifyClubInput,
@@ -74,11 +73,6 @@ export async function createClubAction(
     const message = error instanceof Error ? error.message : "Nie udało się utworzyć klubu.";
     return { error: message };
   }
-}
-
-export async function fetchPlatformClubs(filter?: string) {
-  await requirePlatformAdmin();
-  return listPlatformClubs(filter);
 }
 
 export async function fetchClubActivationGates(clubId: string) {

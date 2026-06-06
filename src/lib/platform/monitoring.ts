@@ -47,6 +47,12 @@ export type SyncMonitoringData = {
   cron: CronMonitoringInfo;
 };
 
+export type SyncClubLookupEntry = {
+  id: string;
+  slug: string;
+  public_name: string;
+};
+
 type SyncJobRow = {
   id: string;
   club_id: string;
@@ -60,26 +66,14 @@ type SyncJobRow = {
   import_type: string;
 };
 
-export async function loadSyncMonitoring(limit = 50): Promise<SyncMonitoringData> {
-  const admin = createAdminClient();
+const SYNC_JOB_SELECT =
+  "id, club_id, status, records_processed, records_failed, error_message, started_at, completed_at, created_at, import_type";
 
-  const [clubsRes, syncsRes] = await Promise.all([
-    admin.from("clubs").select("id, slug, public_name"),
-    admin
-      .from("league_sync_jobs")
-      .select(
-        "id, club_id, status, records_processed, records_failed, error_message, started_at, completed_at, created_at, import_type",
-      )
-      .order("created_at", { ascending: false })
-      .limit(limit),
-  ]);
-
-  if (clubsRes.error) throw new Error(clubsRes.error.message);
-  if (syncsRes.error) throw new Error(syncsRes.error.message);
-
-  const clubById = new Map((clubsRes.data ?? []).map((c) => [String(c.id), c]));
-  const jobs = (syncsRes.data ?? []) as SyncJobRow[];
-
+export function buildSyncMonitoringData(
+  jobs: SyncJobRow[],
+  clubById: Map<string, SyncClubLookupEntry>,
+  limit: number,
+): SyncMonitoringData {
   const syncs: SyncMonitoringRow[] = jobs.map((row) => {
     const club = clubById.get(String(row.club_id));
     const jobLike = {
@@ -150,4 +144,33 @@ export async function loadSyncMonitoring(limit = 50): Promise<SyncMonitoringData
       statusMessage: cronMessage,
     },
   };
+}
+
+export async function loadSyncMonitoring(
+  limit = 50,
+  clubLookup?: Map<string, SyncClubLookupEntry>,
+): Promise<SyncMonitoringData> {
+  const admin = createAdminClient();
+
+  const syncsRes = await admin
+    .from("league_sync_jobs")
+    .select(SYNC_JOB_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (syncsRes.error) throw new Error(syncsRes.error.message);
+
+  let clubById = clubLookup;
+  if (!clubById) {
+    const clubsRes = await admin.from("clubs").select("id, slug, public_name");
+    if (clubsRes.error) throw new Error(clubsRes.error.message);
+    clubById = new Map(
+      (clubsRes.data ?? []).map((c) => [
+        String(c.id),
+        { id: String(c.id), slug: String(c.slug), public_name: String(c.public_name) },
+      ]),
+    );
+  }
+
+  return buildSyncMonitoringData((syncsRes.data ?? []) as SyncJobRow[], clubById, limit);
 }

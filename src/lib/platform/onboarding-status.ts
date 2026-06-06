@@ -11,15 +11,6 @@ export type ClubOnboardingStatus = {
   overall: OnboardingStepStatus;
 };
 
-type ClubRow = {
-  id: string;
-  slug: string;
-  public_name: string;
-  status: string;
-  settings: Record<string, unknown> | null;
-  created_at: string;
-};
-
 export type PlatformClubListItem = {
   id: string;
   slug: string;
@@ -78,61 +69,7 @@ export async function computeClubOnboardingStatus(clubId: string): Promise<ClubO
   return { branding, website, league, owner, media, overall };
 }
 
-export async function listPlatformClubs(filter?: string): Promise<PlatformClubListItem[]> {
-  const admin = createAdminClient();
-
-  let query = admin
-    .from("clubs")
-    .select("id, slug, public_name, status, settings, created_at")
-    .order("created_at", { ascending: false });
-
-  if (filter === "active" || filter === "onboarding" || filter === "archived") {
-    query = query.eq("status", filter);
-  }
-
-  const { data: clubs, error } = await query;
-  if (error) throw new Error(error.message);
-
-  const rows = (clubs ?? []) as ClubRow[];
-  const items: PlatformClubListItem[] = [];
-
-  for (const club of rows) {
-    const { data: ownerMembership } = await admin
-      .from("club_memberships")
-      .select("status, user_id")
-      .eq("club_id", club.id)
-      .eq("role", "owner")
-      .maybeSingle();
-
-    let ownerEmail: string | null = null;
-    if (ownerMembership?.user_id) {
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("email")
-        .eq("id", ownerMembership.user_id)
-        .maybeSingle();
-      ownerEmail = profile?.email ?? null;
-    }
-
-    const onboarding = await computeClubOnboardingStatus(club.id);
-
-    items.push({
-      id: club.id,
-      slug: club.slug,
-      publicName: club.public_name,
-      status: club.status,
-      ownerEmail,
-      ownerStatus: ownerMembership?.status ?? null,
-      createdAt: club.created_at,
-      onboarding,
-      publicUrl: `/${club.slug}`,
-    });
-  }
-
-  return items;
-}
-
-/** Pojedynczy klub — ~5–6 zapytań stałych (bez listPlatformClubs / N+1). */
+/** Pojedynczy klub — ~5–6 zapytań stałych (bez N+1 list loader). */
 export async function getPlatformClubDetail(clubId: string): Promise<PlatformClubListItem | null> {
   const admin = createAdminClient();
 
