@@ -6,8 +6,20 @@ import { canManageMembers } from "@/config/permissions";
 import { requireAccessContext } from "@/lib/auth/session";
 import {
   canAssignClubRole,
+  canInviteClubRole,
+  canInviteMembers,
   canManageMemberTarget,
 } from "@/lib/members/guards";
+import {
+  deriveInvitationStatus,
+  canResendInvitation,
+  canRevokeInvitation,
+} from "@/lib/members/invitation-utils";
+import {
+  inviteClubMember,
+  resendClubInvite,
+  revokeClubInvite,
+} from "@/lib/members/invite-service";
 import { createClient } from "@/lib/supabase/server";
 import { parseClubRole } from "@/lib/validators";
 import type { ClubRole } from "@/types/rbac";
@@ -28,6 +40,13 @@ type MembershipRow = {
 function requireMemberManage(access: Awaited<ReturnType<typeof requireAccessContext>>) {
   if (!canManageMembers(access.roles)) {
     return { error: "Brak uprawnień do zarządzania członkami." };
+  }
+  return null;
+}
+
+function requireMemberInvite(access: Awaited<ReturnType<typeof requireAccessContext>>) {
+  if (!canInviteMembers(access.roles)) {
+    return { error: "Brak uprawnień do zapraszania członków." };
   }
   return null;
 }
@@ -237,4 +256,134 @@ export async function removeMember(
 
   revalidatePath("/members");
   return { success: "Członek został usunięty z klubu." };
+}
+
+export async function inviteMember(
+  _prev: MemberActionState,
+  formData: FormData,
+): Promise<MemberActionState> {
+  const access = await requireAccessContext();
+  const denied = requireMemberInvite(access);
+  if (denied) return denied;
+
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const roleRaw = String(formData.get("role") ?? "").trim();
+  const parsedRole = parseClubRole(roleRaw);
+
+  if (!fullName || !email || !parsedRole.success) {
+    return { error: "Podaj imię, email i rolę." };
+  }
+
+  if (!canInviteClubRole(access.roles, parsedRole.data)) {
+    return { error: "Nie możesz zaprosić użytkownika w tej roli." };
+  }
+
+  try {
+    const result = await inviteClubMember({
+      clubId: access.clubId,
+      email,
+      fullName,
+      role: parsedRole.data,
+    });
+
+    revalidatePath("/members");
+    return {
+      success: result.created
+        ? `Zaproszenie wysłane na ${result.email}.`
+        : `Dodano zaproszenie dla istniejącego użytkownika ${result.email}.`,
+    };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nie udało się wysłać zaproszenia." };
+  }
+}
+
+async function loadInvitationForAction(membershipId: string, clubId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("club_memberships")
+    .select("id, club_id, user_id, role, status, created_at, updated_at")
+    .eq("id", membershipId)
+    .eq("club_id", clubId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function resendInvite(
+  _prev: MemberActionState,
+  formData: FormData,
+): Promise<MemberActionState> {
+  const access = await requireAccessContext();
+  const denied = requireMemberInvite(access);
+  if (denied) return denied;
+
+  const membershipId = String(formData.get("membershipId") ?? "").trim();
+  if (!membershipId) return { error: "Nieprawidłowe zaproszenie." };
+
+  const membership = await loadInvitationForAction(membershipId, access.clubId);
+  if (!membership) return { error: "Nie znaleziono zaproszenia." };
+
+  const role = parseTargetRole(membership.role);
+  if (!role || !canInviteClubRole(access.roles, role)) {
+    return { error: "Nie możesz zarządzać tym zaproszeniem." };
+  }
+
+  const displayStatus = deriveInvitationStatus(
+    membership.status,
+    membership.created_at,
+    membership.updated_at,
+  );
+  if (!displayStatus || !canResendInvitation(displayStatus)) {
+    return { error: "Można ponowić tylko oczekujące lub wygasłe zaproszenia." };
+  }
+
+  try {
+    const result = await resendClubInvite({
+      clubId: access.clubId,
+      membershipId,
+    });
+    revalidatePath("/members");
+    return { success: `Ponownie wysłano zaproszenie na ${result.email}.` };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nie udało się ponowić zaproszenia." };
+  }
+}
+
+export async function revokeInvite(
+  _prev: MemberActionState,
+  formData: FormData,
+): Promise<MemberActionState> {
+  const access = await requireAccessContext();
+  const denied = requireMemberInvite(access);
+  if (denied) return denied;
+
+  const membershipId = String(formData.get("membershipId") ?? "").trim();
+  if (!membershipId) return { error: "Nieprawidłowe zaproszenie." };
+
+  const membership = await loadInvitationForAction(membershipId, access.clubId);
+  if (!membership) return { error: "Nie znaleziono zaproszenia." };
+
+  const role = parseTargetRole(membership.role);
+  if (!role || !canInviteClubRole(access.roles, role)) {
+    return { error: "Nie możesz zarządzać tym zaproszeniem." };
+  }
+
+  const displayStatus = deriveInvitationStatus(
+    membership.status,
+    membership.created_at,
+    membership.updated_at,
+  );
+  if (!displayStatus || !canRevokeInvitation(displayStatus)) {
+    return { error: "Można anulować tylko oczekujące lub wygasłe zaproszenia." };
+  }
+
+  try {
+    await revokeClubInvite({ clubId: access.clubId, membershipId });
+    revalidatePath("/members");
+    return { success: "Zaproszenie zostało anulowane." };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Nie udało się anulować zaproszenia." };
+  }
 }

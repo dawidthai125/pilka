@@ -1,5 +1,7 @@
-import { canManageMembers } from "@/config/permissions";
+import { canManageMembers, LEADERSHIP_ROLES } from "@/config/permissions";
 import type { ClubRole } from "@/types/rbac";
+
+import { isInvitableClubRole } from "./invite-roles";
 
 export function canManageMemberTarget(
   actorRoles: ClubRole[],
@@ -14,6 +16,16 @@ export function canManageMemberTarget(
   }
 
   return true;
+}
+
+export function canInviteMembers(actorRoles: ClubRole[]): boolean {
+  return actorRoles.some((role) => LEADERSHIP_ROLES.includes(role));
+}
+
+export function canInviteClubRole(actorRoles: ClubRole[], targetRole: ClubRole): boolean {
+  if (!canInviteMembers(actorRoles)) return false;
+  if (!isInvitableClubRole(targetRole)) return false;
+  return canAssignClubRole(actorRoles, targetRole);
 }
 
 export function canAssignClubRole(

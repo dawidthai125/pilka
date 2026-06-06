@@ -5,8 +5,12 @@ import {
   ROLE_LABELS,
   ROLE_PERMISSIONS,
 } from "@/config/permissions";
-import { MembersPanel } from "@/features/members/components/members-panel";
+import { MembersDashboard } from "@/features/members/components/members-dashboard";
 import { getClubMembers, getDashboardContext, requireMemberReadAccess } from "@/lib/auth/session";
+import {
+  computeMembersDashboardCounts,
+  getClubInvitations,
+} from "@/lib/members/invitations";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -19,28 +23,35 @@ import {
 export default async function MembersPage() {
   const { access } = await getDashboardContext();
   requireMemberReadAccess(access);
-  const members = await getClubMembers();
+  const [members, invitations] = await Promise.all([getClubMembers(), getClubInvitations()]);
   const canManage = canManageMembers(access.roles);
+  const counts = computeMembersDashboardCounts(members, invitations);
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Członkowie</h1>
         <p className="text-sm text-muted-foreground">
-          Zarządzanie członkami klubu oraz macierz uprawnień RBAC.
+          Zarządzanie członkami, zaproszeniami oraz macierz uprawnień RBAC.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Członkowie klubu</CardTitle>
+          <CardTitle>Członkowie i zaproszenia</CardTitle>
           <CardDescription>
-            {members.length} {members.length === 1 ? "członek" : "członków"}
+            {counts.active} aktywnych · {counts.pendingInvites} oczekujących zaproszeń
             {canManage ? " · masz uprawnienia do zarządzania" : " · widok tylko do odczytu"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <MembersPanel members={members} actorRoles={access.roles} canManage={canManage} />
+          <MembersDashboard
+            members={members}
+            invitations={invitations}
+            counts={counts}
+            actorRoles={access.roles}
+            canManage={canManage}
+          />
         </CardContent>
       </Card>
 

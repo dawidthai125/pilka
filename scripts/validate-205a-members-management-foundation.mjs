@@ -23,7 +23,10 @@ function testMembersPage() {
   const page = read("src/app/(dashboard)/members/page.tsx");
   const panel = read("src/features/members/components/members-panel.tsx");
 
-  assert(page.includes("MembersPanel"), "members page uses MembersPanel");
+  assert(
+    page.includes("MembersPanel") || page.includes("MembersDashboard"),
+    "members page uses members UI",
+  );
   assert(page.includes("Członkowie"), "members page title");
   assert(panel.includes("Imię i nazwisko"), "table column: name");
   assert(panel.includes("Email"), "table column: email");
