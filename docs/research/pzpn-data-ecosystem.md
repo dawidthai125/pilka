@@ -2,7 +2,7 @@
 
 **Data:** 2026-06-01  
 **Status:** dokumentacja referencyjna (bez implementacji integracji)  
-**Powiązane:** [ETAP 15B League Hub](../modules/stage-15b-league-hub.md), [ETAP 15B.2 research](../audit/stage-15b2-league-data-research.md) *(nie modyfikować)*
+**Powiązane:** [ETAP 15B League Hub](../modules/stage-15b-league-hub.md), [ETAP 15B.2 research](../archive/audit/stage-15b2-league-data-research.md) *(nie modyfikować)*
 
 ---
 
@@ -141,7 +141,7 @@ Agregatory mogą służyć **wyłącznie** do testów i weryfikacji danych — p
 | Integracja IT / partnerstwo | przez wniosek formalny (DZPN → PZPN IT / partner Droptica) |
 | Extranet | https://extranet.pzpn.pl/ (wymaga konta klubowego) |
 
-**Status FC OS (2026-05-31):** wniosek o read-only API wysłany do DZPN + PZPN — oczekiwanie na odpowiedź. Szczegóły procesu biznesowego: sekcja 12 w [stage-15b2-league-data-research.md](../audit/stage-15b2-league-data-research.md) *(tylko odczyt)*.
+**Status FC OS (2026-05-31):** wniosek o read-only API wysłany do DZPN + PZPN — oczekiwanie na odpowiedź. Szczegóły procesu biznesowego: sekcja 12 w [stage-15b2-league-data-research.md](../archive/audit/stage-15b2-league-data-research.md) *(tylko odczyt)*.
 
 ---
 

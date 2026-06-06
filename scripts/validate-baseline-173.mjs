@@ -14,7 +14,7 @@ dotenv.config({ path: join(root, ".env.local") });
 
 const baselineSql = readFileSync(join(root, "supabase/baseline.sql"), "utf8");
 const classification = JSON.parse(
-  readFileSync(join(root, "docs/architecture/sprint-173-migration-classification.json"), "utf8"),
+  readFileSync(join(root, "docs/archive/17x-infrastructure/sprint-173-migration-classification.json"), "utf8"),
 );
 
 function countPattern(sql, re) {
@@ -136,7 +136,7 @@ async function main() {
     },
   };
 
-  const outPath = join(root, "docs/architecture/sprint-173-baseline-validation.json");
+  const outPath = join(root, "docs/archive/17x-infrastructure/sprint-173-baseline-validation.json");
   writeFileSync(outPath, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report, null, 2));
 }

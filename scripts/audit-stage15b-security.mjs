@@ -140,10 +140,10 @@ if (panels.includes("min-h-[44px]")) {
   fail("S15B-16", "Brak min-h-[44px] w panelach League");
 }
 
-if (existsSync(join(root, "docs/audit/stage-15b-audit.md"))) {
+if (existsSync(join(root, "docs/archive/audit/stage-15b-audit.md"))) {
   pass("S15B-17", "Raport audytu stage-15b-audit.md istnieje");
 } else {
-  fail("S15B-17", "Brak docs/audit/stage-15b-audit.md");
+  fail("S15B-17", "Brak docs/archive/audit/stage-15b-audit.md");
 }
 
 console.log("\n=== ETAP 15B Security Audit ===\n");

@@ -23,7 +23,7 @@ npm run build               # exit 0 — 85 tras
 ```
 
 Checklist prod: [`docs/deployment/production-checklist.md`](./deployment/production-checklist.md)  
-Audyt bezpieczeństwa: [`docs/audit/stage-11.6-security-audit-post-fix.md`](./audit/stage-11.6-security-audit-post-fix.md)
+Audyt bezpieczeństwa: [`docs/archive/audit/stage-11.6-security-audit-post-fix.md`](./archive/audit/stage-11.6-security-audit-post-fix.md)
 
 ---
 

@@ -196,7 +196,7 @@ async function main() {
     repoBaselineTableDiff,
   };
 
-  const out = join(root, "docs/architecture/sprint-174-parity-inventory.json");
+  const out = join(root, "docs/archive/17x-infrastructure/sprint-174-parity-inventory.json");
   writeFileSync(out, JSON.stringify(inventory, null, 2));
   console.log(JSON.stringify({ counts: inventory.counts, verdict: inventory.verdict, byModule: inventory.byModule }, null, 2));
 }

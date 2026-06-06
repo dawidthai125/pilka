@@ -139,7 +139,7 @@ Po **19.3B P0** platforma jest **GO warunkowy do ~100 klubów** operacyjnie. Gł
 
 ## 7. P1 Backlog Review (Zadanie 6)
 
-Źródło: [sprint-193a-saas-readiness-audit.md](./sprint-193a-saas-readiness-audit.md) §8 P1.
+Źródło: [sprint-193a-saas-readiness-audit.md](../archive/19-3-scale/sprint-193a-saas-readiness-audit.md) §8 P1.
 
 | Rekomendacja P1 | Nadal aktualna? | Uwagi po 19.3B |
 |-----------------|-----------------|----------------|

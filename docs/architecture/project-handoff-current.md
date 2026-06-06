@@ -10,7 +10,7 @@
 
 ## 0. START HERE — STAN NA DZIŚ (2026-06-06)
 
-> **Platform Admin (18.5A → 20.1):** czytaj **[`../architecture/project-handoff-20.1.md`](../architecture/project-handoff-20.1.md)** — pełny handoff sprintów, hotfixy SQL, skala, deploy recovery.
+> **Platform Admin (18.5A → 20.1):** czytaj **[`project-handoff-20.1.md`](./project-handoff-20.1.md)** — pełny handoff sprintów, hotfixy SQL, skala, deploy recovery.
 
 | Pole | Wartość |
 |------|---------|
@@ -24,7 +24,9 @@
 
 **Kluczowe trasy Platform:** `/platform`, `/platform/clubs`, `/platform/monitoring`, `/platform/audit`
 
-**Reguła architektury (P0):** komponenty `"use client"` w Platform **nie** importują value z `health.ts` — używaj `health-types.ts` / `club-operations-registry-types.ts`. Patrz [deploy-recovery RCA](../architecture/sprint-201a-deploy-recovery-rca.md).
+**Reguła architektury (P0):** komponenty `"use client"` w Platform **nie** importują value z `health.ts` — używaj `health-types.ts` / `club-operations-registry-types.ts`. Patrz [deploy-recovery RCA](./sprint-201a-deploy-recovery-rca.md).
+
+**Archiwum dokumentacji (Sprint 20.2A):** historyczne raporty sprintów i audytów → **[`../archive/`](../archive/)** (np. `18-5-health/`, `19-3-scale/`, `audit/`). Aktywne pliki Platform: ten katalog [`docs/architecture/`](./AGENTS.md).
 
 **Nie rób ponownie:** deploy recovery (naprawione w `eb29e7a`), re-apply hotfixów SQL bez potrzeby.
 
@@ -34,7 +36,7 @@
 
 ## 0b. ARCHIWUM — stan 2026-06-04 (PRE 18.5)
 
-> **Pełny checkpoint backupu:** [`pre-18-5-backup-handoff.md`](./pre-18-5-backup-handoff.md)
+> **Pełny checkpoint backupu:** [`pre-18-5-backup-handoff.md`](../archive/audit/pre-18-5-backup-handoff.md)
 
 | Pole | Wartość |
 |------|---------|
@@ -86,45 +88,45 @@ Commit: `ef7873e909e2961e0c789ce6aa37f944530f437f`
 - TOP 5 wydajności (League Hub, match detail).
 - **Coach Day** na `/dashboard`.
 - Usunięcie martwego kodu z auditu.
-- Raport: `docs/audit/stabilization-sprint-1510a-report.md`
+- Raport: `docs/archive/audit/stabilization-sprint-1510a-report.md`
 
 ### Club Identity 15.10B
 
 - Spójna identyfikacja wizualna Pioruna: login, sidebar, dashboard chrome, PWA.
 - Logo, kolory `#0B3D2E` / `#F4C430`, crest badges.
-- Raport: `docs/audit/club-identity-1510b-report.md`
+- Raport: `docs/archive/audit/club-identity-1510b-report.md`
 
 ### Layout Sprint 15.10C
 
 - Redesign dashboardu (hero, visuals, Coach Day integration).
 - Premium dark green + gold UI panelu.
-- Raporty: `docs/audit/layout-sprint-1510c-report.md`, `docs/audit/layout-1510c-build-report.md`
+- Raporty: `docs/archive/audit/layout-sprint-1510c-report.md`, `docs/archive/audit/layout-1510c-build-report.md`
 
 ### Public Website 2.0
 
 - Przebudowa `/`: moduły meczowe, akademia, wiele drużyn, top strzelcy, tabela skrócona.
 - Multi-club SaaS (bez hardcodu nazw w logice).
-- Raport: `docs/audit/public-website-2.0-report.md`
+- Raport: `docs/archive/audit/public-website-2.0-report.md`
 
 ### Public Website 3.0
 
 - Scenografia „klub piłkarski”: pełnoekranowy hero, matchday plakat, sponsor wall, ciemna scena `#062820`.
 - Usunięto osobną sekcję „Klub w liczbach” (statystyki w hero).
 - Skrócona nawigacja publiczna.
-- Raport: `docs/audit/public-website-3.0-implementation-report.md`
+- Raport: `docs/archive/audit/public-website-3.0-implementation-report.md`
 
 ### Public Website 4.0
 
 - Fotorealistyczne JPG w `/club-media/`, naprawa Matchday (`Invalid Date`).
 - Lokalność z CMS, akademia wyżej, sponsorzy jako partnerzy.
-- Raport: `docs/audit/public-website-4.0-implementation-report.md`
+- Raport: `docs/archive/audit/public-website-4.0-implementation-report.md`
 
 ### Piorun Real Content Sprint
 
 - Audyt: 100% slotów demo, fake newsy, stock zdjęcia.
 - P1 wykonane **lokalnie** (import FB Playwright, migracja newsów, ukrycie demo sponsorów) — raport mówi „bez commita na prod” w momencie pisania; **zweryfikuj** `git log` i stan `website_media` na Supabase prod.
-- Raport: `docs/audit/real-content-sprint-report.md`, `docs/audit/p1-import-report.md`
-- Przewodnik treści: `docs/audit/piorun-brand-content-guide.md`
+- Raport: `docs/archive/audit/real-content-sprint-report.md`, `docs/archive/audit/p1-import-report.md`
+- Przewodnik treści: `docs/archive/audit/piorun-brand-content-guide.md`
 
 ### Performance & League Stabilization 16.0 — P0 (wdrożone)
 
@@ -167,15 +169,15 @@ Metryki po P0 (lokalnie): sync **~79 s → ~28 s**; warm TTFB `/` prod **~0,95 s
 
 | Sprint | Status | Dokumentacja |
 |--------|--------|--------------|
-| **18.1** Multi-Club Routing | ✅ prod | `docs/architecture/sprint-181-final-report.md` |
-| **18.2** Create Club Wizard | ✅ kod | `docs/architecture/sprint-182-final-report.md` |
-| **18.3** League Setup Wizard | ✅ kod | `docs/architecture/sprint-183-final-report.md` |
+| **18.1** Multi-Club Routing | ✅ prod | `docs/archive/18-early-platform/sprint-181-final-report.md` |
+| **18.2** Create Club Wizard | ✅ kod | `docs/archive/18-early-platform/sprint-182-final-report.md` |
+| **18.3** League Setup Wizard | ✅ kod | `docs/archive/18-early-platform/sprint-183-final-report.md` |
 | **18.3d** availability_reasons hotfix | ✅ prod DB | `supabase/migrations/20260604120000_hotfix_183d_*.sql` |
 | **18.4** Audyt operacyjny | 📋 tylko projekt | bez kodu |
-| **18.4a** Dashboard + Activation | ✅ prod | `docs/architecture/sprint-184a-final-report.md` |
+| **18.4a** Dashboard + Activation | ✅ prod | `docs/archive/18-early-platform/sprint-184a-final-report.md` |
 | **18.4a-db** RPC club writes | ✅ prod DB | `20260604140000_hotfix_184adb_platform_club_writes.sql` |
 | **18.4b** Monitoring + Audit Center | ✅ prod | commit `ef7873e` |
-| **PRE 18.5 backup** | ✅ complete | `docs/audit/pre-18-5-backup-handoff.md` |
+| **PRE 18.5 backup** | ✅ complete | `docs/archive/audit/pre-18-5-backup-handoff.md` |
 
 **Agent — czytaj obowiązkowo:** [`docs/ai/10-platform-admin-multi-club.md`](../ai/10-platform-admin-multi-club.md)
 
@@ -330,14 +332,14 @@ Dokumentacja sync: `docs/modules/stage-15b-live-sync.md`, `docs/modules/stage-15
 
 - **Profil:** https://www.facebook.com/profile.php?id=61560486822886  
 - Import zdjęć: `scripts/import-piorun-facebook.mjs` (`npm run import:facebook`) — Playwright, CDN FB blokuje fetch serwerowy.  
-- DNA wizualne: `docs/audit/piorun-visual-dna.md`
+- DNA wizualne: `docs/archive/audit/piorun-visual-dna.md`
 
 ### Styl komunikacji
 
 - Ciepły, lokalny, rodzinny, energiczny (tytuły mogą być CAPS jak plakat meczowy).
 - „My”, „nasz klub” — nie korporacyjny ton.
 - Telefon: **+48 663 595 991**
-- Pełny przewodnik: `docs/audit/piorun-brand-content-guide.md`
+- Pełny przewodnik: `docs/archive/audit/piorun-brand-content-guide.md`
 
 ---
 
@@ -469,14 +471,14 @@ Przeczytaj **[`docs/ai/README.md`](../ai/README.md)** — pełna architektura, s
 Jeśli pracujesz nad **Platform Admin / multi-club / onboarding klubu**, przeczytaj też:
 
 - **[`docs/ai/10-platform-admin-multi-club.md`](../ai/10-platform-admin-multi-club.md)**
-- **[`docs/architecture/sprint-184a-final-report.md`](../architecture/sprint-184a-final-report.md)**
+- **[`docs/archive/18-early-platform/sprint-184a-final-report.md`](../archive/18-early-platform/sprint-184a-final-report.md)**
 
 Ten handoff to **stan na dziś**; `docs/ai/` to **jak działa cały system**.
 
 ### Krok 1 — Kontekst (5 min)
 
 1. Przeczytaj ten plik do końca.
-2. Przeczytaj `docs/audit/piorun-brand-content-guide.md` jeśli dotykasz treści publicznych.
+2. Przeczytaj `docs/archive/audit/piorun-brand-content-guide.md` jeśli dotykasz treści publicznych.
 3. Sprawdź `git status` — **dużo niezacommitowanego** (LNP, regiowyniki goals, probes, `vercel.json`) — **nie commituj bez polecenia użytkownika**.
 
 ### Krok 2 — Środowisko
@@ -510,7 +512,7 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 - **Sprint 18.5** — następny po backupie PRE 18.5 (scope użytkownika).
 - **Rekomendacja produktowa (liga):** **League Player Matching 16.1** (sekcja 8).
 - **Rekomendacja techniczna:** Regiowyniki goals + `get_public_home_bundle` — patrz P1.
-- **Backup checkpoint:** `docs/audit/pre-18-5-backup-handoff.md` — nie powtarzaj bez polecenia.
+- **Backup checkpoint:** `docs/archive/audit/pre-18-5-backup-handoff.md` — nie powtarzaj bez polecenia.
 
 ### Krok 6 — Zasady pracy z użytkownikiem
 
@@ -535,17 +537,19 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 
 ---
 
-## 11. INDEKS DOKUMENTACJI DLA AGENTA (2026-06-04)
+## 11. INDEKS DOKUMENTACJI DLA AGENTA (2026-06-06)
 
 | Temat | Plik |
 |-------|------|
 | **START — stan na dziś** | Ten plik (sekcja 0) |
-| **Backup PRE 18.5** | `docs/audit/pre-18-5-backup-handoff.md` |
+| **Platform handoff 20.1** | `docs/architecture/project-handoff-20.1.md` |
+| **Archiwum sprintów** | `docs/archive/` |
+| **Backup PRE 18.5** | `docs/archive/audit/pre-18-5-backup-handoff.md` |
 | Architektura produktu | `docs/ai/README.md` + `01`–`09` |
 | Platform Admin 18.x | `docs/ai/10-platform-admin-multi-club.md` |
-| Raport 18.4a | `docs/architecture/sprint-184a-final-report.md` |
-| Rollback / PITR | `docs/architecture/sprint-176-rollback-runbook.md` |
-| Raporty 18.1–18.3 | `docs/architecture/sprint-181` … `183-final-report.md` |
+| Raport 18.4a | `docs/archive/18-early-platform/sprint-184a-final-report.md` |
+| Rollback / PITR | `docs/archive/17x-infrastructure/sprint-176-rollback-runbook.md` |
+| Raporty 18.1–18.3 | `docs/archive/18-early-platform/sprint-181` … `183-final-report.md` |
 | Liga / sync | `docs/ai/07-league-hub-sync.md`, `docs/modules/stage-15b-live-sync.md` |
 | Zasady agenta | `docs/ai/09-agent-rules.md`, `AGENTS.md` |
 | Transkrypt sesji 18.4a | `.cursor/.../agent-transcripts/5d851b90-7784-4802-8f9b-c5f72e0a4bcb.jsonl` |

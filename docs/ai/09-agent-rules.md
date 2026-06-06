@@ -2,7 +2,7 @@
 
 ## Zanim napiszesz kod
 
-1. Przeczytaj [`README.md`](./README.md) + [`project-handoff-current.md`](../audit/project-handoff-current.md).
+1. Przeczytaj [`README.md`](./README.md) + [`project-handoff-current.md`](../architecture/project-handoff-current.md).
 2. Sprawdź `git status` — dużo **niezacommitowanego** (LNP, regiowyniki, probes).
 3. Ustal, czy zadanie dotyczy **public**, **dashboard**, czy **sync** — czytaj odpowiedni plik `docs/ai/0x-*.md`.
 
@@ -74,7 +74,7 @@ Pełna lista: `project-handoff-current.md` §9.
 
 Po sprincie zaktualizuj:
 
-1. `docs/audit/project-handoff-current.md`
+1. `docs/architecture/project-handoff-current.md`
 2. Odpowiedni `docs/ai/*.md`
 3. `docs/modules/stage-15b-live-sync.md` jeśli zmiana syncu
 

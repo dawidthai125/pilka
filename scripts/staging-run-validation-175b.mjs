@@ -260,8 +260,8 @@ async function main() {
     };
 
     mkdirSync(join(root, "docs/architecture"), { recursive: true });
-    writeFileSync(join(root, "docs/architecture/sprint-175b-validation-results.json"), JSON.stringify(report, null, 2));
-    writeFileSync(join(root, "docs/architecture/sprint-175b-final-report.md"), renderMd(report));
+    writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175b-validation-results.json"), JSON.stringify(report, null, 2));
+    writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175b-final-report.md"), renderMd(report));
 
     console.log(JSON.stringify({
       baselineOk,

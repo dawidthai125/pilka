@@ -107,7 +107,7 @@ async function main() {
     if (!baselineOk) {
       console.log("Baseline monolith failed — applying 69 source migrations...");
       const classification = JSON.parse(
-        readFileSync(join(root, "docs/architecture/sprint-173-migration-classification.json"), "utf8"),
+        readFileSync(join(root, "docs/archive/17x-infrastructure/sprint-173-migration-classification.json"), "utf8"),
       );
       baselineOk = await applySqlFiles(
         client,
@@ -227,8 +227,8 @@ function buildSmokeTests(snap, baselineOk, diff) {
 
 function writeReport(report) {
   mkdirSync(join(root, "docs/architecture"), { recursive: true });
-  writeFileSync(join(root, "docs/architecture/sprint-175-validation-results.json"), JSON.stringify(report, null, 2));
-  writeFileSync(join(root, "docs/architecture/sprint-175-final-report.md"), renderMd(report));
+  writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175-validation-results.json"), JSON.stringify(report, null, 2));
+  writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175-final-report.md"), renderMd(report));
 }
 
 function renderMd(r) {

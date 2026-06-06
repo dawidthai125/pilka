@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const migrationsDir = join(root, "supabase/migrations");
 const outPath = join(root, "supabase/baseline.sql");
-const classificationPath = join(root, "docs/architecture/sprint-173-migration-classification.json");
+const classificationPath = join(root, "docs/archive/17x-infrastructure/sprint-173-migration-classification.json");
 
 const PIORUN_UUID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
 

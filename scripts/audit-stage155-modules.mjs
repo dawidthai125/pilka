@@ -128,7 +128,7 @@ if (read("src/components/ui/stats-grid.tsx").includes("export function StatsGrid
   fail("S155A-U-02", "Brak StatsGrid");
 }
 
-if (fileExists("docs/audit/stage-15.5-audit.md")) {
+if (fileExists("docs/archive/audit/stage-15.5-audit.md")) {
   pass("S155A-R-01", "Raport audytu stage-15.5-audit.md");
 } else {
   fail("S155A-R-01", "Brak raportu audytu");

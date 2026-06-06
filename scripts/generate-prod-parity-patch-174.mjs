@@ -154,7 +154,7 @@ function main() {
 --
 -- ⚠️  DO NOT apply to production without:
 --     1. Supabase PITR backup verified
---     2. Staging validation (see docs/architecture/sprint-174-staging-plan.md)
+--     2. Staging validation (see docs/archive/17x-infrastructure/sprint-174-staging-plan.md)
 --     3. Maintenance window approval
 --
 -- Apply order (staging first):
@@ -200,7 +200,7 @@ COMMIT;
     piorunRefs: (out.match(new RegExp(PIORUN, "g")) ?? []).length,
   };
 
-  writeFileSync(join(root, "docs/architecture/sprint-174-patch-stats.json"), JSON.stringify(stats, null, 2));
+  writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-174-patch-stats.json"), JSON.stringify(stats, null, 2));
   console.log(JSON.stringify(stats, null, 2));
 }
 

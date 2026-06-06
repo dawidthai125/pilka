@@ -55,7 +55,7 @@ flowchart LR
 | Telefon | +48 663 595 991 | Kontakt, akademia |
 | Facebook (źródło treści) | [profil FB](https://www.facebook.com/profile.php?id=61560486822886) | Import zdjęć / ton |
 
-Szczegóły tożsamości: `docs/audit/piorun-brand-content-guide.md`, `docs/audit/piorun-visual-dna.md`
+Szczegóły tożsamości: `docs/archive/audit/piorun-brand-content-guide.md`, `docs/archive/audit/piorun-visual-dna.md`
 
 ## Co produkt **robi** (zakres funkcjonalny)
 

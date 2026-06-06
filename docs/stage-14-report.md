@@ -3,7 +3,7 @@
 **Data:** 2026-06-01  
 **Status:** ✅ zakończony
 
-Powiązane: [moduł Video Center](../modules/stage-14-video-center.md)
+Powiązane: [moduł Video Center](./modules/stage-14-video-center.md)
 
 ---
 

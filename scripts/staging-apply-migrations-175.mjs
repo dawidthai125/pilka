@@ -184,7 +184,7 @@ async function main() {
     process.exit(1);
   }
   const classification = JSON.parse(
-    readFileSync(join(root, "docs/architecture/sprint-173-migration-classification.json"), "utf8"),
+    readFileSync(join(root, "docs/archive/17x-infrastructure/sprint-173-migration-classification.json"), "utf8"),
   );
   const patchSources = [
     "20260601100000_finance_module.sql",
@@ -250,7 +250,7 @@ VALUES ('20260705000000', 'test_validation') ON CONFLICT DO NOTHING;`;
   };
 
   mkdirSync(join(root, "docs/architecture"), { recursive: true });
-  writeFileSync(join(root, "docs/architecture/sprint-175-apply-log.json"), JSON.stringify(report, null, 2));
+  writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175-apply-log.json"), JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ baselineOk, patchOk, tables: finalSnap.tableCount, migrationTest: report.migrationTest }, null, 2));
 }
 

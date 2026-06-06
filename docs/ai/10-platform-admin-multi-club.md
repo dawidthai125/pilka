@@ -140,7 +140,8 @@ TypeScript: `src/lib/platform/club-db-writes.ts`
 
 ## Powiązane dokumenty
 
-- `docs/architecture/sprint-181-final-report.md` — routing
-- `docs/architecture/sprint-182-final-report.md` — Create Club
-- `docs/architecture/sprint-183-final-report.md` — League Setup
-- `docs/architecture/sprint-184a-final-report.md` — ten sprint + 18.4a-db
+- `docs/archive/18-early-platform/sprint-181-final-report.md` — routing
+- `docs/archive/18-early-platform/sprint-182-final-report.md` — Create Club
+- `docs/archive/18-early-platform/sprint-183-final-report.md` — League Setup
+- `docs/archive/18-early-platform/sprint-184a-final-report.md` — ten sprint + 18.4a-db
+- Aktywny handoff: `docs/architecture/project-handoff-20.1.md`

@@ -104,4 +104,4 @@ vercel env ls production
 
 - `docs/deployment/production-checklist.md`
 - `docs/environment/setup.md`
-- `docs/audit/project-handoff-current.md`
+- `docs/architecture/project-handoff-current.md`

@@ -111,7 +111,7 @@ npm run build           # ✅ typecheck + build OK
 ```
 
 Szczegóły: [`docs/modules/stage-12-pwa.md`](./modules/stage-12-pwa.md)  
-Audyt: [`docs/audit/stage-12-audit.md`](./audit/stage-12-audit.md)
+Audyt: [`docs/archive/audit/stage-12-audit.md`](./archive/audit/stage-12-audit.md)
 
 ---
 
@@ -122,7 +122,7 @@ Naprawiono m.in.:
 - P1: push unsubscribe, sync queue, scope IDB, auth SIGNED_OUT
 - P2: manifest PNG, push href validation, SW global register
 
-Pełna lista: [`docs/audit/stage-12-audit.md`](./audit/stage-12-audit.md)
+Pełna lista: [`docs/archive/audit/stage-12-audit.md`](./archive/audit/stage-12-audit.md)
 
 ---
 

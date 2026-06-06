@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const inventory = JSON.parse(
-  readFileSync(join(root, "docs/architecture/sprint-174-parity-inventory.json"), "utf8"),
+  readFileSync(join(root, "docs/archive/17x-infrastructure/sprint-174-parity-inventory.json"), "utf8"),
 );
 
 const SRC_DIRS = ["src", "scripts"];
@@ -91,6 +91,6 @@ const report = {
     })),
 };
 
-writeFileSync(join(root, "docs/architecture/sprint-174-runtime-impact.json"), JSON.stringify(report, null, 2));
+writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-174-runtime-impact.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report.summary, null, 2));
 console.log("potentialErrors:", report.potentialErrors.length);

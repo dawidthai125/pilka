@@ -29,7 +29,7 @@ Pełny audyt Football Club OS po ETAPACH 1–11:
 
 | Plik | Opis |
 |------|------|
-| `docs/audit/stage-11.5-architecture-audit.md` | Pełny raport audytu (~500 linii) |
+| `docs/archive/audit/stage-11.5-architecture-audit.md` | Pełny raport audytu (~500 linii) |
 | `docs/stage-11.5-report.md` | Ten dokument — podsumowanie |
 
 ---
@@ -67,7 +67,7 @@ Pełny audyt Football Club OS po ETAPACH 1–11:
 8. **19** — Platform admin
 9. **20** — Integracje live & ekosystem
 
-Szczegóły: `docs/audit/stage-11.5-architecture-audit.md` §12.
+Szczegóły: `docs/archive/audit/stage-11.5-architecture-audit.md` §12.
 
 ---
 

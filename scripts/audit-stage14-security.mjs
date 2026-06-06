@@ -137,10 +137,10 @@ if (migration.includes("video_news_drafts_select") && migration.includes("actor_
   fail("S14-13", "video_news_drafts_select nadal oparte na actor_can_read_videos");
 }
 
-if (fileExists("docs/audit/stage-14-audit.md")) {
+if (fileExists("docs/archive/audit/stage-14-audit.md")) {
   pass("S14-14", "Raport audytu stage-14-audit.md istnieje");
 } else {
-  fail("S14-14", "Brak docs/audit/stage-14-audit.md");
+  fail("S14-14", "Brak docs/archive/audit/stage-14-audit.md");
 }
 
 console.log("\n=== ETAP 14 Security Audit ===\n");

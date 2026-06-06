@@ -133,7 +133,7 @@ SUPABASE_DB_POOLER_PORT=5432
     createdAt: new Date().toISOString(),
   };
 
-  writeFileSync(join(root, "docs/architecture/sprint-175-staging-project.json"), JSON.stringify(meta, null, 2));
+  writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175-staging-project.json"), JSON.stringify(meta, null, 2));
   console.log(JSON.stringify(meta, null, 2));
 }
 

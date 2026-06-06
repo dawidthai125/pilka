@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const data = JSON.parse(
-  readFileSync(join(root, "docs/architecture/sprint-173-migration-classification.json"), "utf8"),
+  readFileSync(join(root, "docs/archive/17x-infrastructure/sprint-173-migration-classification.json"), "utf8"),
 );
 
 const lines = [
@@ -25,5 +25,5 @@ for (const row of data.rows) {
 lines.push("");
 lines.push(`**Total:** ${data.totalMigrations} · **Baseline sources:** ${data.baselineSourceCount} · **Archived:** ${data.excludedCount}`);
 
-writeFileSync(join(root, "docs/architecture/sprint-173-migration-classification.md"), lines.join("\n"), "utf8");
+writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-173-migration-classification.md"), lines.join("\n"), "utf8");
 console.log("Written sprint-173-migration-classification.md");

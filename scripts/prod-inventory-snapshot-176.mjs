@@ -73,7 +73,7 @@ async function main() {
     rpc,
   };
 
-  const outPath = join(root, "docs/architecture/sprint-176-production-inventory.json");
+  const outPath = join(root, "docs/archive/17x-infrastructure/sprint-176-production-inventory.json");
   writeFileSync(outPath, JSON.stringify(snapshot, null, 2));
   console.log(JSON.stringify({ counts: snapshot.counts, clubs: snapshot.clubs.map((c) => c.slug) }, null, 2));
   await client.end();

@@ -7,7 +7,7 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 
 const url = process.argv[2] ?? "http://localhost:3000";
-const outputPath = process.argv[3] ?? "docs/audit/screenshots/cover-fix/after-header.png";
+const outputPath = process.argv[3] ?? "docs/archive/audit/screenshots/cover-fix/after-header.png";
 
 mkdirSync(dirname(outputPath), { recursive: true });
 

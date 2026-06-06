@@ -2,7 +2,7 @@
 
 **Data:** 2026-05-31  
 **Status:** ✅ ZAUDYTOWANO I HARDENING PASS  
-**Raport audytu:** [`docs/audit/stage-156-audit-report.md`](audit/stage-156-audit-report.md)
+**Raport audytu:** [`docs/archive/audit/stage-156-audit-report.md`](archive/audit/stage-156-audit-report.md)
 
 ---
 

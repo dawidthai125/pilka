@@ -6,10 +6,11 @@ Ten katalog jest **źródłem prawdy dla nowych agentów** (Cursor, Claude, itd.
 
 | # | Plik | Co z niego wyniesiesz |
 |---|------|------------------------|
-| 0 | [`../audit/project-handoff-current.md`](../audit/project-handoff-current.md) | **Skrót START HERE:** prod `eb29e7a`, sprint 20.1, następny 20.2 |
+| 0 | [`../architecture/project-handoff-current.md`](../architecture/project-handoff-current.md) | **Skrót START HERE:** prod `eb29e7a`, sprint 20.1, następny 20.2 |
 | 0a | [`../architecture/project-handoff-20.1.md`](../architecture/project-handoff-20.1.md) | **Platform 20.1:** P1 perf, hotfixy SQL, skala GO/NO-GO, deploy recovery |
 | 0b | [`../architecture/sprint-201a-deploy-recovery-rca.md`](../architecture/sprint-201a-deploy-recovery-rca.md) | **P0:** `health-types.ts` — nie importuj `health.ts` w `"use client"` |
-| 0c | [`../audit/pre-18-5-backup-handoff.md`](../audit/pre-18-5-backup-handoff.md) | **Archiwum PRE 18.5:** tag, dump, restore |
+| 0c | [`../archive/`](../archive/) | **Archiwum** sprintów 17x–20.1 i audytów historycznych |
+| 0d | [`../archive/audit/pre-18-5-backup-handoff.md`](../archive/audit/pre-18-5-backup-handoff.md) | **Archiwum PRE 18.5:** tag, dump, restore |
 | 1 | [01-product-overview.md](./01-product-overview.md) | Czym jest FC OS, dla kogo, Piorun vs GLKS |
 | 2 | [02-tech-architecture.md](./02-tech-architecture.md) | Stack, warstwy, multi-tenant, bezpieczeństwo |
 | 3 | [03-routing-map.md](./03-routing-map.md) | Wszystkie trasy: public, auth, dashboard, API |
@@ -36,13 +37,13 @@ Ten katalog jest **źródłem prawdy dla nowych agentów** (Cursor, Claude, itd.
 ## Gdzie szukać szczegółów modułowych
 
 - `docs/modules/stage-*.md` — dokumentacja etapów (historyczna, głęboka)
-- `docs/audit/*.md` — raporty sprintów i audytów
+- `docs/archive/audit/*.md` — raporty audytów historycznych (stage, public website)
 - `src/features/<moduł>/` — kod danego modułu
 
 ## Aktualizacja
 
 Po każdym większym sprincie zaktualizuj:
 
-1. `docs/audit/project-handoff-current.md`
-2. `docs/architecture/sprint-*-final-report.md` (np. `sprint-184a-final-report.md`)
+1. `docs/architecture/project-handoff-current.md`
+2. `docs/archive/` — raporty sprintów (np. `18-early-platform/sprint-184a-final-report.md`)
 3. Odpowiedni plik w `docs/ai/` (np. `10-platform-admin-multi-club.md`, `07-league-hub-sync.md`)

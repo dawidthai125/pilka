@@ -102,10 +102,10 @@ if (eslint.includes("public/sw.js")) {
   fail("S155-10", "ESLint nadal skanuje public/sw.js");
 }
 
-if (fileExists("docs/audit/stage-15.5-consolidation-audit.md")) {
+if (fileExists("docs/archive/audit/stage-15.5-consolidation-audit.md")) {
   pass("S155-11", "Raport konsolidacji stage-15.5 istnieje");
 } else {
-  fail("S155-11", "Brak docs/audit/stage-15.5-consolidation-audit.md");
+  fail("S155-11", "Brak docs/archive/audit/stage-15.5-consolidation-audit.md");
 }
 
 console.log("\n=== ETAP 15.5 Consolidation Audit ===\n");

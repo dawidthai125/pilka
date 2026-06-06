@@ -228,8 +228,8 @@ ON CONFLICT DO NOTHING;
 
 function writeReport(report) {
   mkdirSync(join(root, "docs/architecture"), { recursive: true });
-  writeFileSync(join(root, "docs/architecture/sprint-175-validation-results.json"), JSON.stringify(report, null, 2));
-  writeFileSync(join(root, "docs/architecture/sprint-175-final-report.md"), renderMarkdown(report));
+  writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175-validation-results.json"), JSON.stringify(report, null, 2));
+  writeFileSync(join(root, "docs/archive/17x-infrastructure/sprint-175-final-report.md"), renderMarkdown(report));
 }
 
 function renderMarkdown(r) {

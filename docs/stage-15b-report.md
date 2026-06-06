@@ -49,7 +49,7 @@ npm run build
 
 ## Audyt bezpieczeństwa
 
-Raport: [docs/audit/stage-15b-audit.md](audit/stage-15b-audit.md) — **PASS** (17/17)
+Raport: [docs/archive/audit/stage-15b-audit.md](archive/audit/stage-15b-audit.md) — **PASS** (17/17)
 
 ## Następne kroki
 

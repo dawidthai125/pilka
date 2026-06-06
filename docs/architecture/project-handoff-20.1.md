@@ -24,7 +24,7 @@
 
 **Nowy agent — kolejność:**
 1. Ten dokument (Platform 20.1)
-2. [project-handoff-current.md](../audit/project-handoff-current.md) (skrót START HERE)
+2. [project-handoff-current.md](./project-handoff-current.md) (skrót START HERE)
 3. [sprint-200a-platform-scale-review.md](./sprint-200a-platform-scale-review.md) (audyt skali)
 4. [sprint-201a-deploy-recovery-rca.md](./sprint-201a-deploy-recovery-rca.md) (**obowiązkowe** przy pracy nad Platform UI)
 
@@ -211,11 +211,12 @@ node scripts/validate-185c-sync-history.mjs
 | Dokument | Opis |
 |----------|------|
 | [sprint-200a-platform-scale-review.md](./sprint-200a-platform-scale-review.md) | Audyt skali (read-only) |
-| [sprint-201a-platform-performance-p1-implementation.md](./sprint-201a-platform-performance-p1-implementation.md) | Implementacja P1 |
-| [sprint-201a-platform-performance-p1-validation.md](./sprint-201a-platform-performance-p1-validation.md) | Walidacja lokalna |
-| [sprint-201a-finalization.md](./sprint-201a-finalization.md) | SQL hotfix + deploy + recovery |
-| [sprint-201a-deploy-recovery-rca.md](./sprint-201a-deploy-recovery-rca.md) | RCA Vercel build |
+| [sprint-201a-platform-performance-p1-implementation.md](../archive/20-1-performance/sprint-201a-platform-performance-p1-implementation.md) | Implementacja P1 |
+| [sprint-201a-platform-performance-p1-validation.md](../archive/20-1-performance/sprint-201a-platform-performance-p1-validation.md) | Walidacja lokalna |
+| [sprint-201a-finalization.md](../archive/20-1-performance/sprint-201a-finalization.md) | SQL hotfix + deploy + recovery |
+| [sprint-201a-deploy-recovery-rca.md](./sprint-201a-deploy-recovery-rca.md) | RCA Vercel build (aktywny) |
 | [project-handoff-20.1.md](./project-handoff-20.1.md) | Ten dokument |
+| [../archive/](../archive/) | Archiwum sprintów 17x–20.1 |
 
 ---
 

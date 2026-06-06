@@ -4,7 +4,7 @@
 **Zakres:** ETAPY 1–15A  
 **Cel:** Jakość kodu, spójność architektury, eliminacja długu technicznego — **bez nowych funkcji**
 
-Pełny audyt: [stage-15.5-consolidation-audit.md](./audit/stage-15.5-consolidation-audit.md)
+Pełny audyt: [stage-15.5-consolidation-audit.md](./archive/audit/stage-15.5-consolidation-audit.md)
 
 ---
 

@@ -153,10 +153,10 @@ if (
   fail("S15A-13", "Brak klas responsywnych w komponentach Content Hub");
 }
 
-if (fileExists("docs/audit/stage-15a-audit.md")) {
+if (fileExists("docs/archive/audit/stage-15a-audit.md")) {
   pass("S15A-14", "Raport audytu stage-15a-audit.md istnieje");
 } else {
-  fail("S15A-14", "Brak docs/audit/stage-15a-audit.md");
+  fail("S15A-14", "Brak docs/archive/audit/stage-15a-audit.md");
 }
 
 console.log("\n=== ETAP 15A Security Audit ===\n");
