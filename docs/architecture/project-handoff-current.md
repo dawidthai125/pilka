@@ -15,31 +15,31 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Production commit** | `d644b5a` — **Sprint 20.5C.1** CSV Export + Multi Select **LIVE** |
+| **Production commit** | `107f421` — **Sprint 20.5C.2A** Bulk Suspend + Reactivate **LIVE** |
 | **Branch** | `main` |
-| **origin/main** | `d644b5a` |
+| **origin/main** | `107f421` |
 | **Produkcja** | **PASS** · https://pilka-mu.vercel.app |
 | **Deploy** | **LIVE** (Vercel auto-deploy z `main`) |
 | **Tag checkpointu (20.3)** | `post-20-3-navigation-ux` → `af3a485` |
 | **Tag checkpointu Platform** | `pre-20-2-platform-roadmap` → `ed324b7` |
 | **Faza Platform** | ✅ 18.5A → **20.1** zamknięta · ✅ **20.3** UX/navigation zamknięta |
-| **Sprint 20.5 (Club Management)** | ✅ **20.5C.1 Completed** — **PASS**, production **GO** |
+| **Sprint 20.5 (Club Management)** | ✅ **20.5C.2A Completed** — **PASS**, production **GO** |
 | **Production Readiness** | **GO** (20 / 50 / 100 klubów) |
-| **Następny sprint (rekomendacja)** | **20.5C.2+** — bulk actions / CSV import |
+| **Następny sprint (rekomendacja)** | **20.5C.2B** bulk role/remove · **20.5C.3** CSV import |
 | **Hotfixy SQL na prod** | `192b` ✅ · `193b` ✅ · `201a` ✅ |
 
-### Status modułów (prod `d644b5a`)
+### Status modułów (prod `107f421`)
 
 | Obszar | Status |
 |--------|--------|
 | **Production** | **PASS** |
-| **Club Management** | **PASS** (`/members` — CRUD, CSV export, multi-select) |
+| **Club Management** | **PASS** (`/members` — CRUD, bulk suspend/reactivate, CSV export, multi-select) |
 | **Invitations** | **PASS** (invite / resend / revoke, filtry statusów) |
 | **League Sync** | **PASS** (20.4C pipeline — bez regresji) |
 | **Platform** | **PASS** (18.5A→20.1 + 20.3 UX) |
 | **Navigation** | **PASS** (nav v2; `/members` = **Członkowie**) |
 
-### Sprint 20.5 Completed (wdrożone `d644b5a`)
+### Sprint 20.5 Completed (wdrożone `107f421`)
 
 | Pod-sprint | Commit | Zakres | Status |
 |------------|--------|--------|--------|
@@ -50,10 +50,11 @@
 | **20.5B.3** | `b41d049` | Stabilization — existing user flow, nav Członkowie, filtry, auth guard | **PASS** |
 | **20.5B.4** | `b41d049` | Release verification — smoke + CI + prod | **PASS** |
 | **20.5C.1** | `d644b5a` | CSV Export + Multi Select — checkbox, eksport client-side | **PASS** |
+| **20.5C.2A** | `107f421` | Bulk Suspend + Reactivate — owner protection, eligible-only | **PASS** |
 
-**Walidacja 20.5C.1:** typecheck + build + walidatory `validate-205a` … `validate-205c1` — **PASS**  
-**Smoke prod:** `_smoke-205c1-manual.mjs` — **PASS**  
-**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · **Audyt baseline:** [`club-management-20.5-audit.md`](../audit/club-management-20.5-audit.md)
+**Walidacja 20.5C.2A:** typecheck + build + walidatory `validate-205a` … `validate-205c2a` — **PASS**  
+**Smoke prod:** `_smoke-205c2a-manual.mjs` — **PASS**  
+**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · **Sprint doc:** [`sprint-20.5c.2a-bulk-suspend-reactivate.md`](./sprint-20.5c.2a-bulk-suspend-reactivate.md)
 
 **Kluczowe pliki Club Management:**
 

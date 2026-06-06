@@ -2,9 +2,9 @@
 
 **Klub referencyjny:** Piorun Wawrzeńczyce  
 **Repozytorium:** `dawidthai125/pilka`  
-**Dokument:** 2026-06-06 · handoff po zamknięciu 20.5A → 20.5C.1  
+**Dokument:** 2026-06-06 · handoff po zamknięciu 20.5A → 20.5C.2A  
 **Produkcja:** https://pilka-mu.vercel.app  
-**Production commit:** `d644b5a` · **Branch:** `main` · **Status:** PASS · **Deploy:** LIVE
+**Production commit:** `107f421` · **Branch:** `main` · **Status:** PASS · **Deploy:** LIVE
 
 ---
 
@@ -15,11 +15,11 @@
 | **Moduł** | `/members` — **Członkowie** (nav v2, Administracja) |
 | **Stan** | **PASS** — Club Management + Invitations LIVE |
 | **Dojrzałość modułu** | ~78% (audyt 20.5B.2); score 6.6/10 |
-| **Następny sprint** | **20.5C.2+** — bulk actions / CSV import |
-| **Nie implementuj ponownie** | 20.5A foundation, 20.5B invitations, 20.5B.3 stabilization, **20.5C.1 export + multi-select** |
+| **Następny sprint** | **20.5C.2B** bulk role/remove · **20.5C.3** CSV import |
+| **Nie implementuj ponownie** | 20.5A foundation, 20.5B invitations, 20.5B.3 stabilization, **20.5C.1 export**, **20.5C.2A bulk suspend/reactivate** |
 
 **Skrót globalny:** [`project-handoff-current.md`](./project-handoff-current.md)  
-**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) — sekcja `[post-20-5c1-export-multiselect]`
+**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) — sekcja `[post-20-5c2a-bulk-suspend-reactivate]`
 
 ---
 
@@ -35,6 +35,7 @@
 | **20.5B.4** Release Verification | `b41d049` | PASS | Smoke 8/8, CI PASS, prod LIVE |
 | **20.5B.5** Handoff Update | — | docs | CHANGELOG, handoff, AGENTS.md |
 | **20.5C.1** CSV Export + Multi Select | `d644b5a` | PASS | Checkbox multi-select, eksport CSV członków (client-side) |
+| **20.5C.2A** Bulk Suspend + Reactivate | `107f421` | PASS | Bulk Zawieś/Przywróć, owner protection, eligible-only semantics |
 
 ---
 
@@ -141,7 +142,9 @@ node scripts/_smoke-prod-205b3.mjs             # post-deploy prod
 | P2 | Filtry/wyszukiwarka członków, kolumna Drużyna | Dane w `getClubMembers`, brak w UI |
 | P2 | Heurystyka Accepted bez `accepted_at` | Opcjonalna migracja |
 | — | ~~**20.5C.1** CSV Export + multi-select~~ | ✅ **LIVE** `d644b5a` |
-| — | **20.5C.2+** bulk suspend/role, import | Następny sprint |
+| — | ~~**20.5C.2A** bulk suspend/reactivate~~ | ✅ **LIVE** `107f421` |
+| — | **20.5C.2B** bulk role/remove | Następny sprint |
+| — | **20.5C.3** CSV import | Backlog |
 
 Szczegóły: audyt 20.5B.2 § Backlog Cleanup.
 

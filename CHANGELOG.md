@@ -2,6 +2,31 @@
 
 All notable changes to FC OS (pilka) are documented in this file.
 
+## [post-20-5c2a-bulk-suspend-reactivate] — 2026-06-06
+
+### Sprint 20.5C.2A — Bulk Suspend + Bulk Reactivate
+
+**Status:** PASS · **Production:** GO · **Deploy:** LIVE  
+**Commit:** `107f421` · **Branch:** `main`  
+**URL:** https://pilka-mu.vercel.app
+
+- **Bulk Zawieś / Przywróć** — toolbar multi-select, dialog potwierdzenia, `BulkActionResultPanel`
+- **Shared mutation core** — `member-mutation.ts` (`suspendMembershipById`, `runBulkMemberStatusMutation`)
+- **Owner protection** — właściciel wykluczony z operacji zbiorczych (UI + server defense in depth)
+- **Eligible-only semantics (Variant A)** — toolbar wysyła tylko eligible IDs; `total` = liczba wysłanych
+- Walidator: `validate-205c2a-bulk-suspend-reactivate.mjs`
+- Smoke: `_smoke-205c2a-manual.mjs` — local (`next start`) + prod **PASS**
+
+### Validation (release gate 20.5C.2A)
+
+- `npm run typecheck` — PASS
+- `npm run build` — PASS
+- Walidatory 20.5A–20.5C.2A — PASS
+- CI GitHub Actions (`107f421`) — PASS
+- Production smoke 20.5C.2A — PASS
+
+---
+
 ## [post-20-5c1-export-multiselect] — 2026-06-06
 
 ### Sprint 20.5C.1 — CSV Export + Multi Select

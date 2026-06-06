@@ -1,7 +1,7 @@
 # Sprint 20.5C.2A — Bulk Suspend + Bulk Reactivate
 
-**Status:** implemented · stabilization pass (owner protection + semantics)  
-**Baseline:** 20.5C.1 (`d644b5a`)  
+**Status:** PASS · **Production:** GO · **Deploy:** LIVE  
+**Commit:** `107f421` · **Baseline:** 20.5C.1 (`d644b5a`)  
 **Scope:** bulk suspend, bulk reactivate · single-row actions unchanged
 
 ---
