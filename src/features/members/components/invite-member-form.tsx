@@ -4,7 +4,8 @@ import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS } from "@/config/permissions";
-import { inviteMember, type MemberActionState } from "@/features/members/actions";
+import { inviteMember } from "@/features/members/actions";
+import type { MemberActionState } from "@/lib/members/bulk-member-types";
 import { INVITABLE_CLUB_ROLES } from "@/lib/members/invite-roles";
 import type { ClubRole } from "@/types/rbac";
 import { cn } from "@/lib/utils";

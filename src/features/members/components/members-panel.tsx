@@ -17,12 +17,26 @@ import {
   ROLE_LABELS,
 } from "@/config/permissions";
 import {
+  bulkReactivateMembers,
+  bulkSuspendMembers,
   changeMemberRole,
   reactivateMember,
   removeMember,
   suspendMember,
-  type MemberActionState,
 } from "@/features/members/actions";
+import {
+  formatBulkMemberSummary,
+  type BulkMemberActionResult,
+  type BulkMemberActionState,
+  type MemberActionState,
+} from "@/lib/members/bulk-member-types";
+import {
+  countEligibleForBulkReactivate,
+  countEligibleForBulkSuspend,
+  countOwnersInSelection,
+  getBulkReactivateTargetIds,
+  getBulkSuspendTargetIds,
+} from "@/lib/members/member-bulk-eligibility";
 import { canManageMemberTarget } from "@/lib/members/guards";
 import { downloadMembersCsv } from "@/lib/members/export-members-csv";
 import type { ClubMemberRow } from "@/lib/auth/session";
@@ -116,6 +130,130 @@ function MemberActionDialog({
             </Button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function memberDisplayName(member: ClubMemberRow | undefined): string {
+  return member?.profile?.full_name ?? member?.profile?.email ?? "Członek";
+}
+
+function BulkMemberActionDialog({
+  open,
+  title,
+  description,
+  confirmLabel,
+  membershipIds,
+  action,
+  onClose,
+  onComplete,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  membershipIds: string[];
+  action: (
+    _prev: BulkMemberActionState,
+    formData: FormData,
+  ) => Promise<BulkMemberActionState>;
+  onClose: () => void;
+  onComplete: (result: BulkMemberActionResult) => void;
+}) {
+  const [state, formAction, pending] = useActionState(action, {} as BulkMemberActionState);
+
+  useEffect(() => {
+    if (state.error) return;
+    if (state.result) {
+      onClose();
+      onComplete(state.result);
+    }
+  }, [state.error, state.result, onClose, onComplete]);
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div
+        className="max-w-md rounded-xl border border-white/15 bg-[#0a1410] p-5 text-sm text-white shadow-xl"
+        role="dialog"
+      >
+        <h3 className="text-base font-semibold">{title}</h3>
+        <p className="mt-2 text-white/65">{description}</p>
+        <form action={formAction} className="mt-4 space-y-3">
+          <input
+            type="hidden"
+            name="membershipIds"
+            value={JSON.stringify(membershipIds)}
+          />
+          {state.error ? <p className="text-red-300">{state.error}</p> : null}
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-white/20 bg-transparent text-white hover:bg-white/10"
+              onClick={onClose}
+              disabled={pending}
+            >
+              Anuluj
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Zapisywanie…" : confirmLabel}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function BulkActionResultPanel({
+  result,
+  membersById,
+  onDismiss,
+}: {
+  result: BulkMemberActionResult;
+  membersById: Map<string, ClubMemberRow>;
+  onDismiss: () => void;
+}) {
+  const [showDetails, setShowDetails] = useState(false);
+  const nonSuccess = result.items.filter((item) => item.status !== "success");
+  const summary = formatBulkMemberSummary(result);
+  const tone =
+    result.succeeded === result.total
+      ? "border-green-500/40 bg-green-500/10 text-green-950 dark:text-green-50"
+      : result.succeeded > 0
+        ? "border-amber-500/40 bg-amber-500/10 text-amber-950 dark:text-amber-50"
+        : "border-red-500/40 bg-red-500/10 text-red-950 dark:text-red-50";
+
+  return (
+    <div className={cn("rounded-lg border px-4 py-3 text-sm", tone)} role="status">
+      <p className="font-medium">{summary}</p>
+      {nonSuccess.length > 0 ? (
+        <div className="mt-2">
+          <button
+            type="button"
+            className="text-xs underline opacity-80 hover:opacity-100"
+            onClick={() => setShowDetails((v) => !v)}
+          >
+            {showDetails ? "Ukryj szczegóły" : "Pokaż szczegóły"}
+          </button>
+          {showDetails ? (
+            <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs opacity-90">
+              {nonSuccess.map((item) => (
+                <li key={item.membershipId}>
+                  {memberDisplayName(membersById.get(item.membershipId))}: {item.reason}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="mt-3">
+        <Button type="button" variant="outline" size="sm" onClick={onDismiss}>
+          Zamknij
+        </Button>
       </div>
     </div>
   );
@@ -243,9 +381,32 @@ export function MembersPanel({
   const onlyInvited = members.length > 0 && activeCount === 0 && invitedCount === members.length;
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkDialog, setBulkDialog] = useState<"suspend" | "reactivate" | null>(null);
+  const [bulkResult, setBulkResult] = useState<BulkMemberActionResult | null>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const memberIds = useMemo(() => members.map((m) => m.id), [members]);
+  const membersById = useMemo(
+    () => new Map(members.map((m) => [m.id, m])),
+    [members],
+  );
+  const selectedMembers = useMemo(
+    () => members.filter((m) => selectedIds.has(m.id)),
+    [members, selectedIds],
+  );
+  const suspendEligibleCount = countEligibleForBulkSuspend(selectedMembers, actorRoles);
+  const reactivateEligibleCount = countEligibleForBulkReactivate(selectedMembers, actorRoles);
+  const ownersInSelection = countOwnersInSelection(selectedMembers);
+  const bulkTargetIds = useMemo(() => {
+    if (bulkDialog === "suspend") {
+      return getBulkSuspendTargetIds(selectedMembers, actorRoles);
+    }
+    if (bulkDialog === "reactivate") {
+      return getBulkReactivateTargetIds(selectedMembers, actorRoles);
+    }
+    return [];
+  }, [bulkDialog, selectedMembers, actorRoles]);
   const memberIdKey = memberIds.join("\u0000");
   const selectedCount = selectedIds.size;
   const allSelected = members.length > 0 && selectedCount === members.length;
@@ -299,6 +460,14 @@ export function MembersPanel({
       ? `Eksportuj zaznaczone (${selectedCount})`
       : "Eksportuj wszystkich";
 
+  function handleBulkComplete(result: BulkMemberActionResult) {
+    setBulkResult(result);
+    if (result.succeeded > 0) {
+      setSelectedIds(new Set());
+      router.refresh();
+    }
+  }
+
   return (
     <div className="space-y-4">
       {members.length === 0 ? (
@@ -319,21 +488,80 @@ export function MembersPanel({
             </div>
           ) : null}
 
+          {bulkResult ? (
+            <BulkActionResultPanel
+              result={bulkResult}
+              membersById={membersById}
+              onDismiss={() => setBulkResult(null)}
+            />
+          ) : null}
+
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/20 px-4 py-3">
             <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span
-                className="text-muted-foreground"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                {selectedCount > 0 ? `Zaznaczono: ${selectedCount}` : "Brak zaznaczenia"}
-              </span>
+              <div className="flex flex-col gap-0.5" aria-live="polite" aria-atomic="true">
+                <span className="text-muted-foreground">
+                  {selectedCount > 0 ? `Zaznaczono: ${selectedCount}` : "Brak zaznaczenia"}
+                </span>
+                {ownersInSelection > 0 ? (
+                  <span className="text-xs text-amber-800 dark:text-amber-200">
+                    Właściciel wykluczony z operacji zbiorczych
+                  </span>
+                ) : null}
+              </div>
+              {canManage && selectedCount > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={suspendEligibleCount === 0}
+                    onClick={() => setBulkDialog("suspend")}
+                  >
+                    Zawieś{suspendEligibleCount > 0 ? ` (${suspendEligibleCount})` : ""}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={reactivateEligibleCount === 0}
+                    onClick={() => setBulkDialog("reactivate")}
+                  >
+                    Przywróć{reactivateEligibleCount > 0 ? ` (${reactivateEligibleCount})` : ""}
+                  </Button>
+                </div>
+              ) : null}
             </div>
             <Button type="button" variant="outline" size="sm" onClick={handleExportCsv}>
               <Download className="mr-2 h-4 w-4" aria-hidden />
               {exportLabel}
             </Button>
           </div>
+
+          <BulkMemberActionDialog
+            open={bulkDialog === "suspend"}
+            title="Zawieś zaznaczonych członków"
+            description={`Czy na pewno chcesz zawiesić ${suspendEligibleCount} ${
+              suspendEligibleCount === 1 ? "członka" : "członków"
+            }? Użytkownicy stracą dostęp do panelu klubu.`}
+            confirmLabel={`Zawieś (${suspendEligibleCount})`}
+            membershipIds={bulkTargetIds}
+            action={bulkSuspendMembers}
+            onClose={() => setBulkDialog(null)}
+            onComplete={handleBulkComplete}
+          />
+
+          <BulkMemberActionDialog
+            open={bulkDialog === "reactivate"}
+            title="Przywróć zaznaczonych członków"
+            description={`Czy na pewno chcesz przywrócić dostęp dla ${reactivateEligibleCount} ${
+              reactivateEligibleCount === 1 ? "członka" : "członków"
+            }?`}
+            confirmLabel={`Przywróć (${reactivateEligibleCount})`}
+            membershipIds={bulkTargetIds}
+            action={bulkReactivateMembers}
+            onClose={() => setBulkDialog(null)}
+            onComplete={handleBulkComplete}
+          />
 
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full min-w-[720px] text-left text-sm">

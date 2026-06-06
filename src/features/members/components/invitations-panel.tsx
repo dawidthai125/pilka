@@ -12,11 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  resendInvite,
-  revokeInvite,
-  type MemberActionState,
-} from "@/features/members/actions";
+import { resendInvite, revokeInvite } from "@/features/members/actions";
+import type { MemberActionState } from "@/lib/members/bulk-member-types";
 import {
   canResendInvitation,
   canRevokeInvitation,

@@ -23,23 +23,21 @@ import {
   resendClubInvite,
   revokeClubInvite,
 } from "@/lib/members/invite-service";
+import type {
+  BulkMemberActionState,
+  MemberActionState,
+} from "@/lib/members/bulk-member-types";
+import {
+  loadMembership,
+  parseMembershipIdsFromFormData,
+  parseTargetRole,
+  reactivateMembershipById,
+  runBulkMemberStatusMutation,
+  suspendMembershipById,
+} from "@/lib/members/member-mutation";
 import { createClient } from "@/lib/supabase/server";
 import { parseClubRole } from "@/lib/validators";
 import type { ClubRole } from "@/types/rbac";
-
-export type MemberActionState = {
-  error?: string;
-  success?: string;
-  inviteDelivery?: "email" | "login_required";
-};
-
-type MembershipRow = {
-  id: string;
-  club_id: string;
-  user_id: string;
-  role: string;
-  status: string;
-};
 
 function requireMemberManage(access: Awaited<ReturnType<typeof requireAccessContext>>) {
   if (!canManageMembers(access.roles)) {
@@ -53,30 +51,6 @@ function requireMemberInvite(access: Awaited<ReturnType<typeof requireAccessCont
     return { error: "Brak uprawnień do zapraszania członków." };
   }
   return null;
-}
-
-async function loadMembership(
-  membershipId: string,
-  clubId: string,
-): Promise<MembershipRow | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("club_memberships")
-    .select("id, club_id, user_id, role, status")
-    .eq("id", membershipId)
-    .eq("club_id", clubId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data;
-}
-
-function parseTargetRole(role: string): ClubRole | null {
-  const parsed = parseClubRole(role);
-  return parsed.success ? parsed.data : null;
 }
 
 export async function changeMemberRole(
@@ -141,33 +115,9 @@ export async function suspendMember(
     return { error: "Nieprawidłowe dane członkostwa." };
   }
 
-  const membership = await loadMembership(membershipId, access.clubId);
-  if (!membership) {
-    return { error: "Nie znaleziono członkostwa." };
-  }
-
-  const currentRole = parseTargetRole(membership.role);
-  if (!currentRole) {
-    return { error: "Nieprawidłowa rola członka." };
-  }
-
-  if (!canManageMemberTarget(access.roles, currentRole)) {
-    return { error: "Nie możesz zarządzać tym członkiem." };
-  }
-
-  if (membership.status !== "active") {
-    return { error: "Można zawiesić tylko aktywnego członka." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("club_memberships")
-    .update({ status: "suspended" })
-    .eq("id", membershipId)
-    .eq("club_id", access.clubId);
-
-  if (error) {
-    return { error: "Nie udało się zawiesić członka." };
+  const result = await suspendMembershipById(access.roles, access.clubId, membershipId);
+  if (!result.ok) {
+    return { error: result.error };
   }
 
   revalidatePath("/members");
@@ -187,37 +137,59 @@ export async function reactivateMember(
     return { error: "Nieprawidłowe dane członkostwa." };
   }
 
-  const membership = await loadMembership(membershipId, access.clubId);
-  if (!membership) {
-    return { error: "Nie znaleziono członkostwa." };
-  }
-
-  const currentRole = parseTargetRole(membership.role);
-  if (!currentRole) {
-    return { error: "Nieprawidłowa rola członka." };
-  }
-
-  if (!canManageMemberTarget(access.roles, currentRole)) {
-    return { error: "Nie możesz zarządzać tym członkiem." };
-  }
-
-  if (membership.status !== "suspended") {
-    return { error: "Można przywrócić tylko zawieszonego członka." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("club_memberships")
-    .update({ status: "active" })
-    .eq("id", membershipId)
-    .eq("club_id", access.clubId);
-
-  if (error) {
-    return { error: "Nie udało się przywrócić członka." };
+  const result = await reactivateMembershipById(access.roles, access.clubId, membershipId);
+  if (!result.ok) {
+    return { error: result.error };
   }
 
   revalidatePath("/members");
   return { success: "Członek został przywrócony." };
+}
+
+export async function bulkSuspendMembers(
+  _prev: BulkMemberActionState,
+  formData: FormData,
+): Promise<BulkMemberActionState> {
+  const access = await requireAccessContext();
+  const denied = requireMemberManage(access);
+  if (denied) return denied;
+
+  const membershipIds = parseMembershipIdsFromFormData(formData);
+  const result = await runBulkMemberStatusMutation(
+    "suspend",
+    access.roles,
+    access.clubId,
+    membershipIds,
+  );
+
+  if (result.succeeded > 0) {
+    revalidatePath("/members");
+  }
+
+  return { result };
+}
+
+export async function bulkReactivateMembers(
+  _prev: BulkMemberActionState,
+  formData: FormData,
+): Promise<BulkMemberActionState> {
+  const access = await requireAccessContext();
+  const denied = requireMemberManage(access);
+  if (denied) return denied;
+
+  const membershipIds = parseMembershipIdsFromFormData(formData);
+  const result = await runBulkMemberStatusMutation(
+    "reactivate",
+    access.roles,
+    access.clubId,
+    membershipIds,
+  );
+
+  if (result.succeeded > 0) {
+    revalidatePath("/members");
+  }
+
+  return { result };
 }
 
 export async function removeMember(
