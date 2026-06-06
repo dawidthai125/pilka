@@ -2,6 +2,68 @@
 
 All notable changes to FC OS (pilka) are documented in this file.
 
+## [post-20-5-club-management] — 2026-06-06
+
+### Sprint 20.5B.4 — Release Verification
+
+**Status:** PASS · **Production:** GO · **Deploy:** LIVE  
+**Commit:** `b41d049` · **Branch:** `main`  
+**URL:** https://pilka-mu.vercel.app
+
+- Pre-release smoke `_smoke-205b3-stabilization.mjs` — GO
+- Production smoke `_smoke-prod-205b3.mjs` — 8/8 PASS
+- CI GitHub Actions (typecheck + build) — PASS
+- Walidatory 18.5A–20.5B.3 — PASS (brak regresji 20.5A/20.5B)
+
+### Sprint 20.5B.3 — Club Management Stabilization
+
+**Commit:** `b41d049`
+
+- **Existing user invite flow** — `delivery: login_required`, komunikaty PL, brak duplikacji Auth
+- **Navigation** — etykieta sidebar **Członkowie** (URL `/members` bez zmian)
+- **Invitations UX** — filtry statusów, sekcje Pending/Expired/Accepted/Revoked, liczniki „Wymaga działania”
+- **Auth hardening** — `auth-invite-guard.ts` (rate limit 25/h, retry, `inviteUserByEmailWithGuard`)
+- **Members dashboard** — karty KPI, formularz zaproszenia na obu zakładkach
+- Walidator: `validate-205b3-club-management-stabilization.mjs`
+- Audyt post-release: `docs/audit/club-management-post-release-20.5B.2.md`
+
+### Sprint 20.5B — Invitations & Roles
+
+**Status:** PASS · **Commit:** `bd3525b`
+
+- Tab **Zaproszenia** — pending / accepted / expired / revoked
+- Formularz **Zaproś członka** (email, rola; owner wykluczony)
+- Server actions: `inviteMember`, `resendInvite`, `revokeInvite`
+- `invite-service.ts`, `invitation-utils.ts` (client-safe split)
+- Liczniki dashboardu, RBAC guards (`canInviteMembers`, `canInviteClubRole`)
+- Walidator: `validate-205b-invitations-and-roles.mjs`
+- Smoke: `_smoke-205b1-invitations.mjs`, `_smoke-prod-205b1.mjs`
+
+### Sprint 20.5A — Members Management Foundation
+
+**Status:** PASS · **Commit:** `8b50069`
+
+- Moduł `src/features/members/` — dashboard, panel członków, akcje wiersza
+- Server actions: `changeMemberRole`, `suspendMember`, `reactivateMember`, `removeMember`
+- Hook **invited → active** (`activate-invited-memberships.ts` — callback, sign-in, dashboard)
+- RBAC guards: `canManageMemberTarget`, leadership-only manage
+- Walidator: `validate-205a-members-management-foundation.mjs`
+- Smoke: `_smoke-205a1-members.mjs`, `_smoke-prod-205a1.mjs`
+
+### Sprint 20.5B.5 — Handoff & Documentation
+
+- `docs/architecture/project-handoff-20.5-club-management.md` — pełny handoff 20.5
+- Zaktualizowano: `project-handoff-current.md`, `AGENTS.md`, `docs/ai/README.md`, `03-routing-map.md`, `05-dashboard-modules.md`, `08-scripts-env-deploy.md`, `09-agent-rules.md`
+
+### Validation (release gate 20.5)
+
+- `npm run typecheck` — PASS
+- `npm run build` — PASS
+- Walidatory 18.5A–20.5B.3 — PASS
+- Production smoke 20.5B.3 — PASS (`b41d049` live on Vercel)
+
+---
+
 ## [post-20-3-navigation-ux] — 2026-06-06
 
 ### Sprint 20.3 Completed

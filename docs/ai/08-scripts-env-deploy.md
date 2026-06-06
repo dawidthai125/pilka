@@ -68,7 +68,7 @@ Migracje SQL: `npm run db:migrate:stage*` lub `node scripts/run-sql.mjs`
 |---------|---------|
 | Branch produkcyjny | `main` |
 | CI | GitHub Actions — `typecheck` + `build` |
-| Ostatni deploy P0 | commit `aee9d4f` |
+| Ostatni deploy prod | commit `b41d049` (20.5 Club Management) |
 
 ```bash
 git push origin main
@@ -99,6 +99,15 @@ vercel env ls production
 
 - `npm` może być zablokowany — użyj `npm.cmd` lub `node scripts/...`
 - Ścieżki z `(public)` w git add — **w cudzysłowie**
+
+## Walidatory Club Management (20.5)
+
+```bash
+node scripts/validate-205a-members-management-foundation.mjs
+node scripts/validate-205b-invitations-and-roles.mjs
+node scripts/validate-205b3-club-management-stabilization.mjs
+node scripts/_smoke-prod-205b3.mjs    # prod smoke post-deploy
+```
 
 ## Powiązane checklisty
 

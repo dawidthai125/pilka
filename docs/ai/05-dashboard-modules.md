@@ -134,11 +134,30 @@ Wymaga `OPENAI_API_KEY` na serwerze.
 - UI pod przyszłe: PZPN, Extranet, DZPN, ręczny import
 - `features/integrations/`
 
+## Członkowie `/members` (Sprint 20.5 — LIVE `b41d049`)
+
+**Nav:** Administracja → **Członkowie** · **Kod:** `src/features/members/`
+
+| Zakładka | Funkcja |
+|----------|---------|
+| **Członkowie** | Tabela active/suspended, akcje: zmiana roli, zawieś, przywróć, usuń |
+| **Zaproszenia** | Filtry statusów (Wymaga działania, Oczekujące, Wygasłe, …), resend/revoke |
+
+**Zaproszenia — flow:**
+
+- Nowy użytkownik → email Supabase Auth → `invited` → logowanie → `active`
+- Istniejący użytkownik → `invited` bez maila → użytkownik loguje się → `active`
+- Aktywacja: `activate-invited-memberships.ts` (callback, sign-in, dashboard)
+
+**Uprawnienia:** invite + manage — owner, president, sports_director. Coach: read-only (lista ograniczona RLS).
+
+**Walidatory:** `validate-205a-*`, `validate-205b-*`, `validate-205b3-*`  
+**Handoff:** [`project-handoff-20.5-club-management.md`](../architecture/project-handoff-20.5-club-management.md)
+
 ## System
 
 | Moduł | Funkcja |
 |-------|---------|
-| `/members` | Zaproszenia, role w klubie |
 | `/settings` | Preferencje, PWA |
 | `/notifications` | Centrum powiadomień |
 | `/profile` | Konto użytkownika |
@@ -171,4 +190,5 @@ Nawigacja mobilna filtrowana per rola — `src/lib/navigation/mobile-nav.ts` (fi
 | communication | `communication/` |
 | content | `content/` |
 | ai | `ai/`, `ai-manager/` |
+| members | `members/` — Club Management 20.5 |
 | … | każdy katalog ≈ jeden moduł biznesowy |

@@ -60,10 +60,18 @@ Value import z `health.ts` w komponencie klienckim **psuje build Vercel** (`pg` 
 - Ingest meczów: **tylko GLKS** — nie przywracaj zapisu 200 meczów bez uzasadnienia.
 - Batch upsert — nie wracaj do pętli SELECT+upsert per mecz.
 
+## Club Management (Sprint 20.5 — LIVE)
+
+- Moduł `/members` jest **kompletny** na poziomie 20.5B.4 — nie reimplementuj foundation/invitations.
+- **Nie** importuj `invitations.ts` w komponentach `"use client"` — używaj `invitation-utils.ts`.
+- Bulk invite / CSV import (20.5C) — używaj `auth-invite-guard.ts` (rate limit 25/h).
+- Handoff: [`project-handoff-20.5-club-management.md`](../architecture/project-handoff-20.5-club-management.md)
+
 ## DO NOT REPEAT (skrót)
 
 Pełna lista: `project-handoff-current.md` §9.
 
+- Ponowny audyt 20.5B.2 / re-implementacja 20.5A/B — zamknięte (`b41d049`).
 - Ponowny audyt „czy public ma getUser” — naprawione.
 - Ponowna propozycja P0 middleware/ISR — wdrożone `aee9d4f`.
 - Public Website 2.0/3.0/4.0 od zera.

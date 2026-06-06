@@ -116,7 +116,7 @@ Layout: sidebar + mobile bottom nav · wymaga sesji
 |-------|---------|
 | `/profile` | Profil użytkownika |
 | `/settings` | Ustawienia, PWA |
-| `/members` | Role i zaproszenia |
+| `/members` | **Członkowie** — zarządzanie członkami, zaproszenia, macierz RBAC |
 | `/notifications` | Powiadomienia |
 
 Nawigacja filtrowana RBAC: `src/config/navigation.ts` + `DashboardNav`.

@@ -30,7 +30,9 @@
 | **20.5A** | `8b50069` | Members v2, akcje CRUD, `invited → active`, guards RBAC |
 | **20.5B** | `bd3525b` | Formularz zaproszenia, zakładka Zaproszenia, resend/revoke, liczniki |
 
-**Dokumenty referencyjne:** `docs/audit/club-management-20.5-audit.md`, `docs/architecture/project-handoff-current.md`, `CHANGELOG.md` (brak wpisu 20.5 — backlog dokumentacji).
+**Dokumenty referencyjne:** `docs/audit/club-management-20.5-audit.md`, `docs/architecture/project-handoff-current.md`, `docs/architecture/project-handoff-20.5-club-management.md`, `CHANGELOG.md`.
+
+> **Aktualizacja 20.5B.5:** P1-01 (existing user UX), P1-05 (grupowanie zaproszeń), P2-01 (nav Członkowie) zamknięte w `b41d049`. CHANGELOG i handoff uzupełnione.
 
 ---
 
