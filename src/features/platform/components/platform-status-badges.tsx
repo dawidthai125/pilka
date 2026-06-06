@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { HealthLevel } from "@/lib/platform/health";
+import type { HealthLevel } from "@/lib/platform/health-types";
 import type { SyncCategory } from "@/lib/platform/sync-category";
 
 const HEALTH_STYLES: Record<HealthLevel, string> = {

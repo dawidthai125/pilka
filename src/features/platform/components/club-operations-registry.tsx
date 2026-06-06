@@ -20,7 +20,7 @@ import {
   type ClubOperationsRegistryResult,
   type ClubOperationsRegistryRow,
   type ClubRegistryStatusFilter,
-} from "@/lib/platform/club-operations-registry";
+} from "@/lib/platform/club-operations-registry-types";
 import { cn } from "@/lib/utils";
 
 const STATUS_LABELS: Record<string, string> = {

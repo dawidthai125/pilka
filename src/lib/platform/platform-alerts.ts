@@ -1,5 +1,6 @@
 import type { SyncCategory } from "@/lib/platform/sync-category";
-import type { ClubHealthRow, HealthMetricsContext, LeagueHealthRow } from "@/lib/platform/health";
+import type { ClubHealthRow, LeagueHealthRow } from "@/lib/platform/health-types";
+import type { HealthMetricsContext } from "@/lib/platform/health";
 
 /** Zgodne z `club-test.ts` — lokalna kopia dla importów Node (validate-186b). */
 const TEST_CLUB_SLUGS = new Set(["pilot-club-test"]);

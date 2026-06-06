@@ -4,7 +4,7 @@ import {
 } from "@/features/platform/components/platform-status-badges";
 import { MonitoringInteractive } from "@/features/platform/components/monitoring-interactive";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { PlatformMonitoringBundle } from "@/lib/platform/health";
+import type { PlatformMonitoringBundle } from "@/lib/platform/health-types";
 import { cn } from "@/lib/utils";
 
 export type MonitoringViewQuery = {

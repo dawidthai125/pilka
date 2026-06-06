@@ -14,8 +14,8 @@ import type {
   ClubHealthRow,
   LeagueHealthRow,
   MonitoringHealthPagination,
-} from "@/lib/platform/health";
-import { MONITORING_HEALTH_PAGE_SIZE_OPTIONS } from "@/lib/platform/health";
+} from "@/lib/platform/health-types";
+import { MONITORING_HEALTH_PAGE_SIZE_OPTIONS } from "@/lib/platform/health-types";
 import type { PlatformAlert } from "@/lib/platform/platform-alerts";
 import {
   EMPTY_SYNC_HISTORY_FILTERS,
