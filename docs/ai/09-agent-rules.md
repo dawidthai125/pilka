@@ -16,6 +16,16 @@
 | **ETAP 15.11 zamrożony** | Brak nowych dużych modułów |
 | **Commit / push / deploy** | **Tylko na prośbę** użytkownika |
 
+## Platform Admin — importy client/server (P0, Sprint 20.1)
+
+| Kontekst | Importuj z |
+|----------|------------|
+| `"use client"` — typy Health, stałe paginacji monitoring | `@/lib/platform/health-types` |
+| `"use client"` — typy Registry, stałe paginacji | `@/lib/platform/club-operations-registry-types` |
+| Server loaders / RSC | `@/lib/platform/health`, `club-operations-registry` |
+
+Value import z `health.ts` w komponencie klienckim **psuje build Vercel** (`pg` → `net`/`tls`). Szczegóły: [`sprint-201a-deploy-recovery-rca.md`](../architecture/sprint-201a-deploy-recovery-rca.md).
+
 ## Zasody techniczne
 
 | Temat | Reguła |

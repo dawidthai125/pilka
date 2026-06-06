@@ -86,4 +86,17 @@ psql $DATABASE_URL -f scripts/sql/hotfix-201a-sync-jobs-retention.sql
 | 100 | GO warunkowy | **GO** (po apply hotfix retention na prod) |
 | 500 | NO-GO | **NO-GO** |
 
-**Uwaga:** Hotfix `hotfix-201a-sync-jobs-retention.sql` nie był jeszcze stosowany na Supabase prod w tej sesji — wymaga ręcznego apply jak poprzednie hotfixy 192b/193b.
+**Uwaga:** Hotfix `hotfix-201a-sync-jobs-retention.sql` — **PASS na prod** (2026-06-06). Patrz [sprint-201a-finalization.md](./sprint-201a-finalization.md).
+
+---
+
+## Deploy Recovery (2026-06-06)
+
+| Check | Wynik |
+|-------|--------|
+| `ed324b7` Vercel build | **FAIL** (pg w client bundle) |
+| `eb29e7a` fix + `npm run build` | **PASS** |
+| Vercel prod deploy | **PASS** (`eb29e7a`) |
+| https://pilka-mu.vercel.app/platform/monitoring | **200** |
+
+RCA: [sprint-201a-deploy-recovery-rca.md](./sprint-201a-deploy-recovery-rca.md)

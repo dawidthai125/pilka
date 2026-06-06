@@ -145,3 +145,18 @@ SQL hotfix (ręczny apply, bez nowej tabeli):
 - Lifecycle (activate / archive / restore / resend)
 - Registry logika biznesowa i paginacja 19.3B
 - Monitoring UX i paginacja health
+
+---
+
+## Addendum — Deploy Recovery (`eb29e7a`, 2026-06-06)
+
+Po pushu `ed324b7` build Vercel **FAIL** (`pg` w client bundle). Fix bez zmiany logiki:
+
+| Plik | Rola |
+|------|------|
+| `health-types.ts` | Typy + stałe monitoring — **client-safe** |
+| `club-operations-registry-types.ts` | Typy + stałe registry — **client-safe** |
+
+Client components (`monitoring-interactive`, `club-operations-registry`, `platform-status-badges`, `sync-monitoring-view`) importują z `*-types.ts`.
+
+**Prod LIVE:** `eb29e7a` · RCA: [sprint-201a-deploy-recovery-rca.md](./sprint-201a-deploy-recovery-rca.md) · finalizacja: [sprint-201a-finalization.md](./sprint-201a-finalization.md)

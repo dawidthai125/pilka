@@ -1,9 +1,10 @@
 # PROJECT HANDOFF — FC OS Platform (checkpoint 20.1)
 
-**Data:** 2026-06-05  
-**Tag:** `pre-20-2-platform-roadmap`  
+**Data:** 2026-06-06 (zaktualizowano po deploy recovery)  
+**Tag:** `pre-20-2-platform-roadmap` → `ed324b7`  
+**Produkcja LIVE (Vercel):** `eb29e7a` (20.1 + deploy fix)  
 **Baseline poprzedni:** `pre-20-platform-scale-review` (`351b424`)  
-**Produkcja:** https://pilka-mu.vercel.app  
+**Produkcja URL:** https://pilka-mu.vercel.app  
 **Supabase:** `pwkqnwqvrdiaycveacxa`  
 **Kluby referencyjne:** Piorun Wawrzeńczyce · GLKS Mietków
 
@@ -13,13 +14,19 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Faza zamknięta** | 18.5A → **20.1** (Platform Performance P1) |
+| **Faza zamknięta** | 18.5A → **20.1** (Platform Performance P1 + deploy recovery) |
+| **origin/main HEAD** | `eb29e7a` |
 | **Production Readiness** | **GO** (20 / 50 / **100** klubów) |
+| **Vercel deploy** | **PASS** (`eb29e7a`, 2026-06-06) |
 | **500 klubów** | **NO-GO** (wymaga materialized KPI, audit table, edge cache) |
 | **Następny sprint (rekomendacja)** | **20.2 — Club Management** |
-| **Tag checkpointu** | `pre-20-2-platform-roadmap` |
+| **Tag checkpointu** | `pre-20-2-platform-roadmap` (na `ed324b7`; prod = `eb29e7a`) |
 
-**Nowy agent:** czytaj też [project-handoff-current.md](../audit/project-handoff-current.md) (kontekst ogólny) oraz [sprint-200a-platform-scale-review.md](./sprint-200a-platform-scale-review.md).
+**Nowy agent — kolejność:**
+1. Ten dokument (Platform 20.1)
+2. [project-handoff-current.md](../audit/project-handoff-current.md) (skrót START HERE)
+3. [sprint-200a-platform-scale-review.md](./sprint-200a-platform-scale-review.md) (audyt skali)
+4. [sprint-201a-deploy-recovery-rca.md](./sprint-201a-deploy-recovery-rca.md) (**obowiązkowe** przy pracy nad Platform UI)
 
 ---
 
@@ -44,6 +51,15 @@
 - **Registry / Monitoring** — współdzielą health context; paginacja ogranicza payload HTML, scan O(N) pozostaje świadomym kompromisem.
 - **Brak nowych tabel** w 20.1; hotfixy SQL w `scripts/sql/` (ręczny apply na nowych env).
 
+### Client vs server (deploy recovery `eb29e7a`)
+
+| Moduł | Server (`pg` / Supabase admin) | Client-safe |
+|-------|-------------------------------|-------------|
+| Health loadery | `health.ts` | `health-types.ts` |
+| Registry loadery | `club-operations-registry.ts` | `club-operations-registry-types.ts` |
+
+Komponenty `"use client"` importują **wyłącznie** z kolumny client-safe. Value import z `health.ts` psuje build Vercel (`net`/`tls`).
+
 ---
 
 ## 2. Ukończone sprinty (18.5A → 20.1)
@@ -62,7 +78,8 @@
 | **19.3A** | SaaS Readiness Audit (docs) | — |
 | **19.3B** | SaaS Readiness P0 (detail N+1, paginacja, audit cap) | `351b424` · `pre-20-platform-scale-review` |
 | **20.0A** | Platform Scale Review (audyt, docs) | — |
-| **20.1** | Platform Performance P1 | ten commit · `pre-20-2-platform-roadmap` |
+| **20.1** | Platform Performance P1 | `ed324b7` · tag `pre-20-2-platform-roadmap` |
+| **20.1 deploy fix** | Client/server import split | `eb29e7a` · **prod LIVE** |
 
 ### Sprint 20.1 — zmiany kodu (P1)
 
@@ -71,6 +88,10 @@
 3. **Owner lookup** — `profiles` po email zamiast `listUsers(1000)`.
 4. **Usunięto** `listPlatformClubs` / `fetchPlatformClubs` (legacy N+1).
 5. **Sync jobs retention** — `platform_prune_league_sync_jobs(90)` (SQL hotfix).
+
+### Deploy recovery (`eb29e7a`)
+
+6. **`health-types.ts`** / **`club-operations-registry-types.ts`** — typy i stałe bez `pg` dla `"use client"`.
 
 ---
 
@@ -181,7 +202,7 @@ node scripts/validate-185b-health-v2.mjs
 node scripts/validate-185c-sync-history.mjs
 ```
 
-**Stan:** wszystkie **PASS** (2026-06-05).
+**Stan:** wszystkie **PASS** (2026-06-06, po deploy recovery).
 
 ---
 
@@ -192,6 +213,8 @@ node scripts/validate-185c-sync-history.mjs
 | [sprint-200a-platform-scale-review.md](./sprint-200a-platform-scale-review.md) | Audyt skali (read-only) |
 | [sprint-201a-platform-performance-p1-implementation.md](./sprint-201a-platform-performance-p1-implementation.md) | Implementacja P1 |
 | [sprint-201a-platform-performance-p1-validation.md](./sprint-201a-platform-performance-p1-validation.md) | Walidacja lokalna |
+| [sprint-201a-finalization.md](./sprint-201a-finalization.md) | SQL hotfix + deploy + recovery |
+| [sprint-201a-deploy-recovery-rca.md](./sprint-201a-deploy-recovery-rca.md) | RCA Vercel build |
 | [project-handoff-20.1.md](./project-handoff-20.1.md) | Ten dokument |
 
 ---
@@ -202,5 +225,6 @@ node scripts/validate-185c-sync-history.mjs
 |---------|-----------|
 | Czy platforma jest gotowa do ~100 klubów? | **TAK (GO)** |
 | Czy hotfixy SQL są na prod? | **TAK** (192b, 193b, 201a) |
+| Czy Vercel deploy 20.1 jest LIVE? | **TAK** (`eb29e7a`) |
 | Co dalej? | **Sprint 20.2 — Club Management** |
-| Commit / deploy | Po tym handoff — push `main` + tag `pre-20-2-platform-roadmap` |
+| Commity | `ed324b7` (20.1) + `eb29e7a` (deploy fix) · tag `pre-20-2-platform-roadmap` |

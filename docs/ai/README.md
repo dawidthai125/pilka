@@ -6,8 +6,10 @@ Ten katalog jest **źródłem prawdy dla nowych agentów** (Cursor, Claude, itd.
 
 | # | Plik | Co z niego wyniesiesz |
 |---|------|------------------------|
-| 0 | [`../audit/project-handoff-current.md`](../audit/project-handoff-current.md) | **Stan na dziś:** produkcja, ostatni sprint, otwarte zadania, DO NOT REPEAT |
-| 0b | [`../audit/pre-18-5-backup-handoff.md`](../audit/pre-18-5-backup-handoff.md) | **Checkpoint PRE 18.5:** tag, dump, checksums, restore, czego nie powtarzać |
+| 0 | [`../audit/project-handoff-current.md`](../audit/project-handoff-current.md) | **Skrót START HERE:** prod `eb29e7a`, sprint 20.1, następny 20.2 |
+| 0a | [`../architecture/project-handoff-20.1.md`](../architecture/project-handoff-20.1.md) | **Platform 20.1:** P1 perf, hotfixy SQL, skala GO/NO-GO, deploy recovery |
+| 0b | [`../architecture/sprint-201a-deploy-recovery-rca.md`](../architecture/sprint-201a-deploy-recovery-rca.md) | **P0:** `health-types.ts` — nie importuj `health.ts` w `"use client"` |
+| 0c | [`../audit/pre-18-5-backup-handoff.md`](../audit/pre-18-5-backup-handoff.md) | **Archiwum PRE 18.5:** tag, dump, restore |
 | 1 | [01-product-overview.md](./01-product-overview.md) | Czym jest FC OS, dla kogo, Piorun vs GLKS |
 | 2 | [02-tech-architecture.md](./02-tech-architecture.md) | Stack, warstwy, multi-tenant, bezpieczeństwo |
 | 3 | [03-routing-map.md](./03-routing-map.md) | Wszystkie trasy: public, auth, dashboard, API |
@@ -27,6 +29,7 @@ Ten katalog jest **źródłem prawdy dla nowych agentów** (Cursor, Claude, itd.
 | Instancja referencyjna | **Piorun Wawrzeńczyce** / **GLKS Mietków** |
 | Slug klubu | `piorun-wawrzenczyce` |
 | Produkcja | https://pilka-mu.vercel.app |
+| Prod commit | `eb29e7a` (2026-06-06) |
 | Repo | `dawidthai125/pilka` |
 | Stack | Next.js 15 · React 19 · Supabase · Vercel |
 

@@ -2,31 +2,45 @@
 
 **Klub referencyjny:** Piorun Wawrzeńczyce / GLKS Mietków  
 **Repozytorium:** `dawidthai125/pilka`  
-**Dokument:** stan na 2026-06-04 (po backup PRE 18.5) · dla nowego agenta  
+**Dokument:** zaktualizowano 2026-06-06 · dla nowego agenta  
 **Produkcja:** https://pilka-mu.vercel.app  
 **Supabase project:** `pwkqnwqvrdiaycveacxa`
 
 ---
 
-## 0. START HERE — STAN NA DZIŚ (nowy agent)
+## 0. START HERE — STAN NA DZIŚ (2026-06-06)
+
+> **Platform Admin (18.5A → 20.1):** czytaj **[`../architecture/project-handoff-20.1.md`](../architecture/project-handoff-20.1.md)** — pełny handoff sprintów, hotfixy SQL, skala, deploy recovery.
+
+| Pole | Wartość |
+|------|---------|
+| **Produkcja commit (Vercel)** | `eb29e7a` — 20.1 + deploy recovery **LIVE** |
+| **origin/main** | `eb29e7a` |
+| **Tag checkpointu Platform** | `pre-20-2-platform-roadmap` → `ed324b7` |
+| **Faza Platform** | ✅ 18.5A → **20.1** zamknięta |
+| **Production Readiness** | **GO** (20 / 50 / 100 klubów) |
+| **Następny sprint (rekomendacja)** | **20.2 — Club Management** |
+| **Hotfixy SQL na prod** | `192b` ✅ · `193b` ✅ · `201a` ✅ |
+
+**Kluczowe trasy Platform:** `/platform`, `/platform/clubs`, `/platform/monitoring`, `/platform/audit`
+
+**Reguła architektury (P0):** komponenty `"use client"` w Platform **nie** importują value z `health.ts` — używaj `health-types.ts` / `club-operations-registry-types.ts`. Patrz [deploy-recovery RCA](../architecture/sprint-201a-deploy-recovery-rca.md).
+
+**Nie rób ponownie:** deploy recovery (naprawione w `eb29e7a`), re-apply hotfixów SQL bez potrzeby.
+
+> **Historia sprzed 18.5:** sekcje poniżej (backup PRE 18.5, sprinty 15.x–18.4b) — kontekst archiwalny.
+
+---
+
+## 0b. ARCHIWUM — stan 2026-06-04 (PRE 18.5)
 
 > **Pełny checkpoint backupu:** [`pre-18-5-backup-handoff.md`](./pre-18-5-backup-handoff.md)
 
 | Pole | Wartość |
 |------|---------|
-| **Produkcja commit** | `ef7873e` — Sprint **18.4b** LIVE na Vercel |
-| **origin/main** | `ef7873e` — zsynchronizowany |
-| **Tag backupu** | `pre-18-5-platform-complete` → `ef7873e` (local + origin) |
-| **Backup PRE 18.5** | ✅ COMPLETE — `backups/pre-18-5/` (lokalnie, **w .gitignore**) |
-| **Platform Phase** | ✅ COMPLETE (18.1–18.4b) |
-| **Następny sprint** | **18.5** — scope od użytkownika |
-| **PITR** | ON (T0 backupu: `2026-06-04T08:56:05Z`) |
-
-**Nowe trasy Platform (18.4b):** `/platform/monitoring`, `/platform/audit`
-
-**Nie rób ponownie:** backup PRE 18.5, deploy 18.4a/18.4b, push bez polecenia.
-
-**Operator jeszcze do zrobienia:** skopiować `backups/pre-18-5/fcos-pre-18-5-offsite.7z` offsite; zarchiwizować klub `release-184a-mpz313we`.
+| **Produkcja commit (wtedy)** | `ef7873e` — Sprint **18.4b** |
+| **Tag backupu** | `pre-18-5-platform-complete` → `ef7873e` |
+| **Backup PRE 18.5** | ✅ `backups/pre-18-5/` (lokalnie, **w .gitignore**) |
 
 ---
 

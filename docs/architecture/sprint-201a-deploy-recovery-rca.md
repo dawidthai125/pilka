@@ -3,7 +3,8 @@
 **Data:** 2026-06-06  
 **Priorytet:** P0  
 **Commit zepsuty:** `ed324b7` (build FAIL na Vercel)  
-**Fix commit:** (patrz release checkpoint po pushu)
+**Fix commit:** `eb29e7a` — `fix(platform): split client-safe health types for Vercel build (deploy recovery)`  
+**Prod LIVE:** `eb29e7a` · https://pilka-mu.vercel.app
 
 ---
 
@@ -50,12 +51,23 @@ Loadery server (`health.ts`, `club-operations-registry.ts`) re-eksportują typy 
 
 **Bez zmian:** Health v2 scoring, Alerts evaluator, Lifecycle, Monitoring UX.
 
+### Reguła dla przyszłych agentów
+
+| Kontekst | Importuj z |
+|----------|------------|
+| `"use client"` — typy Health / stałe paginacji monitoring | `@/lib/platform/health-types` |
+| `"use client"` — typy Registry / stałe paginacji | `@/lib/platform/club-operations-registry-types` |
+| Server loaders / RSC pages | `@/lib/platform/health`, `club-operations-registry` |
+
+**Nigdy** nie rób value importu z `health.ts` w komponencie klienckim — moduł ciągnie `pg`.
+
 ---
 
 ## Weryfikacja
 
 ```bash
 npm run build  # PASS (lokalnie 2026-06-06)
+# Vercel: Ready (eb29e7a)
 ```
 
 ---
