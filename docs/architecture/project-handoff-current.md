@@ -15,31 +15,31 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Production commit** | `b41d049` — **Sprint 20.5B.3/20.5B.4** Club Management Stabilization **LIVE** |
+| **Production commit** | `d644b5a` — **Sprint 20.5C.1** CSV Export + Multi Select **LIVE** |
 | **Branch** | `main` |
-| **origin/main** | `b41d049` |
+| **origin/main** | `d644b5a` |
 | **Produkcja** | **PASS** · https://pilka-mu.vercel.app |
 | **Deploy** | **LIVE** (Vercel auto-deploy z `main`) |
 | **Tag checkpointu (20.3)** | `post-20-3-navigation-ux` → `af3a485` |
 | **Tag checkpointu Platform** | `pre-20-2-platform-roadmap` → `ed324b7` |
 | **Faza Platform** | ✅ 18.5A → **20.1** zamknięta · ✅ **20.3** UX/navigation zamknięta |
-| **Sprint 20.5 (Club Management)** | ✅ **Completed** — **PASS**, production **GO** |
+| **Sprint 20.5 (Club Management)** | ✅ **20.5C.1 Completed** — **PASS**, production **GO** |
 | **Production Readiness** | **GO** (20 / 50 / 100 klubów) |
-| **Następny sprint (rekomendacja)** | **20.5C.1 — CSV Export + Multi Select** |
+| **Następny sprint (rekomendacja)** | **20.5C.2+** — bulk actions / CSV import |
 | **Hotfixy SQL na prod** | `192b` ✅ · `193b` ✅ · `201a` ✅ |
 
-### Status modułów (prod `b41d049`)
+### Status modułów (prod `d644b5a`)
 
 | Obszar | Status |
 |--------|--------|
 | **Production** | **PASS** |
-| **Club Management** | **PASS** (`/members` — CRUD członków, RBAC) |
+| **Club Management** | **PASS** (`/members` — CRUD, CSV export, multi-select) |
 | **Invitations** | **PASS** (invite / resend / revoke, filtry statusów) |
 | **League Sync** | **PASS** (20.4C pipeline — bez regresji) |
 | **Platform** | **PASS** (18.5A→20.1 + 20.3 UX) |
 | **Navigation** | **PASS** (nav v2; `/members` = **Członkowie**) |
 
-### Sprint 20.5 Completed (wdrożone `b41d049`)
+### Sprint 20.5 Completed (wdrożone `d644b5a`)
 
 | Pod-sprint | Commit | Zakres | Status |
 |------------|--------|--------|--------|
@@ -49,9 +49,10 @@
 | **20.5B.2** | — | Post-release audit (bez kodu) | **PASS** — [`club-management-post-release-20.5B.2.md`](../audit/club-management-post-release-20.5B.2.md) |
 | **20.5B.3** | `b41d049` | Stabilization — existing user flow, nav Członkowie, filtry, auth guard | **PASS** |
 | **20.5B.4** | `b41d049` | Release verification — smoke + CI + prod | **PASS** |
+| **20.5C.1** | `d644b5a` | CSV Export + Multi Select — checkbox, eksport client-side | **PASS** |
 
-**Walidacja 20.5:** typecheck + build + walidatory `validate-205a`, `validate-205b`, `validate-205b3` + regresja 18.5–20.4C — **PASS**  
-**Smoke prod:** `_smoke-prod-205b3.mjs` — **8/8 PASS**  
+**Walidacja 20.5C.1:** typecheck + build + walidatory `validate-205a` … `validate-205c1` — **PASS**  
+**Smoke prod:** `_smoke-205c1-manual.mjs` — **PASS**  
 **Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · **Audyt baseline:** [`club-management-20.5-audit.md`](../audit/club-management-20.5-audit.md)
 
 **Kluczowe pliki Club Management:**
@@ -64,9 +65,10 @@
 | Server actions | `src/features/members/actions.ts` |
 | Invite service | `src/lib/members/invite-service.ts` |
 | Auth guard (20.5C prep) | `src/lib/members/auth-invite-guard.ts` |
-| Walidatory | `scripts/validate-205a-*.mjs`, `validate-205b-*.mjs`, `validate-205b3-*.mjs` |
+| CSV export (20.5C.1) | `src/lib/members/export-members-csv.ts` |
+| Walidatory | `scripts/validate-205a-*.mjs` … `validate-205c1-*.mjs` |
 
-**Nie rób ponownie:** ponowny audyt 20.5B.2 (zamknięty), re-implementacja 20.5A/20.5B (LIVE), deploy recovery Platform (naprawione w `eb29e7a`).
+**Nie rób ponownie:** ponowny audyt 20.5B.2 (zamknięty), re-implementacja 20.5A/20.5B/20.5C.1 (LIVE), deploy recovery Platform (naprawione w `eb29e7a`).
 
 ### Sprint 20.3 Completed (wdrożone `af3a485`)
 
@@ -143,7 +145,7 @@ Commit: `ef7873e909e2961e0c789ce6aa37f944530f437f`
 
 ### Sprint 20.5 — Club Management (2026-06-06)
 
-**Commit prod:** `b41d049` · **Status:** PASS · **Production:** GO · **Deploy:** LIVE
+**Commit prod:** `d644b5a` · **Status:** PASS · **Production:** GO · **Deploy:** LIVE
 
 | Etap | Commit | Opis |
 |------|--------|------|
@@ -152,10 +154,11 @@ Commit: `ef7873e909e2961e0c789ce6aa37f944530f437f`
 | **20.5B.2** | — | Audyt post-release (~78% dojrzałości modułu) |
 | **20.5B.3** | `b41d049` | Stabilization: existing user UX, nav Członkowie, filtry zaproszeń, auth rate limit |
 | **20.5B.4** | `b41d049` | Smoke + CI + prod verification |
+| **20.5C.1** | `d644b5a` | CSV Export + Multi Select — checkbox, eksport client-side |
 
-Walidatory: `validate-205a-members-management-foundation.mjs`, `validate-205b-invitations-and-roles.mjs`, `validate-205b3-club-management-stabilization.mjs`  
-Smoke: `_smoke-205b3-stabilization.mjs`, `_smoke-prod-205b3.mjs`  
-**Następny krok:** **20.5C.1** — CSV Export + multi-select (bez bulk invite do stabilizacji Auth)
+Walidatory: `validate-205a-*.mjs` … `validate-205c1-*.mjs`  
+Smoke: `_smoke-205c1-manual.mjs` — local + prod PASS  
+**Następny krok:** **20.5C.2+** — bulk actions / CSV import (bez bulk invite do stabilizacji Auth)
 
 ### Sprint 20.3 — Navigation & Platform UX (2026-06-06)
 
@@ -233,12 +236,12 @@ Metryki po P0 (lokalnie): sync **~79 s → ~28 s**; warm TTFB `/` prod **~0,95 s
 
 | Pole | Wartość |
 |------|---------|
-| **Commit prod** | `b41d049` (20.5B.3 Club Management Stabilization) |
+| **Commit prod** | `d644b5a` (20.5C.1 CSV Export + Multi Select) |
 | **Branch** | `main` |
-| **origin/main** | `b41d049` |
+| **origin/main** | `d644b5a` |
 | **Production status** | **PASS** |
 | **Tag checkpointu (20.3)** | `post-20-3-navigation-ux` → `af3a485` |
-| **Checkpoint Club Management** | **20.5B.4 PASS** → `b41d049` |
+| **Checkpoint Club Management** | **20.5C.1 PASS** → `d644b5a` |
 | **Backup tag** | `pre-18-5-platform-complete` |
 | **URL** | https://pilka-mu.vercel.app |
 | **Region Vercel** | `fra1` |
@@ -587,7 +590,7 @@ Wymagane w `.env.local`: `NEXT_PUBLIC_SUPABASE_*`, `SUPABASE_SERVICE_ROLE_KEY` (
 
 - Otwórz https://pilka-mu.vercel.app — `/`, `/druzyna`, `/tabela`.
 - GitHub: `gh run list --branch main -L 3`
-- Vercel: ostatni deployment = commit `b41d049` (20.5B.3 Club Management Stabilization).
+- Vercel: ostatni deployment = commit `d644b5a` (20.5C.1 CSV Export + Multi Select).
 
 ### Krok 4 — Zweryfikuj ligę
 
@@ -600,7 +603,7 @@ Porównaj wynik z sekcją 4 tego dokumentu.
 
 ### Krok 5 — Zaplanuj sprint
 
-- **Sprint 20.5C.1** — CSV Export + Multi Select (rekomendacja po 20.5B.4 PASS).
+- **Sprint 20.5C.2+** — bulk actions / CSV import (rekomendacja po 20.5C.1 PASS).
 - **Club Management handoff:** [`project-handoff-20.5-club-management.md`](./project-handoff-20.5-club-management.md)
 - **Rekomendacja produktowa (liga):** **League Player Matching 16.1** (sekcja 8).
 - **Rekomendacja techniczna:** Regiowyniki goals + `get_public_home_bundle` — patrz P1.

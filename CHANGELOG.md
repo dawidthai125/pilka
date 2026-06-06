@@ -2,6 +2,32 @@
 
 All notable changes to FC OS (pilka) are documented in this file.
 
+## [post-20-5c1-export-multiselect] — 2026-06-06
+
+### Sprint 20.5C.1 — CSV Export + Multi Select
+
+**Status:** PASS · **Production:** GO · **Deploy:** LIVE  
+**Commit:** `d644b5a` · **Branch:** `main`  
+**URL:** https://pilka-mu.vercel.app
+
+- **Multi-select** — checkbox w nagłówku (select all + indeterminate) i w każdym wierszu tabeli członków
+- **Licznik zaznaczonych** — „Zaznaczono: N” / „Brak zaznaczenia” (`aria-live`)
+- **Eksport CSV** — client-side, `export-members-csv.ts` (BOM UTF-8, separator `;`, sanitizacja formuł)
+- **Kolumny CSV:** Imię i nazwisko, Email, Rola, Status, Drużyna, Data dołączenia
+- **UX eksportu:** „Eksportuj zaznaczone (N)” / „Eksportuj wszystkich”
+- Walidator: `validate-205c1-members-export-multiselect.mjs`
+- Smoke: `_smoke-205c1-manual.mjs` — local + prod **PASS**
+
+### Validation (release gate 20.5C.1)
+
+- `npm run typecheck` — PASS
+- `npm run build` — PASS
+- Walidatory 20.5A–20.5C.1 — PASS
+- CI GitHub Actions (`d644b5a`) — PASS
+- Production smoke 20.5C.1 — PASS
+
+---
+
 ## [post-20-5-club-management] — 2026-06-06
 
 ### Sprint 20.5B.4 — Release Verification
