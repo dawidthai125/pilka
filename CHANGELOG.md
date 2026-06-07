@@ -2,6 +2,34 @@
 
 All notable changes to FC OS (pilka) are documented in this file.
 
+## [post-20-5c2c-bulk-remove] — 2026-06-07
+
+### Sprint 20.5C.2C — Bulk Remove
+
+**Status:** PASS · **Production:** GO · **Deploy:** LIVE  
+**Commit:** `3eac96f` · **Branch:** `main`  
+**URL:** https://pilka-mu.vercel.app
+
+- **Bulk Usuń** — toolbar Variant A `[ Usuń (N) ]`, danger dialog + mandatory checkbox
+- **Shared mutation core** — `removeMembershipById`, `runBulkMemberRemoveMutation`
+- **Refactor** — single-row `removeMember` → core (bez zmiany kontraktu UI)
+- **Owner protection** — owner nigdy w bulk payload (`isExcludedFromBulkMemberMutation`)
+- **Eligible-only (Variant A)** — `getBulkRemoveTargetIds`
+- Walidator: `validate-205c2c-bulk-remove.mjs`
+- Smoke: `_smoke-205c2c-manual.mjs` — local + prod **PASS**
+- Rollback: `_rollback-205c2c-memberships.mjs`, snapshot: `_snapshot-piorun-members.mjs`
+
+### Validation (release gate 20.5C.2C)
+
+- `npm run typecheck` — PASS
+- `npm run build` — PASS
+- Walidatory 20.5A–20.5C.2C — PASS
+- CI GitHub Actions (`3eac96f`, run #27090239243) — PASS
+- Production smoke 20.5C.2C + regression 20.5C.2A + 20.5C.2B — PASS
+- Post-smoke rollback seed Piorun — **wykonany**
+
+---
+
 ## [post-20-5c2b-bulk-role-change] — 2026-06-07
 
 ### Sprint 20.5C.2B — Bulk Role Change

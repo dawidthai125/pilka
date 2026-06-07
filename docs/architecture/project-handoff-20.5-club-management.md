@@ -2,9 +2,9 @@
 
 **Klub referencyjny:** Piorun Wawrzeńczyce  
 **Repozytorium:** `dawidthai125/pilka`  
-**Dokument:** 2026-06-07 · handoff po zamknięciu 20.5A → 20.5C.2B  
+**Dokument:** 2026-06-07 · handoff po zamknięciu 20.5A → 20.5C.2C  
 **Produkcja:** https://pilka-mu.vercel.app  
-**Production commit:** `8efa710` · **Branch:** `main` · **Status:** PASS · **Deploy:** LIVE
+**Production commit:** `3eac96f` · **Branch:** `main` · **Status:** PASS · **Deploy:** LIVE
 
 ---
 
@@ -15,17 +15,17 @@
 | **Moduł** | `/members` — **Członkowie** (nav v2, Administracja) |
 | **Stan** | **PASS** — Club Management + Invitations LIVE |
 | **Dojrzałość modułu** | ~78% (audyt 20.5B.2); score 6.6/10 |
-| **Następny sprint** | **20.5C.3** CSV import · **20.5C.2C** bulk remove (backlog) |
-| **Nie implementuj ponownie** | 20.5A foundation, 20.5B invitations, 20.5B.3 stabilization, **20.5C.1 export**, **20.5C.2A bulk suspend/reactivate**, **20.5C.2B bulk role change** |
+| **Następny sprint** | **20.5C.3** CSV import |
+| **Nie implementuj ponownie** | 20.5A foundation, 20.5B invitations, 20.5B.3 stabilization, **20.5C.1 export**, **20.5C.2A bulk suspend/reactivate**, **20.5C.2B bulk role change**, **20.5C.2C bulk remove** |
 
 **Skrót globalny:** [`project-handoff-current.md`](./project-handoff-current.md)  
-**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) — sekcja `[post-20-5c2b-bulk-role-change]`
+**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) — sekcja `[post-20-5c2c-bulk-remove]`
 
 ### Production-linked development
 
 - `.env.local` korzysta z **produkcyjnego Supabase** (`pwkqnwqvrdiaycveacxa`)
 - Smoke mutacyjny (localhost lub prod URL) **wymaga rollbacku** ról/statusów seed lub izolowanego klubu testowego
-- Rollback referencyjny: `scripts/_rollback-205c2b-roles.mjs` (Piorun seed)
+- Rollback referencyjny: `scripts/_rollback-205c2c-memberships.mjs`, `scripts/_rollback-205c2b-roles.mjs` (Piorun seed)
 
 ---
 
@@ -43,6 +43,7 @@
 | **20.5C.1** CSV Export + Multi Select | `d644b5a` | PASS | Checkbox multi-select, eksport CSV członków (client-side) |
 | **20.5C.2A** Bulk Suspend + Reactivate | `107f421` | PASS | Bulk Zawieś/Przywróć, owner protection, eligible-only semantics |
 | **20.5C.2B** Bulk Role Change | `8efa710` | PASS | Bulk Zmień rolę, no-op skip, `changeMembershipRoleById` core |
+| **20.5C.2C** Bulk Remove | `3eac96f` | PASS | Bulk Usuń, danger dialog + checkbox, `removeMembershipById` core |
 
 ---
 
@@ -61,11 +62,12 @@
 |--------|-------------|------|
 | `changeMemberRole` | leadership + `member:manage` | Zmiana roli (via `changeMembershipRoleById`) |
 | `bulkChangeMemberRoles` | leadership | Bulk zmiana roli (Variant A, owner excluded) |
+| `bulkRemoveMembers` | leadership | Bulk usunięcie (Variant A, danger dialog + checkbox) |
 | `bulkSuspendMembers` | leadership | Bulk zawieszenie |
 | `bulkReactivateMembers` | leadership | Bulk przywrócenie |
 | `suspendMember` | leadership | Zawieszenie aktywnego |
 | `reactivateMember` | leadership | Przywrócenie zawieszonego |
-| `removeMember` | leadership | DELETE membership |
+| `removeMember` | leadership | DELETE membership (via `removeMembershipById`) |
 | `inviteMember` | leadership + invite | Nowy lub istniejący użytkownik |
 | `resendInvite` | leadership | Email lub login_required |
 | `revokeInvite` | leadership | status → `archived` |
@@ -153,7 +155,8 @@ node scripts/_smoke-prod-205b3.mjs             # post-deploy prod
 | P2 | Heurystyka Accepted bez `accepted_at` | Opcjonalna migracja |
 | — | ~~**20.5C.1** CSV Export + multi-select~~ | ✅ **LIVE** `d644b5a` |
 | — | ~~**20.5C.2A** bulk suspend/reactivate~~ | ✅ **LIVE** `107f421` |
-| — | **20.5C.2B** bulk role/remove | Następny sprint |
+| — | ~~**20.5C.2B** bulk role change~~ | ✅ **LIVE** `8efa710` |
+| — | ~~**20.5C.2C** bulk remove~~ | ✅ **LIVE** `3eac96f` |
 | — | **20.5C.3** CSV import | Backlog |
 
 Szczegóły: audyt 20.5B.2 § Backlog Cleanup.

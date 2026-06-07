@@ -15,18 +15,19 @@ Przed rozpoczęciem pracy w tym repozytorium przeczytaj:
 
 | Sprint | Commit | Status |
 |--------|--------|--------|
-| **20.5C.2B** Bulk Role Change | `8efa710` | **PASS** · production **GO** |
+| **20.5C.2C** Bulk Remove | `3eac96f` | **PASS** · production **GO** |
+| **20.5C.2B** Bulk Role Change | `8efa710` | **PASS** |
 | **20.5C.2A** Bulk Suspend + Reactivate | `107f421` | **PASS** |
 | **20.5C.1** CSV Export + Multi Select | `d644b5a` | **PASS** |
 | **20.5B.4** Club Management | `b41d049` | **PASS** |
 | **20.3** Navigation + Platform UX | `af3a485` | **PASS** · tag `post-20-3-navigation-ux` |
 
-**Produkcja:** https://pilka-mu.vercel.app · **Branch:** `main` · **Commit:** `8efa710`  
+**Produkcja:** https://pilka-mu.vercel.app · **Branch:** `main` · **Commit:** `3eac96f`  
 **Klub referencyjny:** **Piorun Wawrzeńczyce** / **GLKS Mietków**
 
-**Status modułów (prod):** Production **PASS** · Club Management **PASS** (bulk role/suspend/reactivate + CSV + multi-select) · Invitations **PASS** · League Sync **PASS** · Platform **PASS** · Navigation **PASS**
+**Status modułów (prod):** Production **PASS** · Club Management **PASS** (bulk remove/role/suspend/reactivate + CSV + multi-select) · Invitations **PASS** · League Sync **PASS** · Platform **PASS** · Navigation **PASS**
 
-**Następny sprint (rekomendacja):** **20.5C.3** — CSV import · **20.5C.2C** — bulk remove (backlog)
+**Następny sprint (rekomendacja):** **20.5C.3** — CSV import
 
 **Production-linked development:** `.env.local` → produkcyjny Supabase (`pwkqnwqvrdiaycveacxa`). Smoke mutacyjny wymaga **rollbacku** seed ról/statusów lub izolowanego klubu testowego.
 
