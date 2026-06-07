@@ -2,9 +2,9 @@
 
 **Klub referencyjny:** Piorun Wawrzeńczyce  
 **Repozytorium:** `dawidthai125/pilka`  
-**Dokument:** 2026-06-06 · handoff po zamknięciu 20.5A → 20.5C.2A  
+**Dokument:** 2026-06-07 · handoff po zamknięciu 20.5A → 20.5C.2B  
 **Produkcja:** https://pilka-mu.vercel.app  
-**Production commit:** `107f421` · **Branch:** `main` · **Status:** PASS · **Deploy:** LIVE
+**Production commit:** `8efa710` · **Branch:** `main` · **Status:** PASS · **Deploy:** LIVE
 
 ---
 
@@ -15,11 +15,17 @@
 | **Moduł** | `/members` — **Członkowie** (nav v2, Administracja) |
 | **Stan** | **PASS** — Club Management + Invitations LIVE |
 | **Dojrzałość modułu** | ~78% (audyt 20.5B.2); score 6.6/10 |
-| **Następny sprint** | **20.5C.2B** bulk role/remove · **20.5C.3** CSV import |
-| **Nie implementuj ponownie** | 20.5A foundation, 20.5B invitations, 20.5B.3 stabilization, **20.5C.1 export**, **20.5C.2A bulk suspend/reactivate** |
+| **Następny sprint** | **20.5C.3** CSV import · **20.5C.2C** bulk remove (backlog) |
+| **Nie implementuj ponownie** | 20.5A foundation, 20.5B invitations, 20.5B.3 stabilization, **20.5C.1 export**, **20.5C.2A bulk suspend/reactivate**, **20.5C.2B bulk role change** |
 
 **Skrót globalny:** [`project-handoff-current.md`](./project-handoff-current.md)  
-**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) — sekcja `[post-20-5c2a-bulk-suspend-reactivate]`
+**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) — sekcja `[post-20-5c2b-bulk-role-change]`
+
+### Production-linked development
+
+- `.env.local` korzysta z **produkcyjnego Supabase** (`pwkqnwqvrdiaycveacxa`)
+- Smoke mutacyjny (localhost lub prod URL) **wymaga rollbacku** ról/statusów seed lub izolowanego klubu testowego
+- Rollback referencyjny: `scripts/_rollback-205c2b-roles.mjs` (Piorun seed)
 
 ---
 
@@ -36,6 +42,7 @@
 | **20.5B.5** Handoff Update | — | docs | CHANGELOG, handoff, AGENTS.md |
 | **20.5C.1** CSV Export + Multi Select | `d644b5a` | PASS | Checkbox multi-select, eksport CSV członków (client-side) |
 | **20.5C.2A** Bulk Suspend + Reactivate | `107f421` | PASS | Bulk Zawieś/Przywróć, owner protection, eligible-only semantics |
+| **20.5C.2B** Bulk Role Change | `8efa710` | PASS | Bulk Zmień rolę, no-op skip, `changeMembershipRoleById` core |
 
 ---
 
@@ -52,7 +59,10 @@
 
 | Action | Uprawnienie | Opis |
 |--------|-------------|------|
-| `changeMemberRole` | leadership + `member:manage` | Zmiana roli (owner chroniony) |
+| `changeMemberRole` | leadership + `member:manage` | Zmiana roli (via `changeMembershipRoleById`) |
+| `bulkChangeMemberRoles` | leadership | Bulk zmiana roli (Variant A, owner excluded) |
+| `bulkSuspendMembers` | leadership | Bulk zawieszenie |
+| `bulkReactivateMembers` | leadership | Bulk przywrócenie |
 | `suspendMember` | leadership | Zawieszenie aktywnego |
 | `reactivateMember` | leadership | Przywrócenie zawieszonego |
 | `removeMember` | leadership | DELETE membership |

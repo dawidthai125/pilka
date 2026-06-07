@@ -15,31 +15,39 @@
 
 | Pole | Wartość |
 |------|---------|
-| **Production commit** | `107f421` — **Sprint 20.5C.2A** Bulk Suspend + Reactivate **LIVE** |
+| **Production commit** | `8efa710` — **Sprint 20.5C.2B** Bulk Role Change **LIVE** |
 | **Branch** | `main` |
-| **origin/main** | `107f421` |
+| **origin/main** | `8efa710` |
 | **Produkcja** | **PASS** · https://pilka-mu.vercel.app |
 | **Deploy** | **LIVE** (Vercel auto-deploy z `main`) |
 | **Tag checkpointu (20.3)** | `post-20-3-navigation-ux` → `af3a485` |
 | **Tag checkpointu Platform** | `pre-20-2-platform-roadmap` → `ed324b7` |
 | **Faza Platform** | ✅ 18.5A → **20.1** zamknięta · ✅ **20.3** UX/navigation zamknięta |
-| **Sprint 20.5 (Club Management)** | ✅ **20.5C.2A Completed** — **PASS**, production **GO** |
+| **Sprint 20.5 (Club Management)** | ✅ **20.5C.2B Completed** — **PASS**, production **GO** |
 | **Production Readiness** | **GO** (20 / 50 / 100 klubów) |
-| **Następny sprint (rekomendacja)** | **20.5C.2B** bulk role/remove · **20.5C.3** CSV import |
+| **Następny sprint (rekomendacja)** | **20.5C.3** CSV import · **20.5C.2C** bulk remove (backlog) |
 | **Hotfixy SQL na prod** | `192b` ✅ · `193b` ✅ · `201a` ✅ |
 
-### Status modułów (prod `107f421`)
+### Production-linked development rule
+
+| Reguła | Opis |
+|--------|------|
+| **Supabase** | Lokalny `.env.local` → projekt prod `pwkqnwqvrdiaycveacxa` (ten sam co Vercel) |
+| **Smoke mutacyjny** | Wymaga **rollbacku** seed (role/status) lub osobnego klubu testowego |
+| **Runtime lokalny** | `next start` dla smoke bulk; `next dev` — znane problemy `useActionState` |
+
+### Status modułów (prod `8efa710`)
 
 | Obszar | Status |
 |--------|--------|
 | **Production** | **PASS** |
-| **Club Management** | **PASS** (`/members` — CRUD, bulk suspend/reactivate, CSV export, multi-select) |
+| **Club Management** | **PASS** (`/members` — CRUD, bulk role/suspend/reactivate, CSV, multi-select) |
 | **Invitations** | **PASS** (invite / resend / revoke, filtry statusów) |
 | **League Sync** | **PASS** (20.4C pipeline — bez regresji) |
 | **Platform** | **PASS** (18.5A→20.1 + 20.3 UX) |
 | **Navigation** | **PASS** (nav v2; `/members` = **Członkowie**) |
 
-### Sprint 20.5 Completed (wdrożone `107f421`)
+### Sprint 20.5 Completed (wdrożone `8efa710`)
 
 | Pod-sprint | Commit | Zakres | Status |
 |------------|--------|--------|--------|
@@ -51,10 +59,11 @@
 | **20.5B.4** | `b41d049` | Release verification — smoke + CI + prod | **PASS** |
 | **20.5C.1** | `d644b5a` | CSV Export + Multi Select — checkbox, eksport client-side | **PASS** |
 | **20.5C.2A** | `107f421` | Bulk Suspend + Reactivate — owner protection, eligible-only | **PASS** |
+| **20.5C.2B** | `8efa710` | Bulk Role Change — shared core, no-op skip, owner exclusion | **PASS** |
 
-**Walidacja 20.5C.2A:** typecheck + build + walidatory `validate-205a` … `validate-205c2a` — **PASS**  
-**Smoke prod:** `_smoke-205c2a-manual.mjs` — **PASS**  
-**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · **Sprint doc:** [`sprint-20.5c.2a-bulk-suspend-reactivate.md`](./sprint-20.5c.2a-bulk-suspend-reactivate.md)
+**Walidacja 20.5C.2B:** typecheck + build + walidatory `validate-205a` … `validate-205c2b` — **PASS**  
+**Smoke prod:** `_smoke-205c2b-manual.mjs` + regression `_smoke-205c2a-manual.mjs` — **PASS**  
+**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · **Sprint doc:** [`sprint-20.5c.2b-bulk-role-change.md`](./sprint-20.5c.2b-bulk-role-change.md)
 
 **Kluczowe pliki Club Management:**
 

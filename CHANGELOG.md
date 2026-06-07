@@ -2,6 +2,39 @@
 
 All notable changes to FC OS (pilka) are documented in this file.
 
+## [post-20-5c2b-bulk-role-change] — 2026-06-07
+
+### Sprint 20.5C.2B — Bulk Role Change
+
+**Status:** PASS · **Production:** GO · **Deploy:** LIVE  
+**Commit:** `8efa710` · **Branch:** `main`  
+**URL:** https://pilka-mu.vercel.app
+
+- **Bulk Zmień rolę** — toolbar multi-select, dialog z selectem roli, `BulkActionResultPanel`
+- **Shared mutation core** — `changeMembershipRoleById`, `runBulkMemberRoleMutation`
+- **Owner protection** — `isExcludedFromBulkMemberMutation` (wszystkie bulk operacje)
+- **No-op skip** — ta sama rola → `skipped` / „Rola bez zmian”
+- **Eligible-only (Variant A)** — toolbar wysyła tylko eligible IDs
+- `playwright` — formalizacja jako `devDependency` (smoke + capture scripts)
+- Walidator: `validate-205c2b-bulk-role-change.mjs`
+- Smoke: `_smoke-205c2b-manual.mjs` — local + prod **PASS**
+
+### Validation (release gate 20.5C.2B)
+
+- `npm run typecheck` — PASS
+- `npm run build` — PASS
+- Walidatory 20.5A–20.5C.2B — PASS
+- CI GitHub Actions (`8efa710`) — PASS
+- Production smoke 20.5C.2B + regression 20.5C.2A — PASS
+- Post-smoke rollback seed Piorun — **wykonany**
+
+### Production-linked development rule
+
+- Lokalny `.env.local` wskazuje na **produkcyjny Supabase** (`pwkqnwqvrdiaycveacxa`)
+- Smoke mutacyjny (local lub prod URL) **wymaga rollbacku** lub dedykowanego klubu testowego
+
+---
+
 ## [post-20-5c2a-bulk-suspend-reactivate] — 2026-06-06
 
 ### Sprint 20.5C.2A — Bulk Suspend + Bulk Reactivate
