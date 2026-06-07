@@ -98,7 +98,21 @@ Członkowie: wiersz w tabeli (active/suspended)
 - `src/lib/members/activate-invited-memberships.ts` — hook po logowaniu
 - `src/lib/members/guards.ts` — `canInviteMembers`, `canManageMemberTarget`
 
-### 2.4 Status zaproszeń (bez migracji DB)
+### 2.4 Bulk operations — shared core (20.5C.2A → 2C)
+
+**Wszystkie bulk operacje na `/members` są LIVE.** Nie reimplementuj.
+
+| Operacja | Toolbar | Core |
+|----------|---------|------|
+| Zawieś | `Zawieś (N)` | `suspendMembershipById`, `runBulkMemberStatusMutation` |
+| Przywróć | `Przywróć (N)` | `reactivateMembershipById`, `runBulkMemberStatusMutation` |
+| Zmień rolę | `Zmień rolę (N)` | `changeMembershipRoleById`, `runBulkMemberRoleMutation` |
+| Usuń | `Usuń (N)` | `removeMembershipById`, `runBulkMemberRemoveMutation` |
+
+Pliki: `member-mutation.ts`, `member-bulk-eligibility.ts`, `bulk-member-types.ts`, `members-panel.tsx`  
+Sprint docs: [`2A`](./sprint-20.5c.2a-bulk-suspend-reactivate.md) · [`2B`](./sprint-20.5c.2b-bulk-role-change.md) · [`2C`](./sprint-20.5c.2c-bulk-remove.md)
+
+### 2.5 Status zaproszeń (bez migracji DB)
 
 | UI | Warunek |
 |----|---------|
@@ -107,7 +121,7 @@ Członkowie: wiersz w tabeli (active/suspended)
 | Anulowane | `archived` |
 | Zaakceptowane | `active` + heurystyka `updated_at > created_at + 60s` |
 
-### 2.5 RBAC (aplikacja)
+### 2.6 RBAC (aplikacja)
 
 | Rola | Invite | Manage | Lista |
 |------|--------|--------|-------|
@@ -121,28 +135,66 @@ Członkowie: wiersz w tabeli (active/suspended)
 
 ## 3. Walidacja i smoke
 
-### Walidatory
+### Walidatory (release gate Club Management — uruchom wszystkie przed release 20.5C+)
 
 ```bash
+npm run typecheck
+npm run build
 node scripts/validate-205a-members-management-foundation.mjs
 node scripts/validate-205b-invitations-and-roles.mjs
 node scripts/validate-205b3-club-management-stabilization.mjs
+node scripts/validate-205c1-members-export-multiselect.mjs
+node scripts/validate-205c2a-bulk-suspend-reactivate.mjs
+node scripts/validate-205c2b-bulk-role-change.mjs
+node scripts/validate-205c2c-bulk-remove.mjs
 ```
 
-### Smoke
+### Smoke manualne (Playwright — wymaga `devDependencies` / `playwright`)
+
+| Skrypt | Sprint | Mutuje DB? |
+|--------|--------|------------|
+| `_smoke-205c2a-manual.mjs` | Bulk suspend/reactivate | tak (status) |
+| `_smoke-205c2b-manual.mjs` | Bulk role change | tak (role) |
+| `_smoke-205c2c-manual.mjs` | Bulk remove | tak (DELETE membership) |
+
+**Runtime:** zawsze `npm run build && npm run start` — **nie** `next dev` (bulk `useActionState`).
+
+**SMOKE_BASE_URL — KRYTYCZNE dla agentów AI:**
+
+| Cel | Wartość |
+|-----|---------|
+| Lokalny smoke (nowy kod) | `http://localhost:3000` |
+| Prod smoke (post-deploy) | `https://pilka-mu.vercel.app` |
+
+`.env.local` często ustawia prod URL — bez override lokalny smoke trafia na **stary deploy** bez nowej funkcji.
 
 ```bash
-node scripts/_smoke-205b3-stabilization.mjs    # pre-release
-node scripts/_smoke-prod-205b3.mjs             # post-deploy prod
+# Przykład prod (pełna regresja po 20.5C.2C release)
+node scripts/_snapshot-piorun-members.mjs
+SMOKE_BASE_URL=https://pilka-mu.vercel.app node scripts/_smoke-205c2a-manual.mjs
+SMOKE_BASE_URL=https://pilka-mu.vercel.app node scripts/_smoke-205c2b-manual.mjs
+SMOKE_BASE_URL=https://pilka-mu.vercel.app node scripts/_smoke-205c2c-manual.mjs
+node scripts/_rollback-205c2c-memberships.mjs
+node scripts/_rollback-205c2b-roles.mjs
+node scripts/_snapshot-piorun-members.mjs
 ```
 
-### Release gate (20.5B.4)
+### Rollback Piorun (prod-linked Supabase)
 
-- `npm run typecheck` — PASS
-- `npm run build` — PASS
-- Walidatory 18.5A–20.5B.3 — PASS (brak regresji)
-- CI GitHub Actions run — PASS (`b41d049`)
-- Prod smoke — 8/8 PASS
+| Skrypt | Opis |
+|--------|------|
+| `_snapshot-piorun-members.mjs` | Snapshot `club_memberships` (COUNT + email/role) |
+| `_rollback-205c2c-memberships.mjs` | Przywraca usunięte membership po bulk remove |
+| `_rollback-205c2b-roles.mjs` | Przywraca seed role po bulk role smoke |
+
+**Klub testowy:** Piorun Wawrzeńczyce · `club_id = a1b2c3d4-e5f6-7890-abcd-ef1234567890`  
+**Owner smoke:** `wlasciciel@piorun.test` · `SETUP_TEST_PASSWORD` w `.env.local`
+
+### Release gate (20.5C.2C — ostatni PASS)
+
+- Feature: `3eac96f` · CI #27090239243 — PASS
+- Prod smoke 2A + 2B + 2C — GO
+- Post-smoke rollback — COUNT 7
 
 ---
 
@@ -165,11 +217,13 @@ Szczegóły: audyt 20.5B.2 § Backlog Cleanup.
 
 ## 5. Reguły dla agentów
 
-1. **Nie** reimplementuj 20.5A/B — moduł jest LIVE.
-2. **Nie** dodawaj bulk invite w 20.5C bez `auth-invite-guard.ts` throttling.
+1. **Nie** reimplementuj 20.5A–20.5C.2C — moduł bulk jest **kompletny** (2C = ostatnia operacja bulk).
+2. **Nie** dodawaj bulk invite bez `auth-invite-guard.ts` throttling.
 3. Komponenty klienckie **nie** importują `src/lib/members/invitations.ts` (server) — używaj `invitation-utils.ts`.
-4. Owner **nie** jest w `INVITABLE_CLUB_ROLES`.
+4. Owner **nie** jest w `INVITABLE_CLUB_ROLES` ani w bulk payload.
 5. Commit/push/deploy — tylko na prośbę użytkownika.
+6. Smoke mutacyjny na prod-linked DB → **zawsze rollback** (patrz §3).
+7. Następny sprint Club Management: **20.5C.3 CSV import** — czytaj handoff przed implementacją.
 
 ---
 
@@ -180,4 +234,7 @@ Szczegóły: audyt 20.5B.2 § Backlog Cleanup.
 | [`club-management-20.5-audit.md`](../audit/club-management-20.5-audit.md) | Baseline pre-implementation (~32%) |
 | [`club-management-post-release-20.5B.2.md`](../audit/club-management-post-release-20.5B.2.md) | Audyt post-release + backlog P0–P3 |
 | [`navigation-v2-proposal.md`](./navigation-v2-proposal.md) | Propozycja nav (Członkowie wdrożone w 20.5B.3) |
+| [`sprint-20.5c.2a-bulk-suspend-reactivate.md`](./sprint-20.5c.2a-bulk-suspend-reactivate.md) | Sprint 2A — bulk suspend/reactivate |
+| [`sprint-20.5c.2b-bulk-role-change.md`](./sprint-20.5c.2b-bulk-role-change.md) | Sprint 2B — bulk role change |
+| [`sprint-20.5c.2c-bulk-remove.md`](./sprint-20.5c.2c-bulk-remove.md) | Sprint 2C — bulk remove (ostatni bulk) |
 | [`docs/ai/05-dashboard-modules.md`](../ai/05-dashboard-modules.md) | Moduł w kontekście panelu |

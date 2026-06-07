@@ -61,5 +61,5 @@ SMOKE_BASE_URL=http://localhost:3000 node scripts/_smoke-205c2b-manual.mjs
 
 ## Out of scope (20.5C.2B)
 
-- bulk remove (→ backlog)
+- ~~bulk remove~~ → **LIVE** 20.5C.2C (`3eac96f`)
 - CSV import (→ 20.5C.3)

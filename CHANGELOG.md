@@ -28,6 +28,11 @@ All notable changes to FC OS (pilka) are documented in this file.
 - Production smoke 20.5C.2C + regression 20.5C.2A + 20.5C.2B — PASS
 - Post-smoke rollback seed Piorun — **wykonany**
 
+### Dokumentacja AI (handoff)
+
+- [`docs/architecture/sprint-20.5c.2c-bulk-remove.md`](docs/architecture/sprint-20.5c.2c-bulk-remove.md) — architektura, smoke, rollback, pułapki
+- [`docs/architecture/project-handoff-20.5-club-management.md`](docs/architecture/project-handoff-20.5-club-management.md) — pełny handoff 20.5C
+
 ---
 
 ## [post-20-5c2b-bulk-role-change] — 2026-06-07

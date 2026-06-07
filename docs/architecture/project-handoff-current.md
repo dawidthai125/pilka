@@ -17,7 +17,7 @@
 |------|---------|
 | **Production commit** | `3eac96f` — **Sprint 20.5C.2C** Bulk Remove **LIVE** |
 | **Branch** | `main` |
-| **origin/main** | `3eac96f` |
+| **origin/main** | `d35e18f` (docs release 2C) · feature `3eac96f` |
 | **Produkcja** | **PASS** · https://pilka-mu.vercel.app |
 | **Deploy** | **LIVE** (Vercel auto-deploy z `main`) |
 | **Tag checkpointu (20.3)** | `post-20-3-navigation-ux` → `af3a485` |
@@ -64,7 +64,28 @@
 
 **Walidacja 20.5C.2C:** typecheck + build + walidatory `validate-205a` … `validate-205c2c` — **PASS**  
 **Smoke prod:** `_smoke-205c2c-manual.mjs` + regression `_smoke-205c2a-manual.mjs` + `_smoke-205c2b-manual.mjs` — **PASS**  
-**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · sekcja `[post-20-5c2c-bulk-remove]`
+**Changelog:** [`CHANGELOG.md`](../../CHANGELOG.md) · sekcja `[post-20-5c2c-bulk-remove]`  
+**Sprint doc (AI):** [`sprint-20.5c.2c-bulk-remove.md`](./sprint-20.5c.2c-bulk-remove.md)
+
+### Bulk operations — stan na dziś (nie implementuj ponownie)
+
+| Operacja | Status | Commit |
+|----------|--------|--------|
+| CSV export + multi-select | LIVE | `d644b5a` |
+| Bulk suspend / reactivate | LIVE | `107f421` |
+| Bulk role change | LIVE | `8efa710` |
+| **Bulk remove** | **LIVE** | **`3eac96f`** |
+
+**Następny krok Club Management:** **20.5C.3 CSV import** — jedyny otwarty sprint z serii 20.5C bulk/export.
+
+### Pułapki runtime (dla agentów)
+
+| Problem | Rozwiązanie |
+|---------|-------------|
+| Smoke bez przycisku bulk | Ustaw `SMOKE_BASE_URL=http://localhost:3000` (nie prod z `.env.local`) |
+| Bulk actions fail w dev | Użyj `npm run start`, nie `next dev` |
+| Stary JS na :3000 | Kill port, clean build, restart `next start` |
+| Mutacja prod DB | Rollback scripts po smoke (§ smoke w [`project-handoff-20.5-club-management.md`](./project-handoff-20.5-club-management.md)) |
 
 **Kluczowe pliki Club Management:**
 
@@ -77,7 +98,11 @@
 | Invite service | `src/lib/members/invite-service.ts` |
 | Auth guard (20.5C prep) | `src/lib/members/auth-invite-guard.ts` |
 | CSV export (20.5C.1) | `src/lib/members/export-members-csv.ts` |
-| Walidatory | `scripts/validate-205a-*.mjs` … `validate-205c1-*.mjs` |
+| Bulk mutation core | `src/lib/members/member-mutation.ts` |
+| Bulk eligibility | `src/lib/members/member-bulk-eligibility.ts` |
+| Walidatory | `scripts/validate-205a-*` … `validate-205c2c-bulk-remove.mjs` |
+| Smoke bulk | `scripts/_smoke-205c2{a,b,c}-manual.mjs` |
+| Rollback Piorun | `scripts/_rollback-205c2c-memberships.mjs`, `_rollback-205c2b-roles.mjs` |
 
 **Nie rób ponownie:** ponowny audyt 20.5B.2 (zamknięty), re-implementacja 20.5A/20.5B/20.5C.1 (LIVE), deploy recovery Platform (naprawione w `eb29e7a`).
 
