@@ -4,7 +4,7 @@ export type MemberActionState = {
   inviteDelivery?: "email" | "login_required";
 };
 
-export type BulkMemberOperation = "suspend" | "reactivate" | "changeRole";
+export type BulkMemberOperation = "suspend" | "reactivate" | "changeRole" | "remove";
 
 export type BulkMemberItemStatus = "success" | "skipped" | "failed";
 
@@ -35,7 +35,9 @@ export function formatBulkMemberSummary(result: BulkMemberActionResult): string 
       ? { past: "Zawieszono", label: "zawieszenia" }
       : result.operation === "reactivate"
         ? { past: "Przywrócono", label: "przywracania" }
-        : { past: "Zmieniono rolę", label: "zmiany roli" };
+        : result.operation === "changeRole"
+          ? { past: "Zmieniono rolę", label: "zmiany roli" }
+          : { past: "Usunięto", label: "usuwania" };
 
   if (result.succeeded === result.total) {
     return `${verb.past} ${result.succeeded} ${
@@ -48,7 +50,9 @@ export function formatBulkMemberSummary(result: BulkMemberActionResult): string 
     const skipHint =
       result.operation === "changeRole"
         ? "pominięto (brak uprawnień, ta sama rola lub właściciel)."
-        : "pominięto (brak uprawnień lub niewłaściwy status).";
+        : result.operation === "remove"
+          ? "pominięto (brak uprawnień lub właściciel)."
+          : "pominięto (brak uprawnień lub niewłaściwy status).";
     parts.push(`${result.skipped} ${skipHint}`);
   }
   if (result.failed > 0) {

@@ -97,3 +97,29 @@ export function getBulkRoleChangeTargetIds(
     .filter((m) => isEligibleForBulkRoleChange(m, actorRoles))
     .map((m) => m.id);
 }
+
+export function isEligibleForBulkRemove(
+  member: ClubMemberRow,
+  actorRoles: ClubRole[],
+): boolean {
+  return (
+    !isExcludedFromBulkMemberMutation(member.role) &&
+    canManageMemberTarget(actorRoles, member.role)
+  );
+}
+
+export function countEligibleForBulkRemove(
+  members: ClubMemberRow[],
+  actorRoles: ClubRole[],
+): number {
+  return members.filter((m) => isEligibleForBulkRemove(m, actorRoles)).length;
+}
+
+export function getBulkRemoveTargetIds(
+  members: ClubMemberRow[],
+  actorRoles: ClubRole[],
+): string[] {
+  return members
+    .filter((m) => isEligibleForBulkRemove(m, actorRoles))
+    .map((m) => m.id);
+}

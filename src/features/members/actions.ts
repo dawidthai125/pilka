@@ -7,7 +7,6 @@ import { requireAccessContext } from "@/lib/auth/session";
 import {
   canInviteClubRole,
   canInviteMembers,
-  canManageMemberTarget,
 } from "@/lib/members/guards";
 import {
   deriveInvitationStatus,
@@ -32,6 +31,8 @@ import {
   parseMembershipIdsFromFormData,
   parseTargetRole,
   reactivateMembershipById,
+  removeMembershipById,
+  runBulkMemberRemoveMutation,
   runBulkMemberRoleMutation,
   runBulkMemberStatusMutation,
   suspendMembershipById,
@@ -215,33 +216,35 @@ export async function removeMember(
     return { error: "Nieprawidłowe dane członkostwa." };
   }
 
-  const membership = await loadMembership(membershipId, access.clubId);
-  if (!membership) {
-    return { error: "Nie znaleziono członkostwa." };
-  }
-
-  const currentRole = parseTargetRole(membership.role);
-  if (!currentRole) {
-    return { error: "Nieprawidłowa rola członka." };
-  }
-
-  if (!canManageMemberTarget(access.roles, currentRole)) {
-    return { error: "Nie możesz zarządzać tym członkiem." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("club_memberships")
-    .delete()
-    .eq("id", membershipId)
-    .eq("club_id", access.clubId);
-
-  if (error) {
-    return { error: "Nie udało się usunąć członka z klubu." };
+  const result = await removeMembershipById(access.roles, access.clubId, membershipId);
+  if (!result.ok) {
+    return { error: result.error };
   }
 
   revalidatePath("/members");
   return { success: "Członek został usunięty z klubu." };
+}
+
+export async function bulkRemoveMembers(
+  _prev: BulkMemberActionState,
+  formData: FormData,
+): Promise<BulkMemberActionState> {
+  const access = await requireAccessContext();
+  const denied = requireMemberManage(access);
+  if (denied) return denied;
+
+  const membershipIds = parseMembershipIdsFromFormData(formData);
+  const result = await runBulkMemberRemoveMutation(
+    access.roles,
+    access.clubId,
+    membershipIds,
+  );
+
+  if (result.succeeded > 0) {
+    revalidatePath("/members");
+  }
+
+  return { result };
 }
 
 export async function inviteMember(

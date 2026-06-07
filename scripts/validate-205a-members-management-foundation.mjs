@@ -47,7 +47,10 @@ function testActions() {
   assert(actions.includes("export async function suspendMember"), "suspendMember");
   assert(actions.includes("export async function reactivateMember"), "reactivateMember");
   assert(actions.includes("export async function removeMember"), "removeMember");
-  assert(actions.includes("canManageMemberTarget"), "owner protection in actions");
+  assert(
+    actions.includes("canManageMemberTarget") || mutation.includes("canManageMemberTarget"),
+    "owner protection in actions or mutation core",
+  );
   assert(
     actions.includes("canAssignClubRole") || mutation.includes("canAssignClubRole"),
     "role assignment guard",

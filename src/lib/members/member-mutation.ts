@@ -225,6 +225,59 @@ async function applyRoleUpdate(
   return { ok: true };
 }
 
+function evaluateRemoveEligibility(
+  membership: MembershipRow | undefined,
+  actorRoles: ClubRole[],
+): SingleMutationResult | { ok: true; membership: MembershipRow } {
+  if (!membership) {
+    return { ok: false, error: "Nie znaleziono członkostwa.", itemStatus: "failed" };
+  }
+
+  const currentRole = parseTargetRole(membership.role);
+  if (!currentRole) {
+    return { ok: false, error: "Nieprawidłowa rola członka.", itemStatus: "failed" };
+  }
+
+  if (!canManageMemberTarget(actorRoles, currentRole)) {
+    return { ok: false, error: "Nie możesz zarządzać tym członkiem.", itemStatus: "skipped" };
+  }
+
+  return { ok: true, membership };
+}
+
+async function applyMembershipDelete(
+  supabase: SupabaseClient,
+  membershipId: string,
+  clubId: string,
+): Promise<SingleMutationResult> {
+  const { error } = await supabase
+    .from("club_memberships")
+    .delete()
+    .eq("id", membershipId)
+    .eq("club_id", clubId);
+
+  if (error) {
+    return { ok: false, error: "Nie udało się usunąć członka z klubu.", itemStatus: "failed" };
+  }
+
+  return { ok: true };
+}
+
+export async function removeMembershipById(
+  actorRoles: ClubRole[],
+  clubId: string,
+  membershipId: string,
+): Promise<SingleMutationResult> {
+  const membership = await loadMembership(membershipId, clubId);
+  const eligibility = evaluateRemoveEligibility(membership ?? undefined, actorRoles);
+  if (!eligibility.ok) {
+    return eligibility;
+  }
+
+  const supabase = await createClient();
+  return applyMembershipDelete(supabase, membershipId, clubId);
+}
+
 export async function changeMembershipRoleById(
   actorRoles: ClubRole[],
   clubId: string,
@@ -453,6 +506,77 @@ export async function runBulkMemberRoleMutation(
   return {
     operation,
     targetRole,
+    total: ids.length,
+    ...summary,
+    items,
+  };
+}
+
+export async function runBulkMemberRemoveMutation(
+  actorRoles: ClubRole[],
+  clubId: string,
+  membershipIds: string[],
+): Promise<BulkMemberActionResult> {
+  const operation: BulkMemberOperation = "remove";
+  const ids = normalizeMembershipIds(membershipIds);
+  const batchError = assertBulkMembershipIds(ids);
+  if (batchError) {
+    return {
+      operation,
+      total: ids.length,
+      succeeded: 0,
+      skipped: 0,
+      failed: ids.length,
+      items: ids.map((membershipId) => ({
+        membershipId,
+        status: "failed",
+        reason: batchError,
+      })),
+    };
+  }
+
+  const membershipMap = await loadMemberships(ids, clubId);
+  const supabase = await createClient();
+  const items: BulkMemberActionItem[] = [];
+
+  for (const membershipId of ids) {
+    const membership = membershipMap.get(membershipId);
+    const bulkTargetRole = membership ? parseTargetRole(membership.role) : null;
+    if (bulkTargetRole && isExcludedFromBulkMemberMutation(bulkTargetRole)) {
+      items.push({
+        membershipId,
+        status: "skipped",
+        reason: OWNER_BULK_EXCLUSION_MESSAGE,
+      });
+      continue;
+    }
+
+    const eligibility = evaluateRemoveEligibility(membership, actorRoles);
+    if (!eligibility.ok) {
+      items.push({
+        membershipId,
+        status: eligibility.itemStatus,
+        reason: eligibility.error,
+      });
+      continue;
+    }
+
+    const result = await applyMembershipDelete(supabase, membershipId, clubId);
+    if (!result.ok) {
+      items.push({
+        membershipId,
+        status: result.itemStatus,
+        reason: result.error,
+      });
+      continue;
+    }
+
+    items.push({ membershipId, status: "success" });
+  }
+
+  const summary = summarizeBulkItems(items);
+  return {
+    operation,
     total: ids.length,
     ...summary,
     items,

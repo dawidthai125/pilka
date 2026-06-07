@@ -52,7 +52,6 @@ function testBulkActions() {
   assert(actions.includes("export async function bulkReactivateMembers"), "bulkReactivateMembers");
   assert(actions.includes("suspendMembershipById"), "single suspend uses core");
   assert(actions.includes("reactivateMembershipById"), "single reactivate uses core");
-  assert(!actions.includes("bulkRemoveMembers"), "no bulk remove in 2A");
   console.log("OK bulk server actions");
 }
 
@@ -73,7 +72,6 @@ function testMembersPanelBulkUx() {
     panel.includes("Właściciel wykluczony z operacji zbiorczych"),
     "owner exclusion UI hint",
   );
-  assert(!panel.includes("bulkRemoveMembers"), "no bulk remove UI");
   assert(!panel.includes("@/lib/members/invitations"), "client/server split");
   console.log("OK members panel bulk UX");
 }

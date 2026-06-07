@@ -19,6 +19,7 @@ import {
 import {
   bulkChangeMemberRoles,
   bulkReactivateMembers,
+  bulkRemoveMembers,
   bulkSuspendMembers,
   changeMemberRole,
   reactivateMember,
@@ -33,10 +34,12 @@ import {
 } from "@/lib/members/bulk-member-types";
 import {
   countEligibleForBulkReactivate,
+  countEligibleForBulkRemove,
   countEligibleForBulkRoleChange,
   countEligibleForBulkSuspend,
   countOwnersInSelection,
   getBulkReactivateTargetIds,
+  getBulkRemoveTargetIds,
   getBulkRoleChangeTargetIds,
   getBulkSuspendTargetIds,
 } from "@/lib/members/member-bulk-eligibility";
@@ -152,6 +155,8 @@ function BulkMemberActionDialog({
   onClose,
   onComplete,
   extraFields,
+  tone = "default",
+  requireIrreversibleAck = false,
 }: {
   open: boolean;
   title: string;
@@ -165,8 +170,17 @@ function BulkMemberActionDialog({
   onClose: () => void;
   onComplete: (result: BulkMemberActionResult) => void;
   extraFields?: ReactNode;
+  tone?: "default" | "danger";
+  requireIrreversibleAck?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, {} as BulkMemberActionState);
+  const [irreversibleAck, setIrreversibleAck] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setIrreversibleAck(false);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (state.error) return;
@@ -178,14 +192,26 @@ function BulkMemberActionDialog({
 
   if (!open) return null;
 
+  const submitDisabled = pending || (requireIrreversibleAck && !irreversibleAck);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div
-        className="max-w-md rounded-xl border border-white/15 bg-[#0a1410] p-5 text-sm text-white shadow-xl"
+        className={cn(
+          "max-w-md rounded-xl border p-5 text-sm text-white shadow-xl",
+          tone === "danger" ? "border-red-500/40 bg-[#1a0a0a]" : "border-white/15 bg-[#0a1410]",
+        )}
         role="dialog"
       >
-        <h3 className="text-base font-semibold">{title}</h3>
-        <p className="mt-2 text-white/65">{description}</p>
+        <h3
+          className={cn(
+            "text-base font-semibold",
+            tone === "danger" ? "text-red-200" : undefined,
+          )}
+        >
+          {title}
+        </h3>
+        <p className="mt-2 whitespace-pre-line text-white/65">{description}</p>
         <form action={formAction} className="mt-4 space-y-3">
           <input
             type="hidden"
@@ -193,6 +219,17 @@ function BulkMemberActionDialog({
             value={JSON.stringify(membershipIds)}
           />
           {extraFields}
+          {requireIrreversibleAck ? (
+            <label className="flex cursor-pointer items-start gap-2 text-white/80">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={irreversibleAck}
+                onChange={(event) => setIrreversibleAck(event.target.checked)}
+              />
+              <span>Rozumiem, że operacja jest nieodwracalna</span>
+            </label>
+          ) : null}
           {state.error ? <p className="text-red-300">{state.error}</p> : null}
           <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button
@@ -204,7 +241,15 @@ function BulkMemberActionDialog({
             >
               Anuluj
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button
+              type="submit"
+              disabled={submitDisabled}
+              className={
+                tone === "danger"
+                  ? "bg-red-700 text-white hover:bg-red-600 disabled:opacity-50"
+                  : undefined
+              }
+            >
               {pending ? "Zapisywanie…" : confirmLabel}
             </Button>
           </div>
@@ -387,7 +432,9 @@ export function MembersPanel({
     actorRoles.includes("owner") ? true : role !== "owner",
   );
 
-  const [bulkDialog, setBulkDialog] = useState<"suspend" | "reactivate" | "role" | null>(null);
+  const [bulkDialog, setBulkDialog] = useState<
+    "suspend" | "reactivate" | "role" | "remove" | null
+  >(null);
   const [bulkRoleTarget, setBulkRoleTarget] = useState<ClubRole>(
     () => assignableRoles[0] ?? "coach",
   );
@@ -407,6 +454,7 @@ export function MembersPanel({
   const suspendEligibleCount = countEligibleForBulkSuspend(selectedMembers, actorRoles);
   const reactivateEligibleCount = countEligibleForBulkReactivate(selectedMembers, actorRoles);
   const roleChangeEligibleCount = countEligibleForBulkRoleChange(selectedMembers, actorRoles);
+  const removeEligibleCount = countEligibleForBulkRemove(selectedMembers, actorRoles);
   const ownersInSelection = countOwnersInSelection(selectedMembers);
   const bulkTargetIds = useMemo(() => {
     if (bulkDialog === "suspend") {
@@ -417,6 +465,9 @@ export function MembersPanel({
     }
     if (bulkDialog === "role") {
       return getBulkRoleChangeTargetIds(selectedMembers, actorRoles);
+    }
+    if (bulkDialog === "remove") {
+      return getBulkRemoveTargetIds(selectedMembers, actorRoles);
     }
     return [];
   }, [bulkDialog, selectedMembers, actorRoles]);
@@ -553,6 +604,16 @@ export function MembersPanel({
                   >
                     Zmień rolę{roleChangeEligibleCount > 0 ? ` (${roleChangeEligibleCount})` : ""}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={removeEligibleCount === 0}
+                    onClick={() => setBulkDialog("remove")}
+                    className="border-red-500/40 text-red-800 hover:bg-red-500/10 dark:text-red-200"
+                  >
+                    Usuń{removeEligibleCount > 0 ? ` (${removeEligibleCount})` : ""}
+                  </Button>
                 </div>
               ) : null}
             </div>
@@ -586,6 +647,25 @@ export function MembersPanel({
             action={bulkReactivateMembers}
             onClose={() => setBulkDialog(null)}
             onComplete={handleBulkComplete}
+          />
+
+          <BulkMemberActionDialog
+            open={bulkDialog === "remove"}
+            title="UWAGA"
+            description={`Usuniesz ${removeEligibleCount} ${
+              removeEligibleCount === 1 ? "członka" : "członków"
+            } z klubu.\n\nProfil użytkownika pozostanie w systemie.\n\nTej operacji nie można cofnąć.`}
+            confirmLabel={
+              removeEligibleCount === 1
+                ? "Usuń 1 członka"
+                : `Usuń ${removeEligibleCount} członków`
+            }
+            membershipIds={bulkTargetIds}
+            action={bulkRemoveMembers}
+            onClose={() => setBulkDialog(null)}
+            onComplete={handleBulkComplete}
+            tone="danger"
+            requireIrreversibleAck
           />
 
           <BulkMemberActionDialog
