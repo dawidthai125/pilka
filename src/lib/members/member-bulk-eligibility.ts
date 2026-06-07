@@ -5,8 +5,13 @@ import type { ClubRole } from "@/types/rbac";
 export const OWNER_BULK_EXCLUSION_MESSAGE =
   "Właściciel klubu jest wykluczony z operacji zbiorczych.";
 
-export function isExcludedFromBulkMemberStatusChange(targetRole: ClubRole): boolean {
+export function isExcludedFromBulkMemberMutation(targetRole: ClubRole): boolean {
   return targetRole === "owner";
+}
+
+/** @deprecated Use isExcludedFromBulkMemberMutation */
+export function isExcludedFromBulkMemberStatusChange(targetRole: ClubRole): boolean {
+  return isExcludedFromBulkMemberMutation(targetRole);
 }
 
 export function isEligibleForBulkSuspend(
@@ -14,7 +19,7 @@ export function isEligibleForBulkSuspend(
   actorRoles: ClubRole[],
 ): boolean {
   return (
-    !isExcludedFromBulkMemberStatusChange(member.role) &&
+    !isExcludedFromBulkMemberMutation(member.role) &&
     canManageMemberTarget(actorRoles, member.role) &&
     member.status === "active"
   );
@@ -25,9 +30,19 @@ export function isEligibleForBulkReactivate(
   actorRoles: ClubRole[],
 ): boolean {
   return (
-    !isExcludedFromBulkMemberStatusChange(member.role) &&
+    !isExcludedFromBulkMemberMutation(member.role) &&
     canManageMemberTarget(actorRoles, member.role) &&
     member.status === "suspended"
+  );
+}
+
+export function isEligibleForBulkRoleChange(
+  member: ClubMemberRow,
+  actorRoles: ClubRole[],
+): boolean {
+  return (
+    !isExcludedFromBulkMemberMutation(member.role) &&
+    canManageMemberTarget(actorRoles, member.role)
   );
 }
 
@@ -64,5 +79,21 @@ export function getBulkReactivateTargetIds(
 ): string[] {
   return members
     .filter((m) => isEligibleForBulkReactivate(m, actorRoles))
+    .map((m) => m.id);
+}
+
+export function countEligibleForBulkRoleChange(
+  members: ClubMemberRow[],
+  actorRoles: ClubRole[],
+): number {
+  return members.filter((m) => isEligibleForBulkRoleChange(m, actorRoles)).length;
+}
+
+export function getBulkRoleChangeTargetIds(
+  members: ClubMemberRow[],
+  actorRoles: ClubRole[],
+): string[] {
+  return members
+    .filter((m) => isEligibleForBulkRoleChange(m, actorRoles))
     .map((m) => m.id);
 }

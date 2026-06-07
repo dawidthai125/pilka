@@ -26,9 +26,17 @@ function testMutationCore() {
   assert(core.includes("reactivateMembershipById"), "reactivateMembershipById");
   assert(core.includes("runBulkMemberStatusMutation"), "runBulkMemberStatusMutation");
   assert(core.includes("canManageMemberTarget"), "RBAC guard in core");
-  assert(core.includes("isExcludedFromBulkMemberStatusChange"), "owner guard in bulk core");
+  assert(
+    core.includes("isExcludedFromBulkMemberMutation") ||
+      core.includes("isExcludedFromBulkMemberStatusChange"),
+    "owner guard in bulk core",
+  );
   assert(core.includes("OWNER_BULK_EXCLUSION_MESSAGE"), "owner exclusion message in core");
-  assert(eligibility.includes("isExcludedFromBulkMemberStatusChange"), "owner exclusion helper");
+  assert(
+    eligibility.includes("isExcludedFromBulkMemberMutation") ||
+      eligibility.includes("isExcludedFromBulkMemberStatusChange"),
+    "owner exclusion helper",
+  );
   assert(eligibility.includes('targetRole === "owner"'), "owner role excluded");
   assert(eligibility.includes("getBulkSuspendTargetIds"), "bulk suspend target ids");
   assert(eligibility.includes("getBulkReactivateTargetIds"), "bulk reactivate target ids");
@@ -45,7 +53,6 @@ function testBulkActions() {
   assert(actions.includes("suspendMembershipById"), "single suspend uses core");
   assert(actions.includes("reactivateMembershipById"), "single reactivate uses core");
   assert(!actions.includes("bulkRemoveMembers"), "no bulk remove in 2A");
-  assert(!actions.includes("bulkChangeMemberRole"), "no bulk role change in 2A");
   console.log("OK bulk server actions");
 }
 

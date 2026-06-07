@@ -4,7 +4,7 @@ export type MemberActionState = {
   inviteDelivery?: "email" | "login_required";
 };
 
-export type BulkMemberOperation = "suspend" | "reactivate";
+export type BulkMemberOperation = "suspend" | "reactivate" | "changeRole";
 
 export type BulkMemberItemStatus = "success" | "skipped" | "failed";
 
@@ -16,6 +16,7 @@ export type BulkMemberActionItem = {
 
 export type BulkMemberActionResult = {
   operation: BulkMemberOperation;
+  targetRole?: string;
   total: number;
   succeeded: number;
   skipped: number;
@@ -32,7 +33,9 @@ export function formatBulkMemberSummary(result: BulkMemberActionResult): string 
   const verb =
     result.operation === "suspend"
       ? { past: "Zawieszono", label: "zawieszenia" }
-      : { past: "Przywrócono", label: "przywracania" };
+      : result.operation === "reactivate"
+        ? { past: "Przywrócono", label: "przywracania" }
+        : { past: "Zmieniono rolę", label: "zmiany roli" };
 
   if (result.succeeded === result.total) {
     return `${verb.past} ${result.succeeded} ${
@@ -42,9 +45,11 @@ export function formatBulkMemberSummary(result: BulkMemberActionResult): string 
 
   const parts = [`${verb.past} ${result.succeeded} z ${result.total} członków.`];
   if (result.skipped > 0) {
-    parts.push(
-      `${result.skipped} pominięto (brak uprawnień lub niewłaściwy status).`,
-    );
+    const skipHint =
+      result.operation === "changeRole"
+        ? "pominięto (brak uprawnień, ta sama rola lub właściciel)."
+        : "pominięto (brak uprawnień lub niewłaściwy status).";
+    parts.push(`${result.skipped} ${skipHint}`);
   }
   if (result.failed > 0) {
     parts.push(`${result.failed} nie udało się wykonać (${verb.label}).`);

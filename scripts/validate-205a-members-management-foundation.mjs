@@ -41,13 +41,21 @@ function testMembersPage() {
 
 function testActions() {
   const actions = read("src/features/members/actions.ts");
+  const mutation = read("src/lib/members/member-mutation.ts");
 
   assert(actions.includes("export async function changeMemberRole"), "changeMemberRole");
   assert(actions.includes("export async function suspendMember"), "suspendMember");
   assert(actions.includes("export async function reactivateMember"), "reactivateMember");
   assert(actions.includes("export async function removeMember"), "removeMember");
   assert(actions.includes("canManageMemberTarget"), "owner protection in actions");
-  assert(actions.includes("canAssignClubRole"), "role assignment guard");
+  assert(
+    actions.includes("canAssignClubRole") || mutation.includes("canAssignClubRole"),
+    "role assignment guard",
+  );
+  assert(
+    actions.includes("changeMembershipRoleById") || actions.includes("canAssignClubRole"),
+    "changeMemberRole mutation path",
+  );
   assert(actions.includes('revalidatePath("/members")'), "revalidate members path");
   console.log("OK server actions");
 }

@@ -17,6 +17,7 @@ import {
   ROLE_LABELS,
 } from "@/config/permissions";
 import {
+  bulkChangeMemberRoles,
   bulkReactivateMembers,
   bulkSuspendMembers,
   changeMemberRole,
@@ -32,9 +33,11 @@ import {
 } from "@/lib/members/bulk-member-types";
 import {
   countEligibleForBulkReactivate,
+  countEligibleForBulkRoleChange,
   countEligibleForBulkSuspend,
   countOwnersInSelection,
   getBulkReactivateTargetIds,
+  getBulkRoleChangeTargetIds,
   getBulkSuspendTargetIds,
 } from "@/lib/members/member-bulk-eligibility";
 import { canManageMemberTarget } from "@/lib/members/guards";
@@ -148,6 +151,7 @@ function BulkMemberActionDialog({
   action,
   onClose,
   onComplete,
+  extraFields,
 }: {
   open: boolean;
   title: string;
@@ -160,6 +164,7 @@ function BulkMemberActionDialog({
   ) => Promise<BulkMemberActionState>;
   onClose: () => void;
   onComplete: (result: BulkMemberActionResult) => void;
+  extraFields?: ReactNode;
 }) {
   const [state, formAction, pending] = useActionState(action, {} as BulkMemberActionState);
 
@@ -187,6 +192,7 @@ function BulkMemberActionDialog({
             name="membershipIds"
             value={JSON.stringify(membershipIds)}
           />
+          {extraFields}
           {state.error ? <p className="text-red-300">{state.error}</p> : null}
           <div className="flex flex-wrap justify-end gap-2 pt-2">
             <Button
@@ -372,16 +378,19 @@ export function MembersPanel({
   actorRoles: ClubRole[];
   canManage: boolean;
 }) {
-  const assignableRoles = CLUB_ROLES.filter((role) =>
-    actorRoles.includes("owner") ? true : role !== "owner",
-  );
-
   const activeCount = members.filter((m) => m.status === "active").length;
   const invitedCount = members.filter((m) => m.status === "invited").length;
   const onlyInvited = members.length > 0 && activeCount === 0 && invitedCount === members.length;
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
-  const [bulkDialog, setBulkDialog] = useState<"suspend" | "reactivate" | null>(null);
+  const assignableRoles = CLUB_ROLES.filter((role) =>
+    actorRoles.includes("owner") ? true : role !== "owner",
+  );
+
+  const [bulkDialog, setBulkDialog] = useState<"suspend" | "reactivate" | "role" | null>(null);
+  const [bulkRoleTarget, setBulkRoleTarget] = useState<ClubRole>(
+    () => assignableRoles[0] ?? "coach",
+  );
   const [bulkResult, setBulkResult] = useState<BulkMemberActionResult | null>(null);
   const selectAllRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -397,6 +406,7 @@ export function MembersPanel({
   );
   const suspendEligibleCount = countEligibleForBulkSuspend(selectedMembers, actorRoles);
   const reactivateEligibleCount = countEligibleForBulkReactivate(selectedMembers, actorRoles);
+  const roleChangeEligibleCount = countEligibleForBulkRoleChange(selectedMembers, actorRoles);
   const ownersInSelection = countOwnersInSelection(selectedMembers);
   const bulkTargetIds = useMemo(() => {
     if (bulkDialog === "suspend") {
@@ -404,6 +414,9 @@ export function MembersPanel({
     }
     if (bulkDialog === "reactivate") {
       return getBulkReactivateTargetIds(selectedMembers, actorRoles);
+    }
+    if (bulkDialog === "role") {
+      return getBulkRoleChangeTargetIds(selectedMembers, actorRoles);
     }
     return [];
   }, [bulkDialog, selectedMembers, actorRoles]);
@@ -528,6 +541,18 @@ export function MembersPanel({
                   >
                     Przywróć{reactivateEligibleCount > 0 ? ` (${reactivateEligibleCount})` : ""}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={roleChangeEligibleCount === 0}
+                    onClick={() => {
+                      setBulkRoleTarget(assignableRoles[0] ?? "coach");
+                      setBulkDialog("role");
+                    }}
+                  >
+                    Zmień rolę{roleChangeEligibleCount > 0 ? ` (${roleChangeEligibleCount})` : ""}
+                  </Button>
                 </div>
               ) : null}
             </div>
@@ -561,6 +586,39 @@ export function MembersPanel({
             action={bulkReactivateMembers}
             onClose={() => setBulkDialog(null)}
             onComplete={handleBulkComplete}
+          />
+
+          <BulkMemberActionDialog
+            open={bulkDialog === "role"}
+            title="Zmień rolę zaznaczonych członków"
+            description={`Czy na pewno chcesz zmienić rolę ${roleChangeEligibleCount} ${
+              roleChangeEligibleCount === 1 ? "członka" : "członków"
+            }?`}
+            confirmLabel={`Zmień rolę dla ${roleChangeEligibleCount} ${
+              roleChangeEligibleCount === 1 ? "członka" : "członków"
+            }`}
+            membershipIds={bulkTargetIds}
+            action={bulkChangeMemberRoles}
+            onClose={() => setBulkDialog(null)}
+            onComplete={handleBulkComplete}
+            extraFields={
+              <label className="block space-y-1.5">
+                <span className="text-white/80">Nowa rola:</span>
+                <select
+                  name="role"
+                  value={bulkRoleTarget}
+                  onChange={(event) => setBulkRoleTarget(event.target.value as ClubRole)}
+                  className="border-input min-h-[44px] w-full rounded-md border bg-background px-3 text-foreground"
+                  required
+                >
+                  {assignableRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {ROLE_LABELS[role]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            }
           />
 
           <div className="overflow-x-auto rounded-lg border">

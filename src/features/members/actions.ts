@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { canManageMembers } from "@/config/permissions";
 import { requireAccessContext } from "@/lib/auth/session";
 import {
-  canAssignClubRole,
   canInviteClubRole,
   canInviteMembers,
   canManageMemberTarget,
@@ -28,16 +27,17 @@ import type {
   MemberActionState,
 } from "@/lib/members/bulk-member-types";
 import {
+  changeMembershipRoleById,
   loadMembership,
   parseMembershipIdsFromFormData,
   parseTargetRole,
   reactivateMembershipById,
+  runBulkMemberRoleMutation,
   runBulkMemberStatusMutation,
   suspendMembershipById,
 } from "@/lib/members/member-mutation";
 import { createClient } from "@/lib/supabase/server";
 import { parseClubRole } from "@/lib/validators";
-import type { ClubRole } from "@/types/rbac";
 
 function requireMemberManage(access: Awaited<ReturnType<typeof requireAccessContext>>) {
   if (!canManageMembers(access.roles)) {
@@ -69,33 +69,14 @@ export async function changeMemberRole(
     return { error: "Nieprawidłowe dane członkostwa lub roli." };
   }
 
-  const membership = await loadMembership(membershipId, access.clubId);
-  if (!membership) {
-    return { error: "Nie znaleziono członkostwa." };
-  }
-
-  const currentRole = parseTargetRole(membership.role);
-  if (!currentRole) {
-    return { error: "Nieprawidłowa rola członka." };
-  }
-
-  if (!canManageMemberTarget(access.roles, currentRole)) {
-    return { error: "Nie możesz zarządzać tym członkiem." };
-  }
-
-  if (!canAssignClubRole(access.roles, parsedRole.data)) {
-    return { error: "Nie możesz przypisać tej roli." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("club_memberships")
-    .update({ role: parsedRole.data })
-    .eq("id", membershipId)
-    .eq("club_id", access.clubId);
-
-  if (error) {
-    return { error: "Nie udało się zmienić roli członka." };
+  const result = await changeMembershipRoleById(
+    access.roles,
+    access.clubId,
+    membershipId,
+    parsedRole.data,
+  );
+  if (!result.ok) {
+    return { error: result.error };
   }
 
   revalidatePath("/members");
@@ -183,6 +164,35 @@ export async function bulkReactivateMembers(
     access.roles,
     access.clubId,
     membershipIds,
+  );
+
+  if (result.succeeded > 0) {
+    revalidatePath("/members");
+  }
+
+  return { result };
+}
+
+export async function bulkChangeMemberRoles(
+  _prev: BulkMemberActionState,
+  formData: FormData,
+): Promise<BulkMemberActionState> {
+  const access = await requireAccessContext();
+  const denied = requireMemberManage(access);
+  if (denied) return denied;
+
+  const roleRaw = String(formData.get("role") ?? "").trim();
+  const parsedRole = parseClubRole(roleRaw);
+  if (!parsedRole.success) {
+    return { error: "Nieprawidłowa rola docelowa." };
+  }
+
+  const membershipIds = parseMembershipIdsFromFormData(formData);
+  const result = await runBulkMemberRoleMutation(
+    access.roles,
+    access.clubId,
+    membershipIds,
+    parsedRole.data,
   );
 
   if (result.succeeded > 0) {
